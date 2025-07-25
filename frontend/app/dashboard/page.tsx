@@ -18,7 +18,9 @@ import {
   RefreshCw,
   Loader2,
   AlertCircle,
-  Target
+  Target,
+  Network,
+  Flame
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
