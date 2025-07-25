@@ -1,8 +1,25 @@
-# ATOM - Arbitrage Trustless On-Chain Module
+# 🚀 ATOM - Arbitrage Trustless On-Chain Module
 
-🚀 **Zero-capital DeFi arbitrage with flash loans + AI agents**
+**Enterprise DeFi Arbitrage & Trading Platform - MONOREPO ROOT**
 
 ATOM is a comprehensive DeFi arbitrage platform that combines flash loans with AI-powered agents to execute risk-free arbitrage trades across multiple blockchains and DEXs.
+
+## 📁 **PROJECT STRUCTURE (REORGANIZED)**
+
+```
+/atom-app (NEW MONOREPO ROOT)
+├── backend/           # FastAPI Python backend with REAL blockchain integration
+├── frontend/          # Next.js React frontend with Web3 wallet integration
+├── contracts/         # YOUR Solidity smart contracts (moved from "contracts from last project")
+├── docs/             # All documentation consolidated
+│   ├── auth/         # Authentication documentation
+│   ├── ox/           # 0x Protocol integration docs
+│   ├── arb-bot/      # Arbitrage bot documentation
+│   ├── complete_breakdown.md
+│   └── security_verification.md
+├── docker-compose.yml # Full stack deployment
+└── README.md         # This file
+```
 
 ## 🌟 Features
 

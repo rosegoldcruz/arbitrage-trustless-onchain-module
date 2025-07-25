@@ -17,10 +17,12 @@ import {
   Clock,
   RefreshCw,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Target
 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import Link from "next/link";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { AgentPanel } from "@/components/dashboard/AgentPanel";
 import { ProfitChart } from "@/components/dashboard/ProfitChart";
@@ -200,8 +202,45 @@ export default function Dashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
+                {/* 🚀 AEON NETWORK - THE FULL SYSTEM */}
+                <div className="mb-6 space-y-4">
+                  <Link href="/aeon">
+                    <Button
+                      size="lg"
+                      className="w-full bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 hover:from-blue-600 hover:via-purple-600 hover:to-green-600 text-white font-bold text-xl py-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-white/20"
+                    >
+                      <Network className="h-8 w-8 mr-4" />
+                      🧠 AEON NETWORK - ADVANCED, EFFICIENT, OPTIMIZED
+                      <Flame className="h-8 w-8 ml-4" />
+                    </Button>
+                  </Link>
+                  <p className="text-center text-gray-300 text-sm">
+                    🧠 AEON (On-chain) • 🔁 ATOM/ADOM (Hybrid) • ⚙️ SPECTRE (Analytics)
+                  </p>
+                  <p className="text-center text-gray-400 text-xs">
+                    Three Parallel Ecosystems • Antifragile Intelligence • Cross-Validation
+                  </p>
+                </div>
+
+                {/* 🚀 ARBITRAGE ENGINE - SINGLE SYSTEM */}
+                <div className="mb-6">
+                  <Link href="/arbitrage">
+                    <Button
+                      size="lg"
+                      className="w-full bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 hover:from-green-600 hover:via-blue-600 hover:to-purple-700 text-white font-bold text-lg py-4 shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      <Target className="h-6 w-6 mr-3" />
+                      🚀 ARBITRAGE ENGINE - $150K DAILY TARGET
+                      <DollarSign className="h-6 w-6 ml-3" />
+                    </Button>
+                  </Link>
+                  <p className="text-center text-gray-400 text-sm mt-2">
+                    $10M Flash Loans • 1% Profit • Real-time Opportunities
+                  </p>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Button 
+                  <Button
                     className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                     disabled={!isConnected}
                   >
