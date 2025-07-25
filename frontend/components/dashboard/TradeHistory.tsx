@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { History, ExternalLink, Filter } from "lucide-react";
+import { History, ExternalLink } from "lucide-react";
 
 interface Trade {
   id: string;
@@ -20,7 +20,7 @@ interface Trade {
 }
 
 export function TradeHistory() {
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage] = useState(1);
   const [filter, setFilter] = useState<"all" | "success" | "failed">("all");
   
   const trades: Trade[] = [
