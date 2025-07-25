@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { ethers } from 'ethers';
+import { ethers, formatEther, parseEther } from 'ethers';
 import { useWeb3Auth } from '@/components/web3';
 import { toast } from 'sonner';
 
@@ -173,9 +173,9 @@ export function useArbitrageContracts() {
       setStats({
         totalExecutions: totalExecutions.toNumber(),
         successfulExecutions: successfulExecutions.toNumber(),
-        totalProfitUSD: parseFloat(ethers.utils.formatEther(totalProfitUSD)),
+        totalProfitUSD: parseFloat(formatEther(totalProfitUSD)),
         successRate,
-        dailyProfit: parseFloat(ethers.utils.formatEther(totalProfitUSD)) // Simplified
+        dailyProfit: parseFloat(formatEther(totalProfitUSD)) // Simplified
       });
     } catch (err) {
       console.error('Failed to fetch stats:', err);
@@ -195,7 +195,7 @@ export function useArbitrageContracts() {
         tokenB: alert.tokenB,
         tokenC: alert.tokenA, // Simplified for triangular
         spreadBps: alert.spreadBps.toNumber() / 100, // Convert to percentage
-        estimatedProfit: parseFloat(ethers.utils.formatEther(alert.estimatedProfit)),
+        estimatedProfit: parseFloat(formatEther(alert.estimatedProfit)),
         confidence: 85 + Math.random() * 15, // Mock confidence
         dexType: alert.dexType,
         timestamp: alert.timestamp.toNumber(),
@@ -229,7 +229,7 @@ export function useArbitrageContracts() {
         poolAB: '0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E', // Mock pool addresses
         poolBC: '0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0',
         poolCA: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
-        amountIn: ethers.utils.parseEther(amount),
+        amountIn: parseEther(amount),
         minProfitBps: 23, // 0.23%
         useBalancer: false,
         useCurve: true
@@ -269,7 +269,7 @@ export function useArbitrageContracts() {
           const [price, isStale] = await contracts.priceMonitor!.getChainlinkPrice(token);
           return {
             token,
-            chainlinkPrice: parseFloat(ethers.utils.formatEther(price)),
+            chainlinkPrice: parseFloat(formatEther(price)),
             externalPrice: 0, // Would be fetched from external API
             impliedPrice: 0, // Would be calculated from DEX
             spreadBps: 0,
@@ -311,7 +311,7 @@ export function useArbitrageContracts() {
     if (!contracts.triangularArbitrage) return;
 
     const handleArbitrageExecuted = (tokenA: string, tokenB: string, tokenC: string, amountIn: ethers.BigNumber, profit: ethers.BigNumber, gasUsed: ethers.BigNumber, successful: boolean) => {
-      const profitUSD = parseFloat(ethers.utils.formatEther(profit));
+      const profitUSD = parseFloat(formatEther(profit));
       
       if (successful) {
         toast.success(`🎉 Arbitrage completed! Profit: $${profitUSD.toFixed(2)}`);
