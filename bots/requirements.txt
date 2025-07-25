@@ -1,0 +1,50 @@
+# AEON Network Bot Dependencies
+# For ATOM/ADOM Hybrid Bot and SPECTRE Analytics Engine
+
+# Web3 and blockchain interaction
+web3==6.11.3
+eth-account==0.9.0
+eth-utils==2.3.1
+
+# HTTP requests and async
+aiohttp==3.9.1
+requests==2.31.0
+
+# Data analysis and manipulation
+pandas==2.1.4
+numpy==1.25.2
+
+# Environment and configuration
+python-dotenv==1.0.0
+
+# Logging and utilities
+colorlog==6.8.0
+
+# Math and decimal precision
+decimal
+
+# JSON handling (built-in, but listed for clarity)
+# json
+
+# Time and datetime (built-in)
+# time
+# datetime
+
+# Async support (built-in in Python 3.7+)
+# asyncio
+
+# Optional: For advanced analytics
+scipy==1.11.4
+matplotlib==3.8.2
+seaborn==0.13.0
+
+# Optional: For machine learning (if needed later)
+# scikit-learn==1.3.2
+
+# Optional: For database storage (if needed later)
+# sqlalchemy==2.0.23
+# psycopg2-binary==2.9.9
+
+# Development and testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
