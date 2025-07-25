@@ -39,6 +39,9 @@ interface ArbitrageOpportunity {
   confidence: number;
   timeRemaining: number;
   status: 'active' | 'executing' | 'completed' | 'expired';
+  tokenA?: string;
+  tokenB?: string;
+  tokenC?: string;
 }
 
 interface DailyStats {
@@ -110,7 +113,10 @@ export default function ArbitragePage() {
         amount: 1000000 + Math.random() * 9000000,
         confidence: opp.confidence,
         timeRemaining: 30 + Math.random() * 270,
-        status: opp.isActive ? 'active' as const : 'expired' as const
+        status: opp.isActive ? 'active' as const : 'expired' as const,
+        tokenA: opp.tokenA,
+        tokenB: opp.tokenB,
+        tokenC: opp.tokenC
       }));
 
       const mockOpportunities: ArbitrageOpportunity[] = paths.slice(realOpportunities.length).map((path, index) => ({
