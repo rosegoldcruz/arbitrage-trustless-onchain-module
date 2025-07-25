@@ -110,7 +110,7 @@ export default function ArbitragePage() {
         amount: 1000000 + Math.random() * 9000000,
         confidence: opp.confidence,
         timeRemaining: 30 + Math.random() * 270,
-        status: opp.isActive ? 'active' : 'expired'
+        status: opp.isActive ? 'active' as const : 'expired' as const
       }));
 
       const mockOpportunities: ArbitrageOpportunity[] = paths.slice(realOpportunities.length).map((path, index) => ({
@@ -121,7 +121,7 @@ export default function ArbitragePage() {
         amount: 1000000 + Math.random() * 9000000, // $1M to $10M
         confidence: 75 + Math.random() * 25, // 75% to 100%
         timeRemaining: 30 + Math.random() * 270, // 30s to 5min
-        status: Math.random() > 0.7 ? 'executing' : 'active'
+        status: Math.random() > 0.7 ? 'executing' as const : 'active' as const
       })).filter(opp => opp.spread >= 0.23); // Only show profitable (23bps+)
 
       const allOpportunities = [...realOpportunities, ...mockOpportunities];
