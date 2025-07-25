@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./lib/AEONMath.sol";
+import "./lib/AEONArbitrageExtensions.sol";
 
 // AAVE V3 Flash Loan Interface
 interface IPoolAddressesProvider {
@@ -128,6 +130,7 @@ interface ICurveRegistry {
 
 contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, ReentrancyGuard, Ownable, Pausable {
     using SafeERC20 for IERC20;
+    using AEONMath for uint256;
 
     // AAVE V3 Pool Addresses Provider (Mainnet)
     IPoolAddressesProvider public constant ADDRESSES_PROVIDER =
@@ -351,6 +354,27 @@ contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, Reentra
         uint256 profit = finalAmount > amount ? finalAmount - amount : 0;
         require(profit >= params.minProfit, "Insufficient profit");
 
+        // Enhanced profit verification with AEON math
+        uint256 impliedPrice = (finalAmount * 1e18) / amount;
+        uint256 externalPrice = 1e18; // 1:1 reference price
+        int256 spreadBps = AEONMath.calculateSpreadBps(impliedPrice, externalPrice);
+
+        // Verify 23bps threshold
+        require(AEONMath.isAboveThreshold(spreadBps, 23), "Below 23bps threshold");
+
+        // Calculate and verify gas efficiency using new signature
+        uint256 expectedProfitUSD = profit; // Use actual calculated profit
+        uint256 gasUsed = params.estimatedGasUnits;
+        uint256 gasPriceWei = params.maxGasPrice;
+
+        int256 efficiencyScore = AEONMath.efficiencyScore(
+            expectedProfitUSD,
+            gasUsed,
+            gasPriceWei
+        );
+
+        require(efficiencyScore > 0, "Gas efficiency too low - negative profit");
+
         emit ArbitrageExecuted(
             params.tokenA,
             params.tokenB,
@@ -492,8 +516,29 @@ contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, Reentra
         try this._simulateArbitrage(tokenA, tokenB, amountIn, buyDex, sellDex, buyData, sellData) returns (uint256 finalAmount) {
             if (finalAmount > amountIn) {
                 profit = finalAmount - amountIn;
-                uint256 minRequiredProfit = (amountIn * MIN_PROFIT_BASIS_POINTS) / BASIS_POINTS;
-                profitable = profit >= minRequiredProfit;
+
+                // Enhanced profitability check with AEON math
+                uint256 impliedPrice = (finalAmount * 1e18) / amountIn;
+                uint256 externalPrice = 1e18; // 1:1 reference price
+                int256 spreadBps = AEONMath.calculateSpreadBps(impliedPrice, externalPrice);
+
+                // Check 23bps threshold
+                uint256 totalFeesBps = 23; // 23bps minimum threshold
+                bool aboveThreshold = AEONMath.isAboveThreshold(spreadBps, totalFeesBps);
+
+                // Calculate gas efficiency score using new signature
+                uint256 expectedProfitUSD = profit; // Use actual calculated profit
+                uint256 gasUsed = 300000; // Estimated gas usage
+                uint256 gasPriceWei = tx.gasprice;
+
+                int256 efficiencyScore = AEONMath.efficiencyScore(
+                    expectedProfitUSD,
+                    gasUsed,
+                    gasPriceWei
+                );
+
+                // Require positive efficiency score and above threshold
+                profitable = aboveThreshold && efficiencyScore > 0;
             } else {
                 profit = 0;
                 profitable = false;
@@ -636,6 +681,96 @@ contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, Reentra
         IERC20(token).safeTransfer(owner(), amount);
     }
 
+    // ============================================================================
+    // 🧬 AEON ARBITRAGE INTELLIGENCE - ENHANCED EXECUTION LOGIC
+    // ============================================================================
+
+    /**
+     * @dev Enhanced shouldExecute check using AEON math with 23bps threshold
+     * @param tokenA First token in triangular path
+     * @param tokenB Second token in triangular path
+     * @param tokenC Third token in triangular path
+     * @param amount Trade amount
+     * @return shouldExecute True if arbitrage should be executed
+     * @return expectedProfit Expected profit in USD
+     */
+    function shouldExecute(
+        address tokenA,
+        address tokenB,
+        address tokenC,
+        uint256 amount
+    ) external view returns (bool shouldExecute, uint256 expectedProfit) {
+        // Get implied prices from DEX pools
+        uint256 priceAB = _getImpliedPrice(tokenA, tokenB);
+        uint256 priceBC = _getImpliedPrice(tokenB, tokenC);
+        uint256 priceCA = _getImpliedPrice(tokenC, tokenA);
+
+        // Calculate triangular arbitrage profit using AEON math
+        (uint256 profit, bool isProfitable) = AEONMath.calculateTriangularProfit(
+            priceAB, priceBC, priceCA, amount
+        );
+
+        if (!isProfitable) {
+            return (false, 0);
+        }
+
+        // Calculate spread in basis points
+        uint256 finalPrice = (amount + profit) * 1e18 / amount;
+        uint256 externalPrice = 1e18; // 1:1 reference
+        int256 spreadBps = AEONMath.calculateSpreadBps(finalPrice, externalPrice);
+
+        // Check 23bps threshold with total fees
+        uint256 totalFeesBps = 15; // Gas + DEX fees estimate
+        shouldExecute = AEONMath.isAboveThreshold(spreadBps, totalFeesBps);
+        expectedProfit = shouldExecute ? profit : 0;
+    }
+
+    /**
+     * @dev Execute triangular arbitrage with AEON optimizations
+     * @param tokenA First token (start/end)
+     * @param tokenB Second token (intermediate)
+     * @param tokenC Third token (intermediate)
+     * @param amount Input amount
+     */
+    function executeTriangularArbitrage(
+        address tokenA,
+        address tokenB,
+        address tokenC,
+        uint256 amount
+    ) external onlyOwner nonReentrant whenNotPaused {
+        require(amount > 0, "AtomArbitrage: ZERO_AMOUNT");
+        require(tx.gasprice <= MAX_GAS_COST_USD * 1e9, "AtomArbitrage: GAS_TOO_HIGH");
+
+        // Pre-execution check with AEON math
+        (bool shouldExec, uint256 expectedProfit) = this.shouldExecute(tokenA, tokenB, tokenC, amount);
+        require(shouldExec, "AtomArbitrage: BELOW_23BPS_THRESHOLD");
+        require(expectedProfit >= MIN_PROFIT_BASIS_POINTS * amount / BASIS_POINTS, "AtomArbitrage: INSUFFICIENT_PROFIT");
+
+        // Execute triangular swaps: A → B → C → A
+        uint256 startBalance = IERC20(tokenA).balanceOf(address(this));
+
+        // A → B
+        uint256 amountB = _executeSwap(tokenA, tokenB, amount);
+        require(amountB > 0, "AtomArbitrage: SWAP_AB_FAILED");
+
+        // B → C
+        uint256 amountC = _executeSwap(tokenB, tokenC, amountB);
+        require(amountC > 0, "AtomArbitrage: SWAP_BC_FAILED");
+
+        // C → A
+        uint256 finalAmountA = _executeSwap(tokenC, tokenA, amountC);
+        require(finalAmountA > 0, "AtomArbitrage: SWAP_CA_FAILED");
+
+        // Verify profit exceeds 23bps threshold
+        uint256 actualProfit = finalAmountA > startBalance ? finalAmountA - startBalance : 0;
+        require(actualProfit > 0, "AtomArbitrage: NO_PROFIT");
+
+        uint256 profitBps = (actualProfit * BASIS_POINTS) / amount;
+        require(profitBps >= MIN_SPREAD_BPS, "AtomArbitrage: BELOW_MIN_SPREAD");
+
+        emit TriangularArbitrageExecuted(tokenA, tokenB, tokenC, amount, actualProfit, block.timestamp);
+    }
+
     // 🚨 EMERGENCY SECURITY FUNCTIONS
 
     /**
@@ -683,6 +818,60 @@ contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, Reentra
     function isPaused() external view returns (bool) {
         return paused();
     }
+
+    // ============================================================================
+    // 🧬 AEON HELPER FUNCTIONS
+    // ============================================================================
+
+    /**
+     * @dev Get implied price between two tokens (simplified for demo)
+     * @param tokenA Input token
+     * @param tokenB Output token
+     * @return impliedPrice Implied price in 18 decimals
+     */
+    function _getImpliedPrice(address tokenA, address tokenB) internal pure returns (uint256) {
+        // In production, this would query actual DEX pools using AEONArbitrageExtensions
+        // For now, return mock prices for demonstration
+        if (tokenA < tokenB) {
+            return 1.001e18; // 0.1% spread
+        } else {
+            return 0.999e18; // -0.1% spread
+        }
+    }
+
+    /**
+     * @dev Execute swap between two tokens (simplified)
+     * @param tokenIn Input token
+     * @param tokenOut Output token
+     * @param amountIn Input amount
+     * @return amountOut Output amount
+     */
+    function _executeSwap(address tokenIn, address tokenOut, uint256 amountIn) internal returns (uint256 amountOut) {
+        // In production, this would route through optimal DEX using AEONArbitrageExtensions
+        // For now, simulate swap with small fee
+        amountOut = (amountIn * 997) / 1000; // 0.3% fee simulation
+
+        // Mock token transfer logic
+        // In production, would interact with actual DEX routers
+        return amountOut;
+    }
+
+    // ============================================================================
+    // 🧬 AEON CONSTANTS
+    // ============================================================================
+    uint256 private constant MIN_SPREAD_BPS = 23; // 23 basis points minimum
+
+    // ============================================================================
+    // 📊 AEON EVENTS
+    // ============================================================================
+    event TriangularArbitrageExecuted(
+        address indexed tokenA,
+        address indexed tokenB,
+        address indexed tokenC,
+        uint256 amountIn,
+        uint256 profit,
+        uint256 timestamp
+    );
 
     // 📊 SECURITY EVENTS
     event EmergencyPause(address indexed caller, uint256 timestamp);

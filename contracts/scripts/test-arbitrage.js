@@ -2,8 +2,9 @@ const { ethers } = require("hardhat");
 
 // Contract addresses (update after deployment)
 const CONTRACTS = {
-  priceMonitor: "0x0000000000000000000000000000000000000000", // Update after deployment
-  triangularArbitrage: "0x0000000000000000000000000000000000000000", // Update after deployment
+  priceMonitor: process.env.PRICE_MONITOR_ADDRESS || "0x0000000000000000000000000000000000000000",
+  triangularArbitrage: process.env.TRIANGULAR_ARBITRAGE_ADDRESS || "0x0000000000000000000000000000000000000000",
+  atomArbitrage: process.env.BASE_SEPOLIA_CONTRACT_ADDRESS || "0xb3800E6bC7847E5d5a71a03887EDc5829DF4133b",
 };
 
 // Base Sepolia token addresses

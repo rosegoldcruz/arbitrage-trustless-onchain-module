@@ -2,27 +2,30 @@
 
 import { motion } from "framer-motion";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Globe, Coins, Bot, Shield, TrendingUp, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Globe, Coins, Bot, Shield, TrendingUp, Zap, ExternalLink } from "lucide-react";
 
 export function PlatformOverview() {
   const chains = [
-    { name: "Ethereum", color: "text-blue-400" },
-    { name: "Base", color: "text-blue-500" },
-    { name: "Arbitrum", color: "text-blue-600" },
-    { name: "Polygon", color: "text-purple-400" },
+    { name: "Ethereum", color: "text-blue-400", url: "https://ethereum.org" },
+    { name: "Base", color: "text-blue-500", url: "https://base.org" },
+    { name: "Arbitrum", color: "text-blue-600", url: "https://arbitrum.io" },
+    { name: "Polygon", color: "text-purple-400", url: "https://polygon.technology" },
   ];
 
   const dexs = [
-    { name: "Uniswap", color: "text-pink-400" },
-    { name: "Curve", color: "text-yellow-400" },
-    { name: "SushiSwap", color: "text-blue-400" },
+    { name: "Uniswap", color: "text-pink-400", url: "https://uniswap.org" },
+    { name: "Curve", color: "text-yellow-400", url: "https://curve.fi" },
+    { name: "SushiSwap", color: "text-blue-400", url: "https://sushi.com" },
+    { name: "Balancer", color: "text-green-400", url: "https://balancer.fi" },
   ];
 
   const protocols = [
-    { name: "AAVE", color: "text-purple-400" },
-    { name: "Compound", color: "text-green-400" },
-    { name: "1inch", color: "text-red-400" },
-    { name: "MakerDAO", color: "text-orange-400" },
+    { name: "AAVE", color: "text-purple-400", url: "https://aave.com" },
+    { name: "Compound", color: "text-green-400", url: "https://compound.finance" },
+    { name: "1inch", color: "text-red-400", url: "https://1inch.io" },
+    { name: "MakerDAO", color: "text-orange-400", url: "https://makerdao.com" },
+    { name: "Chainlink", color: "text-blue-400", url: "https://chain.link" },
   ];
 
   const features = [
@@ -80,11 +83,17 @@ export function PlatformOverview() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {chains.map((chain) => (
-                    <div key={chain.name} className={`${chain.color} font-medium`}>
+                    <Button
+                      key={chain.name}
+                      variant="ghost"
+                      className={`w-full justify-between ${chain.color} hover:bg-gray-800/50 font-medium`}
+                      onClick={() => window.open(chain.url, '_blank')}
+                    >
                       {chain.name}
-                    </div>
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
                   ))}
                 </div>
               </CardContent>
@@ -105,11 +114,17 @@ export function PlatformOverview() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {dexs.map((dex) => (
-                    <div key={dex.name} className={`${dex.color} font-medium`}>
+                    <Button
+                      key={dex.name}
+                      variant="ghost"
+                      className={`w-full justify-between ${dex.color} hover:bg-gray-800/50 font-medium`}
+                      onClick={() => window.open(dex.url, '_blank')}
+                    >
                       {dex.name}
-                    </div>
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
                   ))}
                 </div>
               </CardContent>
@@ -130,11 +145,17 @@ export function PlatformOverview() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {protocols.map((protocol) => (
-                    <div key={protocol.name} className={`${protocol.color} font-medium`}>
+                    <Button
+                      key={protocol.name}
+                      variant="ghost"
+                      className={`w-full justify-between ${protocol.color} hover:bg-gray-800/50 font-medium`}
+                      onClick={() => window.open(protocol.url, '_blank')}
+                    >
                       {protocol.name}
-                    </div>
+                      <ExternalLink className="h-4 w-4" />
+                    </Button>
                   ))}
                 </div>
               </CardContent>

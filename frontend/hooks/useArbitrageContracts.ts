@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { ethers, formatEther, parseEther } from 'ethers';
-import { useWeb3Auth } from '@/components/web3';
+import { useWeb3Auth } from '@/contexts/Web3AuthContext';
 import { toast } from 'sonner';
 
 // Contract addresses (Base Sepolia - update after deployment)
@@ -86,7 +86,7 @@ interface PriceData {
 }
 
 export function useArbitrageContracts() {
-  const { provider, address, isConnected } = useWeb3Auth();
+  const { isConnected, address, provider } = useWeb3Auth();
   const [contracts, setContracts] = useState<{
     triangularArbitrage: ethers.Contract | null;
     priceMonitor: ethers.Contract | null;

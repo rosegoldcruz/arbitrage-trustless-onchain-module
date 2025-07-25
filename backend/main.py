@@ -16,6 +16,7 @@ import random
 
 # Import routers
 from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades, tokens
+from routers import analytics, risk, zeroex
 
 # Configure logging
 logging.basicConfig(
@@ -119,6 +120,9 @@ app.include_router(contact.router, prefix="/contact", tags=["Contact"])
 app.include_router(stats.router, prefix="/stats", tags=["Statistics"])
 app.include_router(trades.router, prefix="/trades", tags=["Trade History"])
 app.include_router(tokens.router, prefix="/tokens", tags=["Token Management"])
+app.include_router(analytics.router, prefix="/analytics", tags=["Analytics"])
+app.include_router(risk.router, prefix="/risk", tags=["Risk Management"])
+app.include_router(zeroex.router, prefix="/0x", tags=["0x Protocol"])
 
 @app.get("/")
 async def root():

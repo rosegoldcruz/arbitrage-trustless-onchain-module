@@ -32,8 +32,8 @@ import { ConsoleLogs } from "@/components/dashboard/ConsoleLogs";
 import { TradeHistory } from "@/components/dashboard/TradeHistory";
 import { ChatWithAgent } from "@/components/dashboard/ChatWithAgent";
 import { ArbitrageControls } from "@/components/dashboard/ArbitrageControls";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { AuthHeader } from "@/components/auth/AuthHeader";
+import Navbar from "@/components/Navbar";
+import { useWeb3Auth } from "@/contexts/Web3AuthContext";
 import { RealTimeProfitTracker } from "@/components/dashboard/RealTimeProfitTracker";
 import { OpportunityHunter } from "@/components/dashboard/OpportunityHunter";
 import { AgentBattleArena } from "@/components/dashboard/AgentBattleArena";
@@ -48,7 +48,8 @@ interface SystemStatus {
 }
 
 export default function Dashboard() {
-  const [isConnected, setIsConnected] = useState(false);
+  const { isConnected, address, isCorrectNetwork } = useWeb3Auth();
+  const [backendConnected, setBackendConnected] = useState(false);
   const [tradingMode, setTradingMode] = useState<'test' | 'live'>('test');
   const [selectedNetwork, setSelectedNetwork] = useState('ethereum');
   const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
@@ -131,61 +132,49 @@ export default function Dashboard() {
 
   return (
     <ProtectedRoute>
-      <AuthHeader />
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
-      {/* Header */}
-      <div className="border-b border-gray-800 bg-black/50 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-lg">
-                <Zap className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white">ATOM Dashboard</h1>
-                <p className="text-gray-400">Arbitrage Trustless On-Chain Module</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {/* Connection Status */}
-              <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
-                <span className="text-sm text-gray-300">
-                  {isConnected ? 'Backend Connected' : 'Backend Disconnected'}
-                </span>
-              </div>
+        <Navbar />
 
-              {/* System Status */}
-              {systemStatus && (
-                <div className="text-sm text-gray-300">
-                  Profit: <span className="text-green-400 font-semibold">${systemStatus.total_profit.toFixed(2)}</span>
+        {/* Status Bar */}
+        <div className="border-b border-gray-800 bg-black/30 backdrop-blur-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-6">
+                {/* Connection Status */}
+                <div className="flex items-center space-x-2">
+                  <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+                  <span className="text-sm text-gray-300">
+                    {isConnected ? 'Backend Connected' : 'Backend Disconnected'}
+                  </span>
                 </div>
-              )}
 
-              {/* Refresh Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={fetchSystemStatus}
-                disabled={loading}
-                className="border-gray-600 hover:border-gray-500"
-              >
-                {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
+                {/* System Status */}
+                {systemStatus && (
+                  <div className="text-sm text-gray-300">
+                    Profit: <span className="text-green-400 font-semibold">${systemStatus.total_profit.toFixed(2)}</span>
+                  </div>
                 )}
-              </Button>
+              </div>
 
-              <Button variant="outline" size="sm" className="border-gray-600 hover:border-gray-500">
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
+              <div className="flex items-center space-x-2">
+                {/* Refresh Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={fetchSystemStatus}
+                  disabled={loading}
+                  className="border-gray-600 hover:border-gray-500"
+                >
+                  {loading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "name": "arbitrage-trustless-onchain-module",
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/$1"
+    }
+  ],
+  "env": {
+    "NEXT_PUBLIC_APP_NAME": "ATOM",
+    "NEXT_PUBLIC_APP_URL": "https://arbitrage-trustless-onchain-module-3w6lf0vt9-elohim.vercel.app",
+    "NEXT_PUBLIC_BACKEND_URL": "http://152.42.234.243:3001",
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "frontend/app/**/*.tsx": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "outputDirectory": "frontend/.next"
+}

@@ -13,6 +13,8 @@ import "@aave/core-v3/contracts/interfaces/IPool.sol";
 import "./libraries/BalancerMath.sol";
 import "./libraries/CurveMath.sol";
 import "./libraries/SpreadCalculator.sol";
+import "./lib/AEONArbitrageExtensions.sol";
+import "./lib/AEONMath.sol";
 
 /**
  * @title TriangularArbitrage
@@ -29,6 +31,7 @@ contract TriangularArbitrage is
     using BalancerMath for uint256;
     using CurveMath for uint256;
     using SpreadCalculator for uint256;
+    using AEONMath for uint256;
 
     // Base Sepolia testnet token addresses
     address public constant DAI = 0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb;  // DAI on Base Sepolia
@@ -299,36 +302,101 @@ contract TriangularArbitrage is
     }
 
     /**
-     * @dev Check if triangular arbitrage is profitable
+     * @dev Check if triangular arbitrage is profitable with 23bps threshold
+     * Uses AEON math library for precise calculations
      */
-    function _checkProfitability(TriangularPath memory path) 
-        internal 
-        view 
-        returns (bool isProfitable) 
+    function _checkProfitability(TriangularPath memory path)
+        internal
+        view
+        returns (bool isProfitable)
     {
-        // Get external prices from Chainlink/0x API
-        uint256 priceAB = _getExternalPrice(path.tokenA, path.tokenB);
-        uint256 priceBC = _getExternalPrice(path.tokenB, path.tokenC);
-        uint256 priceCA = _getExternalPrice(path.tokenC, path.tokenA);
-        
-        // Calculate triangular arbitrage profit
-        (uint256 profit, bool hasArbitrage) = SpreadCalculator.calculateTriangularArbitrage(
-            priceAB,
-            priceBC,
-            priceCA,
+        // Get Chainlink prices for external reference
+        (uint256 ethPrice, bool ethStale) = ChainlinkPriceOracle.getETHPrice();
+        (uint256 daiPrice, bool daiStale) = ChainlinkPriceOracle.getDAIPrice();
+        (uint256 usdcPrice, bool usdcStale) = ChainlinkPriceOracle.getUSDCPrice();
+
+        // Skip if any price is stale
+        if (ethStale || daiStale || usdcStale) {
+            return false;
+        }
+
+        // Calculate implied prices from DEX pools
+        uint256 impliedPriceAB = _getImpliedPrice(path.tokenA, path.tokenB, path.poolAB, path.useBalancer);
+        uint256 impliedPriceBC = _getImpliedPrice(path.tokenB, path.tokenC, path.poolBC, path.useBalancer);
+        uint256 impliedPriceCA = _getImpliedPrice(path.tokenC, path.tokenA, path.poolCA, path.useBalancer);
+
+        // Calculate triangular arbitrage profit using AEON math
+        (uint256 profit, bool hasArbitrage) = AEONMath.calculateTriangularProfit(
+            impliedPriceAB,
+            impliedPriceBC,
+            impliedPriceCA,
             path.amountIn
         );
-        
-        return hasArbitrage && profit > 0;
+
+        // Check if profit exceeds minimum threshold
+        if (!hasArbitrage) {
+            return false;
+        }
+
+        // Calculate spread in basis points
+        uint256 externalPrice = _getExternalPriceFromOracle(path.tokenA, ethPrice, daiPrice, usdcPrice);
+        uint256 finalPrice = (path.amountIn + profit) * 1e18 / path.amountIn;
+        int256 spreadBps = AEONMath.calculateSpreadBps(finalPrice, externalPrice);
+
+        // Check 23bps threshold with estimated fees
+        uint256 estimatedFeesBps = 15; // ~0.15% estimated total fees (gas + DEX)
+        return AEONMath.isAboveThreshold(spreadBps, estimatedFeesBps);
     }
 
     /**
-     * @dev Get external price from Chainlink or 0x API
+     * @dev Get implied price from DEX pool using AEON math
      */
-    function _getExternalPrice(address tokenA, address tokenB) 
-        internal 
-        view 
-        returns (uint256 price) 
+    function _getImpliedPrice(
+        address tokenA,
+        address tokenB,
+        address pool,
+        bool useBalancer
+    ) internal view returns (uint256 impliedPrice) {
+        if (useBalancer) {
+            // Mock Balancer pool data - in production, query actual pool
+            return AEONMath.getBalancerImpliedPrice(
+                1000000 * 1e18, // Mock balance A
+                2000000 * 1e18, // Mock balance B
+                80 * 1e16,       // 80% weight A (0.8)
+                20 * 1e16        // 20% weight B (0.2)
+            );
+        } else {
+            // Curve StableSwap - check for depeg using AEON math
+            bool isDepegged = AEONMath.detectCurveDepeg(pool, 1e18, 0.02e18); // 2% threshold
+            if (isDepegged) {
+                return 0; // Skip depegged pools
+            }
+            return 1e18; // 1:1 for stablecoins
+        }
+    }
+
+    /**
+     * @dev Get external reference price from Chainlink oracles
+     */
+    function _getExternalPriceFromOracle(
+        address token,
+        uint256 ethPrice,
+        uint256 daiPrice,
+        uint256 usdcPrice
+    ) internal pure returns (uint256 price) {
+        if (token == DAI) return daiPrice * 1e10; // Convert 8 to 18 decimals
+        if (token == USDC) return usdcPrice * 1e10;
+        if (token == WETH) return ethPrice * 1e10;
+        return 1e18; // Default fallback
+    }
+
+    /**
+     * @dev Get external price from Chainlink or 0x API (legacy function)
+     */
+    function _getExternalPrice(address tokenA, address tokenB)
+        internal
+        view
+        returns (uint256 price)
     {
         // Simplified price fetching - in production, implement proper price feeds
         if (tokenA == DAI && tokenB == USDC) {
@@ -431,6 +499,116 @@ contract TriangularArbitrage is
     }
 
     /**
+     * @dev Execute triangular arbitrage with enhanced AEON math and 23bps threshold
+     * @param tokenA First token (start/end)
+     * @param tokenB Second token (intermediate)
+     * @param tokenC Third token (intermediate)
+     * @param amount Input amount
+     */
+    function executeTriangularArbitrageWithAEON(
+        address tokenA,
+        address tokenB,
+        address tokenC,
+        uint256 amount
+    ) external onlyOwner nonReentrant whenNotPaused {
+        require(amount > 0, "TriangularArbitrage: ZERO_AMOUNT");
+        require(tx.gasprice <= maxGasPrice, "TriangularArbitrage: GAS_PRICE_TOO_HIGH");
+
+        // Create path with AEON optimizations
+        TriangularPath memory path = TriangularPath({
+            tokenA: tokenA,
+            tokenB: tokenB,
+            tokenC: tokenC,
+            poolAB: _getOptimalPool(tokenA, tokenB),
+            poolBC: _getOptimalPool(tokenB, tokenC),
+            poolCA: _getOptimalPool(tokenC, tokenA),
+            amountIn: amount,
+            minProfitBps: 23, // 23bps minimum threshold
+            useBalancer: _shouldUseBalancer(tokenA, tokenB),
+            useCurve: _shouldUseCurve(tokenA, tokenB)
+        });
+
+        // Enhanced profitability check with AEON math
+        require(_checkProfitability(path), "TriangularArbitrage: NOT_PROFITABLE");
+
+        // Execute arbitrage
+        _executeTriangularSwaps(path);
+
+        emit TriangularArbitrageExecuted(tokenA, tokenB, tokenC, amount, block.timestamp);
+    }
+
+    /**
+     * @dev Get optimal pool for token pair
+     */
+    function _getOptimalPool(address tokenA, address tokenB) internal pure returns (address) {
+        // Mock pool selection - in production, query actual pools
+        if ((tokenA == DAI && tokenB == USDC) || (tokenA == USDC && tokenB == DAI)) {
+            return 0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E; // Curve DAI/USDC
+        } else if ((tokenA == USDC && tokenB == GHO) || (tokenA == GHO && tokenB == USDC)) {
+            return 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0; // Curve USDC/GHO
+        } else {
+            return 0xBA12222222228d8Ba445958a75a0704d566BF2C8; // Balancer Vault
+        }
+    }
+
+    /**
+     * @dev Determine if should use Balancer for token pair
+     */
+    function _shouldUseBalancer(address tokenA, address tokenB) internal pure returns (bool) {
+        // Use Balancer for volatile pairs (WETH involved)
+        return (tokenA == WETH || tokenB == WETH);
+    }
+
+    /**
+     * @dev Determine if should use Curve for token pair
+     */
+    function _shouldUseCurve(address tokenA, address tokenB) internal pure returns (bool) {
+        // Use Curve for stablecoin pairs
+        return (tokenA == DAI || tokenA == USDC || tokenA == GHO) &&
+               (tokenB == DAI || tokenB == USDC || tokenB == GHO);
+    }
+
+    /**
+     * @dev Execute the actual triangular swaps with 23bps verification
+     */
+    function _executeTriangularSwaps(TriangularPath memory path) internal {
+        uint256 startBalance = IERC20(path.tokenA).balanceOf(address(this));
+
+        // A → B
+        uint256 amountB = _performSwap(path.tokenA, path.tokenB, path.amountIn, path.poolAB, path.useBalancer);
+
+        // B → C
+        uint256 amountC = _performSwap(path.tokenB, path.tokenC, amountB, path.poolBC, path.useBalancer);
+
+        // C → A
+        uint256 finalAmount = _performSwap(path.tokenC, path.tokenA, amountC, path.poolCA, path.useBalancer);
+
+        // Verify profit exceeds 23bps threshold
+        require(finalAmount > startBalance, "TriangularArbitrage: NO_PROFIT");
+
+        uint256 profit = finalAmount - startBalance;
+        uint256 profitBps = (profit * 10000) / startBalance;
+        require(profitBps >= 23, "TriangularArbitrage: INSUFFICIENT_PROFIT");
+    }
+
+    /**
+     * @dev Perform individual swap with DEX selection
+     */
+    function _performSwap(
+        address tokenIn,
+        address tokenOut,
+        uint256 amountIn,
+        address pool,
+        bool useBalancer
+    ) internal returns (uint256 amountOut) {
+        if (useBalancer) {
+            return _swapOnBalancer(tokenIn, tokenOut, amountIn, pool);
+        } else {
+            return _swapOnCurve(tokenIn, tokenOut, amountIn, pool);
+        }
+    }
+
+    /**
      * @dev Update configuration parameters
      */
     function updateConfig(
@@ -441,5 +619,7 @@ contract TriangularArbitrage is
         maxGasPrice = _maxGasPrice;
         maxSlippageBps = _maxSlippageBps;
         minProfitUSD = _minProfitUSD;
+
+        emit ConfigUpdated(_maxGasPrice, _maxSlippageBps, _minProfitUSD);
     }
 }

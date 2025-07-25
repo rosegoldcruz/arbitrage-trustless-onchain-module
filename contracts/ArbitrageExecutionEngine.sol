@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./TriangularArbitrage.sol";
 import "./PriceMonitor.sol";
 import "./libraries/SpreadCalculator.sol";
+import "./lib/AEONMath.sol";
 
 /**
  * @title ArbitrageExecutionEngine
@@ -18,6 +19,7 @@ import "./libraries/SpreadCalculator.sol";
 contract ArbitrageExecutionEngine is ReentrancyGuard, Pausable, Ownable {
     using SafeERC20 for IERC20;
     using SpreadCalculator for uint256;
+    using AEONMath for uint256;
 
     // Core contracts
     TriangularArbitrage public immutable triangularArbitrage;
@@ -250,6 +252,9 @@ contract ArbitrageExecutionEngine is ReentrancyGuard, Pausable, Ownable {
         // Check daily loss limit
         _checkDailyLossLimit();
 
+        // Enhanced profitability check with AEON math
+        require(_shouldExecuteWithAEONMath(tripleId, amount, strategy), "ArbitrageEngine: AEON_CHECK_FAILED");
+
         // Calculate expected profit
         uint256 expectedProfit = _calculateTriangularProfit(tripleId, amount);
         require(expectedProfit > 0, "ArbitrageEngine: NOT_PROFITABLE");
@@ -294,16 +299,19 @@ contract ArbitrageExecutionEngine is ReentrancyGuard, Pausable, Ownable {
             ExecutionStrategy memory strategy = strategies[tripleId];
             
             if (!strategy.autoExecute) continue;
-            
+
             // Calculate optimal trade size
             uint256 optimalSize = _calculateOptimalTradeSize(tripleId, profits[i]);
-            
+
             if (optimalSize >= triple.minAmount) {
-                try this.executeArbitrage(tripleId, optimalSize) {
-                    executedCount++;
-                } catch {
-                    // Continue to next opportunity if execution fails
-                    continue;
+                // Pre-check with AEON math before execution
+                if (_shouldExecuteWithAEONMath(tripleId, optimalSize, strategy)) {
+                    try this.executeArbitrage(tripleId, optimalSize) {
+                        executedCount++;
+                    } catch {
+                        // Continue to next opportunity if execution fails
+                        continue;
+                    }
                 }
             }
         }
@@ -482,6 +490,57 @@ contract ArbitrageExecutionEngine is ReentrancyGuard, Pausable, Ownable {
     {
         strategies[tripleId].autoExecute = enabled;
         emit AutoExecutionToggled(tripleId, enabled);
+    }
+
+    /**
+     * @dev Enhanced execution check using AEON math for spread and gas efficiency
+     * @param tripleId Token triple identifier
+     * @param amount Trade amount
+     * @param strategy Execution strategy
+     * @return shouldExecute True if arbitrage should be executed
+     */
+    function _shouldExecuteWithAEONMath(
+        bytes32 tripleId,
+        uint256 amount,
+        ExecutionStrategy memory strategy
+    ) internal view returns (bool shouldExecute) {
+        TokenTriple memory triple = tokenTriples[tripleId];
+
+        // Get mock prices for spread calculation (in production, use real DEX prices)
+        uint256 impliedPrice = 1.001e18; // Mock 0.1% spread
+        uint256 externalPrice = 1e18;
+
+        // Calculate spread in basis points
+        int256 spreadBps = AEONMath.calculateSpreadBps(impliedPrice, externalPrice);
+
+        // Check if spread exceeds minimum threshold (23bps + fees)
+        uint256 totalFeesBps = 23; // 23bps minimum threshold
+        if (!AEONMath.isAboveThreshold(spreadBps, totalFeesBps)) {
+            return false;
+        }
+
+        // Calculate gas efficiency score using new signature
+        uint256 expectedProfitUSD = amount * 1; // Mock: assume $1 per token
+        uint256 gasUsed = 200000; // Estimated gas usage
+        uint256 gasPriceWei = tx.gasprice;
+
+        int256 efficiencyScore = AEONMath.efficiencyScore(
+            expectedProfitUSD,
+            gasUsed,
+            gasPriceWei
+        );
+
+        // Require positive efficiency score (profit > gas cost)
+        if (efficiencyScore <= 0) {
+            return false;
+        }
+
+        // Check slippage is acceptable
+        if (!AEONMath.isSlippageAcceptable(slippageBps, strategy.maxSlippageBps)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

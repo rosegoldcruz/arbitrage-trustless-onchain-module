@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./lib/AEONMath.sol";
+import "./lib/AEONArbitrageExtensions.sol";
 
 // AAVE V3 Flash Loan Interface
 interface IPoolAddressesProvider {
@@ -127,6 +129,7 @@ interface ICurveRegistry {
 
 contract BaseAtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, ReentrancyGuard, Ownable {
     using SafeERC20 for IERC20;
+    using AEONMath for uint256;
 
     // AAVE V3 Pool Addresses Provider (Base Mainnet)
     IPoolAddressesProvider public constant ADDRESSES_PROVIDER =

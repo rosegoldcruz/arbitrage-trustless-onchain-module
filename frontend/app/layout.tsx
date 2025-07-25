@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { Web3Provider, Web3AuthProvider } from "@/components/web3";
-// import { ClerkProvider } from "@clerk/nextjs"; // Commented out - using Web3Auth instead
+import { Web3AuthProvider } from '@/contexts/Web3AuthContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,9 +37,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white min-h-screen`}
       >
         <Web3AuthProvider>
-          <Web3Provider>
-            {children}
-          </Web3Provider>
+          {children}
         </Web3AuthProvider>
         <Toaster />
       </body>
