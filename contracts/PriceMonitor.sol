@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import "./libraries/SpreadCalculator.sol";
 import "./libraries/BalancerMath.sol";
 
@@ -92,7 +92,7 @@ contract PriceMonitor is Ownable, ReentrancyGuard {
         // Base Sepolia Chainlink feeds
         priceFeeds[0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb] = AggregatorV3Interface(0x591e79239a7d679378eC8c847e5038150364C78F); // DAI/USD
         priceFeeds[0x036CbD53842c5426634e7929541eC2318f3dCF7e] = AggregatorV3Interface(0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165); // USDC/USD
-        priceFeeds[0x4200000000000000000000000000000000000006] = AggregatorV3Interface(0xD276fCF34D54A9267738e680A72b7EaF2E54f2E4); // ETH/USD
+        priceFeeds[0x4200000000000000000000000000000000000006] = AggregatorV3Interface(0xd276FCf34D54A9267738E680a72b7Eaf2E54f2e4); // ETH/USD
     }
 
     /**

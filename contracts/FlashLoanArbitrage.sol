@@ -6,7 +6,7 @@ import "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 import "@aave/core-v3/contracts/interfaces/IPool.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
  * @title FlashLoanArbitrage
@@ -63,7 +63,7 @@ contract FlashLoanArbitrage is FlashLoanSimpleReceiverBase, Ownable, ReentrancyG
 
     constructor(address _addressProvider)
         FlashLoanSimpleReceiverBase(IPoolAddressesProvider(_addressProvider))
-        Ownable(msg.sender)
+
     {
         // Initialize DEX routers (Base Sepolia addresses)
         dexRouters["uniswap"] = DEXInfo({

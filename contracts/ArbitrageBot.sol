@@ -166,7 +166,7 @@ contract AtomArbitrage is FlashLoanSimpleReceiverBase, ReentrancyGuard, Ownable,
 
     constructor(address _addressProvider)
         FlashLoanSimpleReceiverBase(IPoolAddressesProvider(_addressProvider))
-        Ownable(msg.sender)
+
     {
         totalProfit = 0;
         totalTrades = 0;

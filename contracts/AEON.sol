@@ -203,7 +203,7 @@ contract AEON is
 
         // Calculate triangular arbitrage
         uint256 amount = 10000e18; // $10k test amount
-        (uint256 profit, bool isProfitable) = AEONMath.calculateTriangularProfit(
+        (uint256 profit, bool isProfitable) = AEONMathUtils.calculateTriangularProfit(
             priceA * 1e10 / priceB, // A/B price (convert 8 to 18 decimals)
             priceB * 1e10 / priceC, // B/C price
             priceC * 1e10 / priceA, // C/A price
@@ -216,7 +216,7 @@ contract AEON is
         int256 spreadBps = int256(profit * 10000 / amount);
         
         // Check 23bps threshold
-        if (!AEONMath.isAboveThreshold(spreadBps, 15)) return bytes32(0); // 15bps fees
+        if (!AEONMathUtils.isAboveThreshold(spreadBps, 15)) return bytes32(0); // 15bps fees
 
         // Create opportunity
         opportunityId = keccak256(abi.encodePacked(

@@ -4,7 +4,7 @@
   "description": "ATOM - Advanced Efficient Optimized Network - Arbitrage Smart Contracts",
   "main": "index.js",
   "scripts": {
-    "compile": "hardhat compile",
+    "compile": "npx hardhat clean && npx hardhat compile",
     "test": "hardhat test",
     "deploy": "hardhat run contracts/scripts/deploy-base-sepolia.js --network baseSepolia",
     "deploy:local": "hardhat run contracts/scripts/deploy-base-sepolia.js --network localhost",
@@ -62,7 +62,7 @@
   "dependencies": {
     "@aave/core-v3": "^1.19.3",
     "@aave/periphery-v3": "^2.0.3",
-    "@chainlink/contracts": "^1.2.0",
+    "@chainlink/contracts": "^1.4.0",
     "@openzeppelin/contracts": "^4.9.6",
     "@openzeppelin/contracts-upgradeable": "^4.9.3",
     "dotenv": "^16.3.1"

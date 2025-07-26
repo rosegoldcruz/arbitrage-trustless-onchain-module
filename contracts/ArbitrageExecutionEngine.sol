@@ -511,11 +511,11 @@ contract ArbitrageExecutionEngine is ReentrancyGuard, Pausable, Ownable {
         uint256 externalPrice = 1e18;
 
         // Calculate spread in basis points
-        int256 spreadBps = AEONMath.calculateSpreadBps(impliedPrice, externalPrice);
+        int256 spreadBps = AEONMathUtils.calculateSpreadBps(impliedPrice, externalPrice);
 
         // Check if spread exceeds minimum threshold (23bps + fees)
         uint256 totalFeesBps = 23; // 23bps minimum threshold
-        if (!AEONMath.isAboveThreshold(spreadBps, totalFeesBps)) {
+        if (!AEONMathUtils.isAboveThreshold(spreadBps, totalFeesBps)) {
             return false;
         }
 
@@ -524,7 +524,7 @@ contract ArbitrageExecutionEngine is ReentrancyGuard, Pausable, Ownable {
         uint256 gasUsed = 200000; // Estimated gas usage
         uint256 gasPriceWei = tx.gasprice;
 
-        int256 efficiencyScore = AEONMath.efficiencyScore(
+        int256 efficiencyScore = AEONMathUtils.efficiencyScore(
             expectedProfitUSD,
             gasUsed,
             gasPriceWei
@@ -535,8 +535,11 @@ contract ArbitrageExecutionEngine is ReentrancyGuard, Pausable, Ownable {
             return false;
         }
 
+        // Calculate slippage (mock calculation)
+        uint256 slippageBps = 10; // Mock 0.1% slippage
+
         // Check slippage is acceptable
-        if (!AEONMath.isSlippageAcceptable(slippageBps, strategy.maxSlippageBps)) {
+        if (!AEONMathUtils.isSlippageAcceptable(slippageBps, strategy.maxSlippageBps)) {
             return false;
         }
 

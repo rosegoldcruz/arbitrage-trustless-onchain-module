@@ -97,23 +97,7 @@ interface IFlashLoanRecipient {
     ) external;
 }
 
-// Curve Finance Interfaces
-interface ICurvePool {
-    function exchange(
-        int128 i,
-        int128 j,
-        uint256 dx,
-        uint256 min_dy
-    ) external returns (uint256);
-
-    function get_dy(
-        int128 i,
-        int128 j,
-        uint256 dx
-    ) external view returns (uint256);
-
-    function coins(uint256 i) external view returns (address);
-}
+// Curve Finance Interfaces (ICurvePool imported from AEONArbitrageExtensions.sol)
 
 interface ICurveRegistry {
     function find_pool_for_coins(
@@ -130,7 +114,7 @@ interface ICurveRegistry {
 
 contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, ReentrancyGuard, Ownable, Pausable {
     using SafeERC20 for IERC20;
-    using AEONMath for uint256;
+    using AEONMathUtils for uint256;
 
     // AAVE V3 Pool Addresses Provider (Mainnet)
     IPoolAddressesProvider public constant ADDRESSES_PROVIDER =
@@ -208,7 +192,7 @@ contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, Reentra
         uint256 timestamp
     );
 
-    constructor() Ownable(msg.sender) {}
+    constructor() {}
 
     receive() external payable {}
 
@@ -357,17 +341,17 @@ contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, Reentra
         // Enhanced profit verification with AEON math
         uint256 impliedPrice = (finalAmount * 1e18) / amount;
         uint256 externalPrice = 1e18; // 1:1 reference price
-        int256 spreadBps = AEONMath.calculateSpreadBps(impliedPrice, externalPrice);
+        int256 spreadBps = AEONMathUtils.calculateSpreadBps(impliedPrice, externalPrice);
 
         // Verify 23bps threshold
-        require(AEONMath.isAboveThreshold(spreadBps, 23), "Below 23bps threshold");
+        require(AEONMathUtils.isAboveThreshold(spreadBps, 23), "Below 23bps threshold");
 
         // Calculate and verify gas efficiency using new signature
         uint256 expectedProfitUSD = profit; // Use actual calculated profit
         uint256 gasUsed = params.estimatedGasUnits;
         uint256 gasPriceWei = params.maxGasPrice;
 
-        int256 efficiencyScore = AEONMath.efficiencyScore(
+        int256 efficiencyScore = AEONMathUtils.efficiencyScore(
             expectedProfitUSD,
             gasUsed,
             gasPriceWei
@@ -520,7 +504,7 @@ contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, Reentra
                 // Enhanced profitability check with AEON math
                 uint256 impliedPrice = (finalAmount * 1e18) / amountIn;
                 uint256 externalPrice = 1e18; // 1:1 reference price
-                int256 spreadBps = AEONMath.calculateSpreadBps(impliedPrice, externalPrice);
+                int256 spreadBps = AEONMathUtils.calculateSpreadBps(impliedPrice, externalPrice);
 
                 // Check 23bps threshold
                 uint256 totalFeesBps = 23; // 23bps minimum threshold
@@ -531,7 +515,7 @@ contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, Reentra
                 uint256 gasUsed = 300000; // Estimated gas usage
                 uint256 gasPriceWei = tx.gasprice;
 
-                int256 efficiencyScore = AEONMath.efficiencyScore(
+                int256 efficiencyScore = AEONMathUtils.efficiencyScore(
                     expectedProfitUSD,
                     gasUsed,
                     gasPriceWei
@@ -691,7 +675,7 @@ contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, Reentra
      * @param tokenB Second token in triangular path
      * @param tokenC Third token in triangular path
      * @param amount Trade amount
-     * @return shouldExecute True if arbitrage should be executed
+     * @return canExecute True if arbitrage should be executed
      * @return expectedProfit Expected profit in USD
      */
     function shouldExecute(
@@ -699,14 +683,14 @@ contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, Reentra
         address tokenB,
         address tokenC,
         uint256 amount
-    ) external view returns (bool shouldExecute, uint256 expectedProfit) {
+    ) external view returns (bool canExecute, uint256 expectedProfit) {
         // Get implied prices from DEX pools
         uint256 priceAB = _getImpliedPrice(tokenA, tokenB);
         uint256 priceBC = _getImpliedPrice(tokenB, tokenC);
         uint256 priceCA = _getImpliedPrice(tokenC, tokenA);
 
         // Calculate triangular arbitrage profit using AEON math
-        (uint256 profit, bool isProfitable) = AEONMath.calculateTriangularProfit(
+        (uint256 profit, bool isProfitable) = AEONMathUtils.calculateTriangularProfit(
             priceAB, priceBC, priceCA, amount
         );
 
@@ -717,12 +701,12 @@ contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, Reentra
         // Calculate spread in basis points
         uint256 finalPrice = (amount + profit) * 1e18 / amount;
         uint256 externalPrice = 1e18; // 1:1 reference
-        int256 spreadBps = AEONMath.calculateSpreadBps(finalPrice, externalPrice);
+        int256 spreadBps = AEONMathUtils.calculateSpreadBps(finalPrice, externalPrice);
 
         // Check 23bps threshold with total fees
         uint256 totalFeesBps = 15; // Gas + DEX fees estimate
-        shouldExecute = AEONMath.isAboveThreshold(spreadBps, totalFeesBps);
-        expectedProfit = shouldExecute ? profit : 0;
+        canExecute = AEONMathUtils.isAboveThreshold(spreadBps, totalFeesBps);
+        expectedProfit = canExecute ? profit : 0;
     }
 
     /**
