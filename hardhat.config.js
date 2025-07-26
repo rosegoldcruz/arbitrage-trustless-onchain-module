@@ -139,33 +139,7 @@ module.exports = {
     deploy: "./deploy",
   },
   
-  // Custom tasks
-  task: {
-    "deploy-arbitrage": {
-      description: "Deploy ATOM arbitrage contracts",
-      action: async (taskArgs, hre) => {
-        const { ethers } = hre;
-        console.log("🚀 Deploying ATOM Arbitrage System...");
-        
-        // Run deployment script
-        await hre.run("run", {
-          script: "contracts/scripts/deploy-base-sepolia.js"
-        });
-      }
-    },
-    
-    "test-arbitrage": {
-      description: "Test arbitrage system",
-      action: async (taskArgs, hre) => {
-        console.log("🧪 Testing ATOM Arbitrage System...");
-        
-        // Run test script
-        await hre.run("run", {
-          script: "contracts/scripts/test-arbitrage.js"
-        });
-      }
-    }
-  }
+  // Removed duplicate task definitions - they are defined below
 };
 
 // Custom Hardhat tasks
@@ -185,28 +159,22 @@ task("balance", "Prints an account's balance")
   });
 
 task("deploy-arbitrage", "Deploy ATOM arbitrage contracts")
-  .addOptionalParam("network", "Network to deploy to", "baseSepolia")
+  .addOptionalParam("targetNetwork", "Network to deploy to", "baseSepolia")
   .setAction(async (taskArgs, hre) => {
-    console.log(`🚀 Deploying to ${taskArgs.network}...`);
+    console.log(`🚀 Deploying to ${taskArgs.targetNetwork}...`);
     
-    // Set network
-    hre.changeNetwork(taskArgs.network);
-    
-    // Run deployment
+    // Run deployment without changeNetwork
     await hre.run("run", {
       script: "contracts/scripts/deploy-base-sepolia.js"
     });
   });
 
 task("test-arbitrage", "Test arbitrage system")
-  .addOptionalParam("network", "Network to test on", "baseSepolia")
+  .addOptionalParam("targetNetwork", "Network to test on", "baseSepolia")
   .setAction(async (taskArgs, hre) => {
-    console.log(`🧪 Testing on ${taskArgs.network}...`);
+    console.log(`🧪 Testing on ${taskArgs.targetNetwork}...`);
     
-    // Set network
-    hre.changeNetwork(taskArgs.network);
-    
-    // Run tests
+    // Run tests without changeNetwork
     await hre.run("run", {
       script: "contracts/scripts/test-arbitrage.js"
     });
@@ -215,9 +183,9 @@ task("test-arbitrage", "Test arbitrage system")
 task("verify-contracts", "Verify deployed contracts")
   .addParam("priceMonitor", "PriceMonitor contract address")
   .addParam("triangularArbitrage", "TriangularArbitrage contract address")
-  .addOptionalParam("network", "Network to verify on", "baseSepolia")
+  .addOptionalParam("targetNetwork", "Network to verify on", "baseSepolia")
   .setAction(async (taskArgs, hre) => {
-    console.log(`🔍 Verifying contracts on ${taskArgs.network}...`);
+    console.log(`🔍 Verifying contracts on ${taskArgs.targetNetwork}...`);
     
     try {
       // Verify PriceMonitor
