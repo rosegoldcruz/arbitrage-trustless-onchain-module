@@ -33,7 +33,7 @@ import { TradeHistory } from "@/components/dashboard/TradeHistory";
 import { ChatWithAgent } from "@/components/dashboard/ChatWithAgent";
 import { ArbitrageControls } from "@/components/dashboard/ArbitrageControls";
 import Navbar from "@/components/Navbar";
-import { useWeb3Auth } from "@/contexts/Web3AuthContext";
+import { useWeb3Auth } from "@/components/web3/web3auth-provider";
 import { RealTimeProfitTracker } from "@/components/dashboard/RealTimeProfitTracker";
 import { OpportunityHunter } from "@/components/dashboard/OpportunityHunter";
 import { AgentBattleArena } from "@/components/dashboard/AgentBattleArena";
@@ -48,7 +48,7 @@ interface SystemStatus {
 }
 
 export default function Dashboard() {
-  const { isConnected, address, isCorrectNetwork } = useWeb3Auth();
+  const { isConnected, address, isCorrectNetwork, login, logout } = useWeb3Auth();
   const [backendConnected, setBackendConnected] = useState(false);
   const [tradingMode, setTradingMode] = useState<'test' | 'live'>('test');
   const [selectedNetwork, setSelectedNetwork] = useState('ethereum');
@@ -63,12 +63,12 @@ export default function Dashboard() {
       const response = await api.health();
       if (response.success) {
         setSystemStatus(response.data);
-        setIsConnected(true);
+        setBackendConnected(true);
         setLastRefresh(new Date());
       }
     } catch (error) {
       console.error('Failed to fetch system status:', error);
-      setIsConnected(false);
+      setBackendConnected(false);
       toast.error('Failed to connect to backend');
     } finally {
       setLoading(false);
@@ -110,7 +110,11 @@ export default function Dashboard() {
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
             // Toggle wallet connection
-            setIsConnected(!isConnected);
+            if (isConnected) {
+              logout();
+            } else {
+              login();
+            }
           }
           break;
         case '?':
@@ -131,7 +135,6 @@ export default function Dashboard() {
   }
 
   return (
-    <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
         <Navbar />
 
@@ -339,6 +342,5 @@ export default function Dashboard() {
         </div>
       </div>
       </div>
-    </ProtectedRoute>
   );
 }

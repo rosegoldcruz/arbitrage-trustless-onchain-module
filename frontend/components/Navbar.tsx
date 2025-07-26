@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Web3AuthButton from '@/components/web3/Web3AuthButton'
-import { useWeb3Auth } from '@/contexts/Web3AuthContext'
+import { useWeb3Auth } from '@/components/web3/web3auth-provider'
 import { 
   Home, 
   BarChart3, 

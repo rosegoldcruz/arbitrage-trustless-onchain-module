@@ -7,8 +7,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { ethers, formatEther, parseEther } from 'ethers';
-import { useWeb3Auth } from '@/contexts/Web3AuthContext';
+import { ethers } from 'ethers';
+import { useWeb3Auth } from '@/components/web3/web3auth-provider';
 import { toast } from 'sonner';
 
 // Contract addresses (Base Sepolia - update after deployment)
@@ -86,7 +86,7 @@ interface PriceData {
 }
 
 export function useArbitrageContracts() {
-  const { isConnected, address, provider } = useWeb3Auth();
+  const { isConnected, address, ethersProvider } = useWeb3Auth();
   const [contracts, setContracts] = useState<{
     triangularArbitrage: ethers.Contract | null;
     priceMonitor: ethers.Contract | null;
@@ -112,17 +112,18 @@ export function useArbitrageContracts() {
 
   // Initialize contracts
   useEffect(() => {
-    if (!provider || !isConnected) {
-      setContracts({
-        triangularArbitrage: null,
-        priceMonitor: null,
-        executionEngine: null
-      });
-      return;
-    }
+    const initializeContracts = async () => {
+      if (!ethersProvider || !isConnected) {
+        setContracts({
+          triangularArbitrage: null,
+          priceMonitor: null,
+          executionEngine: null
+        });
+        return;
+      }
 
-    try {
-      const signer = provider.getSigner();
+      try {
+        const signer = await ethersProvider.getSigner();
       
       const triangularArbitrage = new ethers.Contract(
         CONTRACT_ADDRESSES.triangularArbitrage,
@@ -148,12 +149,15 @@ export function useArbitrageContracts() {
         executionEngine
       });
 
-      setError(null);
-    } catch (err) {
-      console.error('Failed to initialize contracts:', err);
-      setError('Failed to initialize contracts');
-    }
-  }, [provider, isConnected]);
+        setError(null);
+      } catch (err) {
+        console.error('Failed to initialize contracts:', err);
+        setError('Failed to initialize contracts');
+      }
+    };
+
+    initializeContracts();
+  }, [ethersProvider, isConnected]);
 
   // Fetch arbitrage statistics
   const fetchStats = useCallback(async () => {
@@ -173,9 +177,9 @@ export function useArbitrageContracts() {
       setStats({
         totalExecutions: totalExecutions.toNumber(),
         successfulExecutions: successfulExecutions.toNumber(),
-        totalProfitUSD: parseFloat(formatEther(totalProfitUSD)),
+        totalProfitUSD: parseFloat(ethers.formatEther(totalProfitUSD)),
         successRate,
-        dailyProfit: parseFloat(formatEther(totalProfitUSD)) // Simplified
+        dailyProfit: parseFloat(ethers.formatEther(totalProfitUSD)) // Simplified
       });
     } catch (err) {
       console.error('Failed to fetch stats:', err);
@@ -195,7 +199,7 @@ export function useArbitrageContracts() {
         tokenB: alert.tokenB,
         tokenC: alert.tokenA, // Simplified for triangular
         spreadBps: alert.spreadBps.toNumber() / 100, // Convert to percentage
-        estimatedProfit: parseFloat(formatEther(alert.estimatedProfit)),
+        estimatedProfit: parseFloat(ethers.formatEther(alert.estimatedProfit)),
         confidence: 85 + Math.random() * 15, // Mock confidence
         dexType: alert.dexType,
         timestamp: alert.timestamp.toNumber(),
@@ -229,7 +233,7 @@ export function useArbitrageContracts() {
         poolAB: '0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E', // Mock pool addresses
         poolBC: '0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0',
         poolCA: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
-        amountIn: parseEther(amount),
+        amountIn: ethers.parseEther(amount),
         minProfitBps: 23, // 0.23%
         useBalancer: false,
         useCurve: true
@@ -269,7 +273,7 @@ export function useArbitrageContracts() {
           const [price, isStale] = await contracts.priceMonitor!.getChainlinkPrice(token);
           return {
             token,
-            chainlinkPrice: parseFloat(formatEther(price)),
+            chainlinkPrice: parseFloat(ethers.formatEther(price)),
             externalPrice: 0, // Would be fetched from external API
             impliedPrice: 0, // Would be calculated from DEX
             spreadBps: 0,
@@ -310,8 +314,8 @@ export function useArbitrageContracts() {
   useEffect(() => {
     if (!contracts.triangularArbitrage) return;
 
-    const handleArbitrageExecuted = (tokenA: string, tokenB: string, tokenC: string, amountIn: ethers.BigNumber, profit: ethers.BigNumber, gasUsed: ethers.BigNumber, successful: boolean) => {
-      const profitUSD = parseFloat(formatEther(profit));
+    const handleArbitrageExecuted = (tokenA: string, tokenB: string, tokenC: string, amountIn: bigint, profit: bigint, gasUsed: bigint, successful: boolean) => {
+      const profitUSD = parseFloat(ethers.formatEther(profit));
       
       if (successful) {
         toast.success(`🎉 Arbitrage completed! Profit: $${profitUSD.toFixed(2)}`);
@@ -325,7 +329,9 @@ export function useArbitrageContracts() {
     contracts.triangularArbitrage.on('TriangularArbitrageExecuted', handleArbitrageExecuted);
 
     return () => {
-      contracts.triangularArbitrage.off('TriangularArbitrageExecuted', handleArbitrageExecuted);
+      if (contracts.triangularArbitrage) {
+        contracts.triangularArbitrage.off('TriangularArbitrageExecuted', handleArbitrageExecuted);
+      }
     };
   }, [contracts.triangularArbitrage, fetchStats]);
 

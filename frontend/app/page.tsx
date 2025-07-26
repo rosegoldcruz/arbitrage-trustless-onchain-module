@@ -13,12 +13,11 @@ import { FAQSection } from "@/components/landing/FAQSection";
 import { ContactSection } from "@/components/landing/ContactSection";
 import { Navigation } from "@/components/landing/Navigation";
 import { Footer } from "@/components/landing/Footer";
-import { AuthHeader } from "@/components/auth/AuthHeader";
+
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
-      <AuthHeader />
       <Navigation />
       <HeroSection />
       <PlatformOverview />

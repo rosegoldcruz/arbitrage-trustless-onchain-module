@@ -10,8 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useWeb3Auth } from '@/contexts/Web3AuthContext'
-import { getExplorerUrl } from '@/lib/wagmi-config'
+import { useWeb3Auth } from './web3auth-provider'
+import { getExplorerUrl } from '@/lib/web3auth-config'
 import { 
   Wallet, 
   ChevronDown, 
@@ -30,28 +30,27 @@ interface WalletConnectButtonProps {
   size?: 'default' | 'sm' | 'lg'
 }
 
-export default function WalletConnectButton({ 
-  className = '', 
+export default function WalletConnectButton({
+  className = '',
   variant = 'outline',
   size = 'default'
 }: WalletConnectButtonProps) {
   const {
     address,
+    balance,
     isConnected,
     chainId,
     isCorrectNetwork,
-    isConnecting,
-    formattedAddress,
-    formattedBalance,
-    chainName,
-    connectWallet,
-    disconnectWallet,
-    switchToBaseSepolia,
-    connectors
-  } = useWallet()
-  
-  const { isClerkSignedIn, isFullyAuthenticated } = useUserContext()
-  
+    isLoading,
+    login,
+    logout,
+    switchNetwork
+  } = useWeb3Auth()
+
+  const formatAddress = (addr: string) => {
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+  }
+
   const copyAddress = async () => {
     if (address) {
       await navigator.clipboard.writeText(address)
@@ -61,18 +60,13 @@ export default function WalletConnectButton({
   
   const openExplorer = () => {
     if (address && chainId) {
-      window.open(getExplorerUrl(chainId, address), '_blank')
+      window.open(getExplorerUrl(address), '_blank')
     }
   }
   
   const handleConnect = async () => {
-    if (!isClerkSignedIn) {
-      toast.error('Please sign in with Clerk first')
-      return
-    }
-    
     try {
-      await connectWallet()
+      await login()
     } catch (error) {
       console.error('Failed to connect wallet:', error)
       toast.error('Failed to connect wallet')
@@ -81,30 +75,15 @@ export default function WalletConnectButton({
   
   const handleSwitchNetwork = async () => {
     try {
-      await switchToBaseSepolia()
+      await switchNetwork()
     } catch (error) {
       console.error('Failed to switch network:', error)
       toast.error('Failed to switch network')
     }
   }
-  
+
   const handleDisconnect = () => {
-    disconnectWallet()
-  }
-  
-  // Show sign in message if Clerk not signed in
-  if (!isClerkSignedIn) {
-    return (
-      <Button
-        variant="ghost"
-        disabled
-        className={`text-gray-400 ${className}`}
-        size={size}
-      >
-        <Wallet className="mr-2 h-4 w-4" />
-        Sign in to connect wallet
-      </Button>
-    )
+    logout()
   }
   
   // Not connected state
@@ -114,11 +93,11 @@ export default function WalletConnectButton({
         <DropdownMenuTrigger asChild>
           <Button
             variant={variant}
-            disabled={isConnecting}
+            disabled={isLoading}
             className={`bg-blue-600 hover:bg-blue-700 ${className}`}
             size={size}
           >
-            {isConnecting ? (
+            {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Connecting...
@@ -133,16 +112,13 @@ export default function WalletConnectButton({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          {connectors.map((connector) => (
-            <DropdownMenuItem
-              key={connector.id}
-              onClick={() => connectWallet(connector.id)}
-              className="cursor-pointer"
-            >
-              <Wallet className="mr-2 h-4 w-4" />
-              Connect with {connector.name}
-            </DropdownMenuItem>
-          ))}
+          <DropdownMenuItem
+            onClick={handleConnect}
+            className="cursor-pointer"
+          >
+            <Wallet className="mr-2 h-4 w-4" />
+            Connect with Web3Auth
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     )
@@ -162,12 +138,12 @@ export default function WalletConnectButton({
               <div className={`w-2 h-2 rounded-full ${
                 isCorrectNetwork ? 'bg-green-500' : 'bg-yellow-500'
               }`} />
-              {isFullyAuthenticated && (
+              {isConnected && (
                 <CheckCircle2 className="h-3 w-3 text-green-500" />
               )}
               <Wallet className="h-4 w-4" />
               <span className="font-mono text-sm">
-                {formattedAddress}
+                {address ? formatAddress(address) : 'Connected'}
               </span>
             </div>
             <ChevronDown className="h-4 w-4" />
@@ -179,14 +155,14 @@ export default function WalletConnectButton({
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">Wallet Connected</span>
             <Badge variant={isCorrectNetwork ? "default" : "destructive"}>
-              {chainName}
+              {isCorrectNetwork ? "Base Sepolia" : "Wrong Network"}
             </Badge>
           </div>
           <div className="mt-1 text-xs text-gray-400 font-mono">
             {address}
           </div>
           <div className="mt-1 text-xs text-gray-400">
-            Balance: {formattedBalance} ETH
+            Balance: {balance || '0.0000'} ETH
           </div>
         </div>
         

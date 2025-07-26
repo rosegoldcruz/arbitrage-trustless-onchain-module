@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useArbitrageContracts, TOKENS } from '@/hooks/useArbitrageContracts';
-import { useWeb3Auth } from '@/contexts/Web3AuthContext';
+import { useWeb3Auth } from '@/components/web3/web3auth-provider';
 
 interface ArbitrageOpportunity {
   id: string;

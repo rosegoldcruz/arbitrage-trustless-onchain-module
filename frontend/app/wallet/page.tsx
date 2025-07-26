@@ -10,7 +10,8 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MetaMaskConnector, useWeb3 } from '@/components/web3';
+
+import { useWeb3Auth } from '@/components/web3/web3auth-provider';
 import { 
   Wallet, 
   Network, 
@@ -23,13 +24,13 @@ import {
 import Link from 'next/link';
 
 export default function WalletPage() {
-  const { 
-    isConnected, 
-    account, 
-    chainId, 
-    balance, 
-    isCorrectNetwork 
-  } = useWeb3();
+  const {
+    isConnected,
+    address,
+    chainId,
+    balance,
+    isCorrectNetwork
+  } = useWeb3Auth();
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -69,7 +70,15 @@ export default function WalletPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <MetaMaskConnector />
+                <p className="text-gray-400 mb-4">
+                  Use Web3Auth to connect your wallet securely.
+                </p>
+                <Button
+                  onClick={() => window.location.href = '/dashboard'}
+                  className="w-full"
+                >
+                  Go to Dashboard to Connect
+                </Button>
               </CardContent>
             </Card>
 
@@ -141,7 +150,7 @@ export default function WalletPage() {
                     <div>
                       <label className="text-sm text-gray-400">Wallet Address</label>
                       <div className="mt-1 p-3 bg-gray-800 rounded-lg font-mono text-sm break-all">
-                        {account}
+                        {address}
                       </div>
                     </div>
 
@@ -155,7 +164,7 @@ export default function WalletPage() {
                     </div>
 
                     <Button
-                      onClick={() => window.open(`https://sepolia-explorer.base.org/address/${account}`, '_blank')}
+                      onClick={() => window.open(`https://sepolia-explorer.base.org/address/${address}`, '_blank')}
                       variant="outline"
                       className="w-full border-gray-700"
                     >
