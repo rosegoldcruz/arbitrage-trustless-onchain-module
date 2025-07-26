@@ -1,5 +1,5 @@
 require("@nomicfoundation/hardhat-toolbox");
-require("@nomiclabs/hardhat-etherscan");
+require("@nomicfoundation/hardhat-verify"); 
 require("hardhat-deploy");
 require("hardhat-gas-reporter");
 require("solidity-coverage");
