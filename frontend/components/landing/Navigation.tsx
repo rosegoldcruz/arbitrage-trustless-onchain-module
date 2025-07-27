@@ -5,13 +5,12 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Menu, X, Zap } from "lucide-react";
 import Link from "next/link";
-
+import { Web3AuthButton } from "@/components/web3";
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
-    { href: "#login", label: "Login" },
     { href: "#about", label: "About" },
     { href: "#pricing", label: "Pricing" },
     { href: "#faq", label: "FAQ" },
@@ -44,11 +43,7 @@ export function Navigation() {
               </Link>
             ))}
             <div className="flex items-center space-x-4">
-              <Link href="/login">
-                <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
-                  Login
-                </Button>
-              </Link>
+              <Web3AuthButton />
               <Link href="/dashboard">
                 <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
                   Try ATOM Today
@@ -90,11 +85,7 @@ export function Navigation() {
                 </Link>
               ))}
               <div className="px-4 space-y-3">
-                <Link href="/login">
-                  <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
-                    Login
-                  </Button>
-                </Link>
+                <Web3AuthButton className="w-full" />
                 <Link href="/dashboard">
                   <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
                     Try ATOM Today

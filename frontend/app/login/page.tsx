@@ -36,31 +36,4 @@ export default function LoginPage() {
           uxMode: 'popup',
           whiteLabel: {
             name: 'AEON',
-            logoLight: 'https://aeoninvestmentstechnologies.com/logo.png',
-            logoDark: 'https://aeoninvestmentstechnologies.com/logo.png',
-            defaultLanguage: 'en',
-            theme: {
-              primary: '#9F7AEA'
-            }
-          }
-        }
-      })
-
-      instance.configureAdapter(openloginAdapter)
-      await instance.initModal()
-      const provider = await instance.connect()
-      const ethProvider = new EthereumPrivateKeyProvider({ config: { chainConfig: instance.chainConfig } })
-      const address = await (await ethProvider.setupProvider(provider)).request({ method: 'eth_accounts' })
-      setUserAddress(address?.[0])
-      router.push('/dashboard')
-    }
-
-    init().catch(console.error)
-  }, [])
-
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-black text-white">
-      <h1 className="text-xl">Initializing AEON login...</h1>
-    </div>
-  )
-}
+            logoLight: 'https:
