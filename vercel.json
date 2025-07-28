@@ -19,8 +19,8 @@
   ],
   "env": {
     "NEXT_PUBLIC_APP_NAME": "ATOM",
-    "NEXT_PUBLIC_APP_URL": "https://arbitrage-trustless-onchain-module-3w6lf0vt9-elohim.vercel.app",
-    "NEXT_PUBLIC_BACKEND_URL": "http://152.42.234.243:3001",
+    "NEXT_PUBLIC_APP_URL": "https://aeoninvestmentstechnologies.com",
+    "NEXT_PUBLIC_BACKEND_URL": "http://152.42.234.243:8000",
     "NODE_ENV": "production"
   },
   "functions": {

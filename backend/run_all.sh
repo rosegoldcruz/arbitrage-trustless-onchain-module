@@ -3,13 +3,16 @@
 # Create logs directory if it doesn't exist
 mkdir -p logs
 
-echo "Starting ATOM bot..."
-nohup python3 ATOM.py > logs/atom.log 2>&1 &
+echo "🔁 Starting ADOM Flashloan Engine..."
+nohup python3 adom_engine.py > logs/adom_engine.log 2>&1 &
 
-echo "Starting ADOM engine..."
-nohup python3 adom_engine.py > logs/adom.log 2>&1 &
+echo "📡 Starting Arbitrage Spread Watcher..."
+nohup node arb_watcher.js > logs/arb_watcher.log 2>&1 &
 
-echo "Starting Master Orchestrator..."
-nohup python3 master_agent_orchestrator.py > logs/orchestrator.log 2>&1 &
+echo "🧠 Starting AEON Orchestrator Core (Juiced)..."
+nohup python3 juiced_up_orchestrator.py > logs/orchestrator.log 2>&1 &
 
-echo "✅ All agents launched in background"
+echo "📬 Starting Telegram Alert Service..."
+nohup python3 telegram_notifier.py > logs/telegram.log 2>&1 &
+
+echo "✅ All AEON agents launched in background"

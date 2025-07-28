@@ -38,8 +38,8 @@ image_transformation = {
 
 [auth]
 enabled = true
-site_url = "http://localhost:3000"
-additional_redirect_urls = ["https://localhost:3000"]
+site_url = "https://aeoninvestmentstechnologies.com"
+additional_redirect_urls = ["https://aeoninvestmentstechnologies.com", "http://localhost:3000"]
 jwt_expiry = 3600
 refresh_token_rotation_enabled = true
 security_update_password_require_reauthentication = true
