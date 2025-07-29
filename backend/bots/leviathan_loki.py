@@ -40,7 +40,15 @@ class QuantumWhalePredictor:
     def _build_quantum_lstm(self):
         """Constructs quantum-inspired LSTM model"""
         model = Sequential([
-            LSTM(128, input_shape=(60, 12),  # 60 blocks, 12 features
+            LSTM            import tensorflow as tf
+            from tensorflow.keras.layers import Activation
+            from tensorflow.keras.utils import get_custom_objects
+            
+            def quantum_relu(x):
+                # Implement your quantum ReLU logic here
+                return tf.nn.relu(x)  # Example: using standard ReLU
+            
+            get_custom_objects().update({'quantum_relu': Activation(quantum_relu)})(128, input_shape=(60, 12),  # 60 blocks, 12 features
             Dense(64, activation='quantum_relu'),  # Quantum activation function
             Dense(4, activation='linear')  # [price_impact, direction, size, probability]
         ])

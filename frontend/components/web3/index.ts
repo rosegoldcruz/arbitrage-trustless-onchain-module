@@ -5,9 +5,9 @@
  */
 
 // Legacy MetaMask provider (keeping for compatibility)
-export { Web3Provider, useWeb3, useMetaMaskInstalled } from './web3-provider';
-export { default as MetaMaskConnector } from './metamask-connector';
-export { default as WalletButton } from './wallet-button';
+// export { Web3Provider, useWeb3, useMetaMaskInstalled } from './web3-provider';
+// export { default as MetaMaskConnector } from './metamask-connector';
+// export { default as WalletButton } from './wallet-button';
 
 // Web3Auth integration (primary)
 export { default as Web3AuthButton } from './Web3AuthButton';
