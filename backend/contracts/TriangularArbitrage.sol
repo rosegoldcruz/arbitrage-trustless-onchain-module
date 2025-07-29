@@ -14,7 +14,6 @@ import "./libraries/BalancerMath.sol";
 import "./libraries/CurveMath.sol";
 import "./libraries/SpreadCalculator.sol";
 import "./lib/AEONArbitrageExtensions.sol";
-import "./lib/AEONMath.sol";
 
 /**
  * @title TriangularArbitrage
@@ -37,6 +36,7 @@ contract TriangularArbitrage is
     address public constant DAI = 0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb;  // DAI on Base Sepolia
     address public constant USDC = 0x036CbD53842c5426634e7929541eC2318f3dCF7e; // USDC on Base Sepolia
     address public constant GHO = 0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f;  // GHO on Base Sepolia (mock)
+    address public constant WETH = 0x4200000000000000000000000000000000000006; // WETH on Base Sepolia
     
     // DEX interfaces
     address public constant BALANCER_VAULT = 0xBA12222222228d8Ba445958a75a0704d566BF2C8;
@@ -46,7 +46,7 @@ contract TriangularArbitrage is
     // Chainlink price feeds (Base Sepolia)
     address public constant DAI_USD_FEED = 0x591e79239a7d679378eC8c847e5038150364C78F;
     address public constant USDC_USD_FEED = 0xd30e2101a97dcbAeBCBC04F14C3f624E67A35165;
-    address public constant ETH_USD_FEED = 0xD276fCF34D54A9267738e680A72b7EaF2E54f2E4;
+    address public constant ETH_USD_FEED = 0xd276FCf34D54A9267738E680a72b7Eaf2E54f2e4;
 
     // 0x API configuration
     string public constant ZRX_API_URL = "https://api.0x.org/swap/v1/quote";
@@ -100,6 +100,12 @@ contract TriangularArbitrage is
         address indexed token,
         uint256 amount,
         address indexed recipient
+    );
+
+    event ConfigUpdated(
+        uint256 maxGasPrice,
+        uint256 maxSlippageBps,
+        uint256 minProfitUSD
     );
 
     // State variables
@@ -534,7 +540,7 @@ contract TriangularArbitrage is
         // Execute arbitrage
         _executeTriangularSwaps(path);
 
-        emit TriangularArbitrageExecuted(tokenA, tokenB, tokenC, amount, block.timestamp);
+        emit TriangularArbitrageExecuted(tokenA, tokenB, tokenC, amount, 0, gasleft(), true);
     }
 
     /**

@@ -316,7 +316,7 @@ export function useArbitrageContracts() {
   useEffect(() => {
     if (!contracts.triangularArbitrage) return;
 
-    const handleArbitrageExecuted = (tokenA: string, tokenB: string, tokenC: string, amountIn: ethers.BigNumber, profit: ethers.BigNumber, gasUsed: ethers.BigNumber, successful: boolean) => {
+    const handleArbitrageExecuted = (_tokenA: string, _tokenB: string, _tokenC: string, _amountIn: bigint, profit: bigint, _gasUsed: bigint, successful: boolean) => {
       const profitUSD = parseFloat((profit / BigInt(10**18)).toString());
       
       if (successful) {
@@ -331,7 +331,7 @@ export function useArbitrageContracts() {
     contracts.triangularArbitrage.on('TriangularArbitrageExecuted', handleArbitrageExecuted);
 
     return () => {
-      contracts.triangularArbitrage.off('TriangularArbitrageExecuted', handleArbitrageExecuted);
+      contracts.triangularArbitrage?.off('TriangularArbitrageExecuted', handleArbitrageExecuted);
     };
   }, [contracts.triangularArbitrage, fetchStats]);
 

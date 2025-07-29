@@ -119,3 +119,131 @@ async def get_support_hours():
         ],
         "timestamp": datetime.utcnow().isoformat()
     }
+
+@router.post("/submit", response_model=ContactResponse)
+async def submit_contact_form(request: ContactRequest):
+    """Submit contact form - alias for the main contact endpoint"""
+    try:
+        # Simulate form processing
+        await asyncio.sleep(1)
+
+        # Generate ticket ID
+        ticket_id = f"ATOM-{datetime.now().strftime('%Y%m%d')}-{hash(request.email) % 10000:04d}"
+
+        # Validate priority
+        valid_priorities = ["low", "normal", "high", "urgent"]
+        if request.priority not in valid_priorities:
+            request.priority = "normal"
+
+        # In a real implementation, you would:
+        # 1. Validate the input more thoroughly
+        # 2. Send email via SMTP or email service (SendGrid, AWS SES, etc.)
+        # 3. Store in database with proper schema
+        # 4. Send confirmation email to user
+        # 5. Create internal ticket in support system
+        # 6. Send notification to support team based on priority
+
+        # Simulate different response times based on priority
+        if request.priority == "urgent":
+            response_time = "2 hours"
+        elif request.priority == "high":
+            response_time = "4 hours"
+        elif request.priority == "normal":
+            response_time = "24 hours"
+        else:
+            response_time = "48 hours"
+
+        # Mock successful submission
+        return ContactResponse(
+            success=True,
+            message=f"Thank you {request.name}! Your {request.priority} priority message has been received. "
+                   f"We'll respond within {response_time}. Your ticket ID is {ticket_id}.",
+            ticket_id=ticket_id
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to submit contact form: {str(e)}")
+
+@router.get("/tickets/{ticket_id}")
+async def get_ticket_status(ticket_id: str):
+    """Get status of a support ticket"""
+    try:
+        # Validate ticket ID format
+        if not ticket_id.startswith("ATOM-") or len(ticket_id) != 18:
+            raise HTTPException(status_code=404, detail="Invalid ticket ID format")
+
+        # Mock ticket status
+        statuses = ["open", "in_progress", "waiting_for_response", "resolved"]
+        status = random.choice(statuses)
+
+        # Generate mock ticket data
+        created_date = datetime.now() - timedelta(days=random.randint(0, 7))
+
+        return {
+            "ticket_id": ticket_id,
+            "status": status,
+            "priority": random.choice(["low", "normal", "high"]),
+            "subject": "Support Request",
+            "created_at": created_date.isoformat(),
+            "last_updated": (created_date + timedelta(hours=random.randint(1, 48))).isoformat(),
+            "assigned_agent": "Support Team",
+            "estimated_resolution": "24-48 hours",
+            "messages_count": random.randint(1, 5),
+            "satisfaction_rating": random.choice([None, 4, 5]) if status == "resolved" else None
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get ticket status: {str(e)}")
+
+@router.get("/categories")
+async def get_contact_categories():
+    """Get available contact categories for better routing"""
+    return {
+        "categories": [
+            {
+                "id": "technical_support",
+                "name": "Technical Support",
+                "description": "Issues with trading bots, API, or platform functionality",
+                "estimated_response": "12 hours",
+                "priority": "high"
+            },
+            {
+                "id": "account_issues",
+                "name": "Account Issues",
+                "description": "Login problems, account settings, or access issues",
+                "estimated_response": "24 hours",
+                "priority": "normal"
+            },
+            {
+                "id": "trading_questions",
+                "name": "Trading Questions",
+                "description": "Questions about arbitrage strategies or trading performance",
+                "estimated_response": "24 hours",
+                "priority": "normal"
+            },
+            {
+                "id": "billing_support",
+                "name": "Billing Support",
+                "description": "Subscription, payment, or billing related inquiries",
+                "estimated_response": "24 hours",
+                "priority": "normal"
+            },
+            {
+                "id": "feature_request",
+                "name": "Feature Request",
+                "description": "Suggestions for new features or improvements",
+                "estimated_response": "48 hours",
+                "priority": "low"
+            },
+            {
+                "id": "partnership",
+                "name": "Partnership",
+                "description": "Business partnerships and enterprise solutions",
+                "estimated_response": "48 hours",
+                "priority": "normal"
+            }
+        ],
+        "timestamp": datetime.utcnow().isoformat()
+    }

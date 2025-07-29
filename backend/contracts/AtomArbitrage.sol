@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./lib/AEONMath.sol";
 import "./lib/AEONArbitrageExtensions.sol";
 
 // AAVE V3 Flash Loan Interface
@@ -97,24 +96,7 @@ interface IFlashLoanRecipient {
     ) external;
 }
 
-// Curve Finance Interfaces
-interface ICurvePool {
-    function exchange(
-        int128 i,
-        int128 j,
-        uint256 dx,
-        uint256 min_dy
-    ) external returns (uint256);
-
-    function get_dy(
-        int128 i,
-        int128 j,
-        uint256 dx
-    ) external view returns (uint256);
-
-    function coins(uint256 i) external view returns (address);
-}
-
+// Additional interfaces not in AEONArbitrageExtensions.sol
 interface ICurveRegistry {
     function find_pool_for_coins(
         address from,
@@ -208,7 +190,7 @@ contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, Reentra
         uint256 timestamp
     );
 
-    constructor() Ownable(msg.sender) {}
+    constructor() Ownable() {}
 
     receive() external payable {}
 
@@ -367,13 +349,11 @@ contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, Reentra
         uint256 gasUsed = params.estimatedGasUnits;
         uint256 gasPriceWei = params.maxGasPrice;
 
-        int256 efficiencyScore = AEONMath.efficiencyScore(
-            expectedProfitUSD,
-            gasUsed,
-            gasPriceWei
-        );
+        // Calculate gas efficiency inline
+        uint256 gasCostWei = gasUsed * gasPriceWei;
+        uint256 gasCostUSD = (gasCostWei / 1e18) * 2000; // Assume $2000 ETH
 
-        require(efficiencyScore > 0, "Gas efficiency too low - negative profit");
+        require(expectedProfitUSD > gasCostUSD, "Gas efficiency too low - negative profit");
 
         emit ArbitrageExecuted(
             params.tokenA,
@@ -531,14 +511,12 @@ contract AtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, Reentra
                 uint256 gasUsed = 300000; // Estimated gas usage
                 uint256 gasPriceWei = tx.gasprice;
 
-                int256 efficiencyScore = AEONMath.efficiencyScore(
-                    expectedProfitUSD,
-                    gasUsed,
-                    gasPriceWei
-                );
+                // Calculate gas efficiency inline
+                uint256 gasCostWei = gasUsed * gasPriceWei;
+                uint256 gasCostUSD = (gasCostWei / 1e18) * 2000; // Assume $2000 ETH
 
                 // Require positive efficiency score and above threshold
-                profitable = aboveThreshold && efficiencyScore > 0;
+                profitable = aboveThreshold && (expectedProfitUSD > gasCostUSD);
             } else {
                 profit = 0;
                 profitable = false;

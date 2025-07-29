@@ -10,7 +10,6 @@ import "@aave/core-v3/contracts/flashloan/base/FlashLoanSimpleReceiverBase.sol";
 import "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol";
 import "@aave/core-v3/contracts/interfaces/IPool.sol";
 import "./lib/AEONArbitrageExtensions.sol";
-import "./lib/AEONMath.sol";
 
 /**
  * @title AEON - Advanced Efficient Optimized Network (Option 1)

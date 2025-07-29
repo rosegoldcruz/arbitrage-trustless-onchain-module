@@ -1,10 +1,10 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "C:\\Users\\Administrator\\atom\\contracts\\AEON.sol": {
-      "lastModificationDate": 1753565455808,
-      "contentHash": "6a05b6ed0b43e0557b0273bb469fb168",
-      "sourceName": "contracts/AEON.sol",
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\AEON.sol": {
+      "lastModificationDate": 1753760083054,
+      "contentHash": "1fcaca15fda45d89b8d38b09e78ac6eb",
+      "sourceName": "backend/contracts/AEON.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -46,8 +46,7 @@
         "@aave/core-v3/contracts/flashloan/base/FlashLoanSimpleReceiverBase.sol",
         "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol",
         "@aave/core-v3/contracts/interfaces/IPool.sol",
-        "./lib/AEONArbitrageExtensions.sol",
-        "./lib/AEONMath.sol"
+        "./lib/AEONArbitrageExtensions.sol"
       ],
       "versionPragmas": [
         "^0.8.20"
@@ -56,10 +55,10 @@
         "AEON"
       ]
     },
-    "C:\\Users\\Administrator\\atom\\contracts\\lib\\AEONArbitrageExtensions.sol": {
-      "lastModificationDate": 1753565850450,
-      "contentHash": "9cf225df69f5bb7a5890a728bbcd60ba",
-      "sourceName": "contracts/lib/AEONArbitrageExtensions.sol",
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\lib\\AEONArbitrageExtensions.sol": {
+      "lastModificationDate": 1753760527175,
+      "contentHash": "1e08acde7b7a8013406a86003b882f46",
+      "sourceName": "backend/contracts/lib/AEONArbitrageExtensions.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -105,52 +104,6 @@
         "IBalancerPool",
         "IBalancerVault",
         "ICurvePool"
-      ]
-    },
-    "C:\\Users\\Administrator\\atom\\contracts\\lib\\AEONMath.sol": {
-      "lastModificationDate": 1753565413919,
-      "contentHash": "719942ea7340e9ac8f9d8629ae4a2c22",
-      "sourceName": "contracts/lib/AEONMath.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "viaIR": true,
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "./AEONArbitrageExtensions.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "AEONMathUtils"
       ]
     },
     "C:\\Users\\Administrator\\atom\\node_modules\\@openzeppelin\\contracts\\security\\Pausable.sol": {
@@ -289,50 +242,6 @@
         "ReentrancyGuard"
       ]
     },
-    "C:\\Users\\Administrator\\atom\\node_modules\\@aave\\core-v3\\contracts\\interfaces\\IPoolAddressesProvider.sol": {
-      "lastModificationDate": 1753551621544,
-      "contentHash": "75709782c90506d3ce968d5a6e06b900",
-      "sourceName": "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "viaIR": true,
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "IPoolAddressesProvider"
-      ]
-    },
     "C:\\Users\\Administrator\\atom\\node_modules\\@aave\\core-v3\\contracts\\interfaces\\IPool.sol": {
       "lastModificationDate": 1753551621541,
       "contentHash": "e977debb0018eb26ecec353110d66696",
@@ -424,10 +333,10 @@
         "IERC20"
       ]
     },
-    "C:\\Users\\Administrator\\atom\\node_modules\\@aave\\core-v3\\contracts\\flashloan\\base\\FlashLoanSimpleReceiverBase.sol": {
-      "lastModificationDate": 1753551621495,
-      "contentHash": "ca03c0e2c038384aeba6f6a69a46c54b",
-      "sourceName": "@aave/core-v3/contracts/flashloan/base/FlashLoanSimpleReceiverBase.sol",
+    "C:\\Users\\Administrator\\atom\\node_modules\\@aave\\core-v3\\contracts\\interfaces\\IPoolAddressesProvider.sol": {
+      "lastModificationDate": 1753551621544,
+      "contentHash": "75709782c90506d3ce968d5a6e06b900",
+      "sourceName": "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -460,16 +369,12 @@
           }
         }
       },
-      "imports": [
-        "../interfaces/IFlashLoanSimpleReceiver.sol",
-        "../../interfaces/IPoolAddressesProvider.sol",
-        "../../interfaces/IPool.sol"
-      ],
+      "imports": [],
       "versionPragmas": [
         "^0.8.0"
       ],
       "artifacts": [
-        "FlashLoanSimpleReceiverBase"
+        "IPoolAddressesProvider"
       ]
     },
     "C:\\Users\\Administrator\\atom\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\utils\\SafeERC20.sol": {
@@ -518,6 +423,54 @@
       ],
       "artifacts": [
         "SafeERC20"
+      ]
+    },
+    "C:\\Users\\Administrator\\atom\\node_modules\\@aave\\core-v3\\contracts\\flashloan\\base\\FlashLoanSimpleReceiverBase.sol": {
+      "lastModificationDate": 1753551621495,
+      "contentHash": "ca03c0e2c038384aeba6f6a69a46c54b",
+      "sourceName": "@aave/core-v3/contracts/flashloan/base/FlashLoanSimpleReceiverBase.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../interfaces/IFlashLoanSimpleReceiver.sol",
+        "../../interfaces/IPoolAddressesProvider.sol",
+        "../../interfaces/IPool.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "FlashLoanSimpleReceiverBase"
       ]
     },
     "C:\\Users\\Administrator\\atom\\node_modules\\@openzeppelin\\contracts\\utils\\math\\SafeMath.sol": {
@@ -696,53 +649,6 @@
         "DataTypes"
       ]
     },
-    "C:\\Users\\Administrator\\atom\\node_modules\\@aave\\core-v3\\contracts\\flashloan\\interfaces\\IFlashLoanSimpleReceiver.sol": {
-      "lastModificationDate": 1753551621526,
-      "contentHash": "c12a597070a8323c6fbdc09e5322c2e2",
-      "sourceName": "@aave/core-v3/contracts/flashloan/interfaces/IFlashLoanSimpleReceiver.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "viaIR": true,
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "../../interfaces/IPoolAddressesProvider.sol",
-        "../../interfaces/IPool.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.0"
-      ],
-      "artifacts": [
-        "IFlashLoanSimpleReceiver"
-      ]
-    },
     "C:\\Users\\Administrator\\atom\\node_modules\\@openzeppelin\\contracts\\utils\\Address.sol": {
       "lastModificationDate": 1753551617784,
       "contentHash": "211ffd288c1588ba8c10eae668ca3c66",
@@ -829,6 +735,248 @@
       ],
       "artifacts": [
         "IERC20Permit"
+      ]
+    },
+    "C:\\Users\\Administrator\\atom\\node_modules\\@aave\\core-v3\\contracts\\flashloan\\interfaces\\IFlashLoanSimpleReceiver.sol": {
+      "lastModificationDate": 1753551621526,
+      "contentHash": "c12a597070a8323c6fbdc09e5322c2e2",
+      "sourceName": "@aave/core-v3/contracts/flashloan/interfaces/IFlashLoanSimpleReceiver.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "../../interfaces/IPoolAddressesProvider.sol",
+        "../../interfaces/IPool.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "IFlashLoanSimpleReceiver"
+      ]
+    },
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\TriangularArbitrage.sol": {
+      "lastModificationDate": 1753760227077,
+      "contentHash": "ebc627be4b3fab415f210ca8af37d106",
+      "sourceName": "backend/contracts/TriangularArbitrage.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/security/ReentrancyGuard.sol",
+        "@openzeppelin/contracts/security/Pausable.sol",
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
+        "@aave/core-v3/contracts/flashloan/base/FlashLoanSimpleReceiverBase.sol",
+        "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol",
+        "@aave/core-v3/contracts/interfaces/IPool.sol",
+        "./libraries/BalancerMath.sol",
+        "./libraries/CurveMath.sol",
+        "./libraries/SpreadCalculator.sol",
+        "./lib/AEONArbitrageExtensions.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "TriangularArbitrage"
+      ]
+    },
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\libraries\\CurveMath.sol": {
+      "lastModificationDate": 1753565331634,
+      "contentHash": "580b48db7b248b36f9ce1f59ccc8404b",
+      "sourceName": "backend/contracts/libraries/CurveMath.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/utils/math/SafeMath.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "CurveMath"
+      ]
+    },
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\libraries\\BalancerMath.sol": {
+      "lastModificationDate": 1753565324830,
+      "contentHash": "9dbd584c90a88f41f39003eeac1af476",
+      "sourceName": "backend/contracts/libraries/BalancerMath.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/utils/math/SafeMath.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "BalancerMath"
+      ]
+    },
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\libraries\\SpreadCalculator.sol": {
+      "lastModificationDate": 1753565337430,
+      "contentHash": "7a04f458b3d1a65b81353f7146bb7ed2",
+      "sourceName": "backend/contracts/libraries/SpreadCalculator.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/utils/math/SafeMath.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "SpreadCalculator"
       ]
     },
     "C:\\Users\\Administrator\\atom\\node_modules\\@openzeppelin\\contracts\\token\\ERC20\\extensions\\IERC20Metadata.sol": {
@@ -925,257 +1073,10 @@
         "ERC20"
       ]
     },
-    "C:\\Users\\Administrator\\atom\\contracts\\TriangularArbitrage.sol": {
-      "lastModificationDate": 1753565858946,
-      "contentHash": "8134e2375861dbd590122810fde31d95",
-      "sourceName": "contracts/TriangularArbitrage.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "viaIR": true,
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/security/ReentrancyGuard.sol",
-        "@openzeppelin/contracts/security/Pausable.sol",
-        "@openzeppelin/contracts/access/Ownable.sol",
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
-        "@aave/core-v3/contracts/flashloan/base/FlashLoanSimpleReceiverBase.sol",
-        "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol",
-        "@aave/core-v3/contracts/interfaces/IPool.sol",
-        "./libraries/BalancerMath.sol",
-        "./libraries/CurveMath.sol",
-        "./libraries/SpreadCalculator.sol",
-        "./lib/AEONArbitrageExtensions.sol",
-        "./lib/AEONMath.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.19"
-      ],
-      "artifacts": [
-        "TriangularArbitrage"
-      ]
-    },
-    "C:\\Users\\Administrator\\atom\\contracts\\libraries\\BalancerMath.sol": {
-      "lastModificationDate": 1753565324830,
-      "contentHash": "9dbd584c90a88f41f39003eeac1af476",
-      "sourceName": "contracts/libraries/BalancerMath.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "viaIR": true,
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/utils/math/SafeMath.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.19"
-      ],
-      "artifacts": [
-        "BalancerMath"
-      ]
-    },
-    "C:\\Users\\Administrator\\atom\\contracts\\libraries\\CurveMath.sol": {
-      "lastModificationDate": 1753565331634,
-      "contentHash": "580b48db7b248b36f9ce1f59ccc8404b",
-      "sourceName": "contracts/libraries/CurveMath.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "viaIR": true,
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/utils/math/SafeMath.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.19"
-      ],
-      "artifacts": [
-        "CurveMath"
-      ]
-    },
-    "C:\\Users\\Administrator\\atom\\contracts\\libraries\\SpreadCalculator.sol": {
-      "lastModificationDate": 1753565337430,
-      "contentHash": "7a04f458b3d1a65b81353f7146bb7ed2",
-      "sourceName": "contracts/libraries/SpreadCalculator.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "viaIR": true,
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/utils/math/SafeMath.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.19"
-      ],
-      "artifacts": [
-        "SpreadCalculator"
-      ]
-    },
-    "C:\\Users\\Administrator\\atom\\contracts\\FlashLoanArbitrage.sol": {
-      "lastModificationDate": 1753565891874,
-      "contentHash": "10874d95be22d1943c0cbfa040a45270",
-      "sourceName": "contracts/FlashLoanArbitrage.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "viaIR": true,
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "@aave/core-v3/contracts/flashloan/base/FlashLoanSimpleReceiverBase.sol",
-        "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol",
-        "@aave/core-v3/contracts/interfaces/IPool.sol",
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "@openzeppelin/contracts/access/Ownable.sol",
-        "@openzeppelin/contracts/security/ReentrancyGuard.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.19"
-      ],
-      "artifacts": [
-        "FlashLoanArbitrage"
-      ]
-    },
-    "C:\\Users\\Administrator\\atom\\contracts\\SimpleFlashLoan.sol": {
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\SimpleFlashLoan.sol": {
       "lastModificationDate": 1753565923702,
       "contentHash": "d103d921e77e2b07d709271a02b88305",
-      "sourceName": "contracts/SimpleFlashLoan.sol",
+      "sourceName": "backend/contracts/SimpleFlashLoan.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -1220,10 +1121,10 @@
         "SimpleFlashLoan"
       ]
     },
-    "C:\\Users\\Administrator\\atom\\contracts\\PriceMonitor.sol": {
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\PriceMonitor.sol": {
       "lastModificationDate": 1753565872265,
       "contentHash": "d78eb020b41d40d86e2e8e99e1a1118d",
-      "sourceName": "contracts/PriceMonitor.sol",
+      "sourceName": "backend/contracts/PriceMonitor.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -1270,127 +1171,10 @@
         "PriceMonitor"
       ]
     },
-    "C:\\Users\\Administrator\\atom\\contracts\\BaseAtomArbitrage.sol": {
-      "lastModificationDate": 1753565638255,
-      "contentHash": "bedf7b2658469bf12030c1a49c5e65f6",
-      "sourceName": "contracts/BaseAtomArbitrage.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "viaIR": true,
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/security/ReentrancyGuard.sol",
-        "@openzeppelin/contracts/access/Ownable.sol",
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
-        "./lib/AEONMath.sol",
-        "./lib/AEONArbitrageExtensions.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "BaseAtomArbitrage",
-        "ICurveRegistry",
-        "IFlashLoanRecipient",
-        "IFlashLoanSimpleReceiver",
-        "IPool",
-        "IPoolAddressesProvider",
-        "IUniswapV2Router",
-        "IVault"
-      ]
-    },
-    "C:\\Users\\Administrator\\atom\\contracts\\AtomArbitrage.sol": {
-      "lastModificationDate": 1753565793846,
-      "contentHash": "61855ddfd997977cc603c81256a73b81",
-      "sourceName": "contracts/AtomArbitrage.sol",
-      "solcConfig": {
-        "version": "0.8.20",
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "viaIR": true,
-          "evmVersion": "paris",
-          "outputSelection": {
-            "*": {
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata",
-                "devdoc",
-                "userdoc",
-                "storageLayout",
-                "evm.gasEstimates"
-              ],
-              "": [
-                "ast"
-              ]
-            }
-          },
-          "metadata": {
-            "useLiteralContent": true
-          }
-        }
-      },
-      "imports": [
-        "@openzeppelin/contracts/security/ReentrancyGuard.sol",
-        "@openzeppelin/contracts/access/Ownable.sol",
-        "@openzeppelin/contracts/security/Pausable.sol",
-        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
-        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
-        "./lib/AEONMath.sol",
-        "./lib/AEONArbitrageExtensions.sol"
-      ],
-      "versionPragmas": [
-        "^0.8.20"
-      ],
-      "artifacts": [
-        "AtomArbitrage",
-        "ICurveRegistry",
-        "IFlashLoanRecipient",
-        "IFlashLoanSimpleReceiver",
-        "IPool",
-        "IPoolAddressesProvider",
-        "IUniswapV2Router",
-        "IVault"
-      ]
-    },
-    "C:\\Users\\Administrator\\atom\\contracts\\ArbitrageExecutionEngine.sol": {
-      "lastModificationDate": 1753565831648,
-      "contentHash": "bdaa7d5586d1d0f547e18c25c39879cb",
-      "sourceName": "contracts/ArbitrageExecutionEngine.sol",
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\ArbitrageExecutionEngine.sol": {
+      "lastModificationDate": 1753760591781,
+      "contentHash": "0940989d81b1296c9ee38507ec1fa0f7",
+      "sourceName": "backend/contracts/ArbitrageExecutionEngine.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -1432,7 +1216,7 @@
         "./TriangularArbitrage.sol",
         "./PriceMonitor.sol",
         "./libraries/SpreadCalculator.sol",
-        "./lib/AEONMath.sol"
+        "./lib/AEONArbitrageExtensions.sol"
       ],
       "versionPragmas": [
         "^0.8.19"
@@ -1441,10 +1225,68 @@
         "ArbitrageExecutionEngine"
       ]
     },
-    "C:\\Users\\Administrator\\atom\\contracts\\ArbitrageBot.sol": {
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\AtomArbitrage.sol": {
+      "lastModificationDate": 1753760659937,
+      "contentHash": "0fb9aa038dcf2a5a9bfaa6ab5fa6698d",
+      "sourceName": "backend/contracts/AtomArbitrage.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/security/ReentrancyGuard.sol",
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "@openzeppelin/contracts/security/Pausable.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
+        "./lib/AEONArbitrageExtensions.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AtomArbitrage",
+        "ICurveRegistry",
+        "IFlashLoanRecipient",
+        "IFlashLoanSimpleReceiver",
+        "IPool",
+        "IPoolAddressesProvider",
+        "IUniswapV2Router",
+        "IVault"
+      ]
+    },
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\ArbitrageBot.sol": {
       "lastModificationDate": 1753565945214,
       "contentHash": "49428f82995d2bd17bd13fcf8e345bb0",
-      "sourceName": "contracts/ArbitrageBot.sol",
+      "sourceName": "backend/contracts/ArbitrageBot.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -1498,10 +1340,119 @@
         "IUniswapV3Router"
       ]
     },
-    "C:\\Users\\Administrator\\atom\\contracts\\MockERC20.sol": {
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\BaseAtomArbitrage.sol": {
+      "lastModificationDate": 1753760359629,
+      "contentHash": "a277c20264099b80d819682b153cc71d",
+      "sourceName": "backend/contracts/BaseAtomArbitrage.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/security/ReentrancyGuard.sol",
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol",
+        "./lib/AEONArbitrageExtensions.sol",
+        "./lib/AEONArbitrageExtensions.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "BaseAtomArbitrage",
+        "ICurveRegistry",
+        "IFlashLoanRecipient",
+        "IFlashLoanSimpleReceiver",
+        "IPool",
+        "IPoolAddressesProvider",
+        "IUniswapV2Router",
+        "IVault"
+      ]
+    },
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\FlashLoanArbitrage.sol": {
+      "lastModificationDate": 1753565891874,
+      "contentHash": "10874d95be22d1943c0cbfa040a45270",
+      "sourceName": "backend/contracts/FlashLoanArbitrage.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "@aave/core-v3/contracts/flashloan/base/FlashLoanSimpleReceiverBase.sol",
+        "@aave/core-v3/contracts/interfaces/IPoolAddressesProvider.sol",
+        "@aave/core-v3/contracts/interfaces/IPool.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "@openzeppelin/contracts/security/ReentrancyGuard.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "FlashLoanArbitrage"
+      ]
+    },
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\MockERC20.sol": {
       "lastModificationDate": 1753565363343,
       "contentHash": "8506ffadf34134517715fb20cd3ea4f2",
-      "sourceName": "contracts/MockERC20.sol",
+      "sourceName": "backend/contracts/MockERC20.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -1544,10 +1495,10 @@
         "MockERC20"
       ]
     },
-    "C:\\Users\\Administrator\\atom\\contracts\\HelloWorld.sol": {
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\HelloWorld.sol": {
       "lastModificationDate": 1753416709979,
       "contentHash": "58177c6221d30764aa0c1773760b2bd7",
-      "sourceName": "contracts/HelloWorld.sol",
+      "sourceName": "backend/contracts/HelloWorld.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -1588,10 +1539,55 @@
         "HelloWorld"
       ]
     },
-    "C:\\Users\\Administrator\\atom\\contracts\\Test1\\Test1.t.sol": {
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\lib\\AEONMath.sol": {
+      "lastModificationDate": 1753760076133,
+      "contentHash": "be4575c2842f548a40be1b1faa938a79",
+      "sourceName": "backend/contracts/lib/AEONMath.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AEONMathStandalone",
+        "ICurvePool"
+      ]
+    },
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\Test1\\Test1.t.sol": {
       "lastModificationDate": 1753416709982,
       "contentHash": "619da1cce949f50ce691289054e9bfab",
-      "sourceName": "contracts/Test1/Test1.t.sol",
+      "sourceName": "backend/contracts/Test1/Test1.t.sol",
       "solcConfig": {
         "version": "0.8.20",
         "settings": {
@@ -1630,6 +1626,97 @@
       ],
       "artifacts": [
         "DbgEntry"
+      ]
+    },
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\AEONMathTester.sol": {
+      "lastModificationDate": 1753766386871,
+      "contentHash": "8f78b73df4d70d401d7e1ad8d7ee26bc",
+      "sourceName": "backend/contracts/AEONMathTester.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [
+        "./lib/AEONMath.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "AEONMathTester"
+      ]
+    },
+    "C:\\Users\\Administrator\\atom\\backend\\contracts\\MockPoolAddressesProvider.sol": {
+      "lastModificationDate": 1753766210561,
+      "contentHash": "6e982152a7deba9b001dcc7afb0d4926",
+      "sourceName": "backend/contracts/MockPoolAddressesProvider.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata",
+                "devdoc",
+                "userdoc",
+                "storageLayout",
+                "evm.gasEstimates"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          },
+          "metadata": {
+            "useLiteralContent": true
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "MockPool",
+        "MockPoolAddressesProvider"
       ]
     }
   }

@@ -41,7 +41,7 @@ async function main() {
   
   const [deployer] = await ethers.getSigners();
   console.log("Deploying with account:", deployer.address);
-  console.log("Account balance:", ethers.utils.formatEther(await deployer.getBalance()), "ETH");
+  console.log("Account balance:", ethers.formatEther(await ethers.provider.getBalance(deployer.address)), "ETH");
   
   const deployedContracts = {};
   
@@ -50,10 +50,10 @@ async function main() {
     console.log("\n📊 Deploying PriceMonitor...");
     const PriceMonitor = await ethers.getContractFactory("PriceMonitor");
     const priceMonitor = await PriceMonitor.deploy();
-    await priceMonitor.deployed();
-    
-    deployedContracts.priceMonitor = priceMonitor.address;
-    console.log("✅ PriceMonitor deployed to:", priceMonitor.address);
+    await priceMonitor.waitForDeployment();
+
+    deployedContracts.priceMonitor = await priceMonitor.getAddress();
+    console.log("✅ PriceMonitor deployed to:", await priceMonitor.getAddress());
     
     // 2. Deploy TriangularArbitrage
     console.log("\n🔺 Deploying TriangularArbitrage...");
@@ -61,10 +61,10 @@ async function main() {
     const triangularArbitrage = await TriangularArbitrage.deploy(
       BASE_SEPOLIA_CONFIG.aavePoolAddressesProvider
     );
-    await triangularArbitrage.deployed();
-    
-    deployedContracts.triangularArbitrage = triangularArbitrage.address;
-    console.log("✅ TriangularArbitrage deployed to:", triangularArbitrage.address);
+    await triangularArbitrage.waitForDeployment();
+
+    deployedContracts.triangularArbitrage = await triangularArbitrage.getAddress();
+    console.log("✅ TriangularArbitrage deployed to:", await triangularArbitrage.getAddress());
     
     // 3. Deploy enhanced AtomArbitrage (if exists)
     console.log("\n⚛️  Deploying Enhanced AtomArbitrage...");
@@ -73,10 +73,10 @@ async function main() {
       const atomArbitrage = await AtomArbitrage.deploy(
         BASE_SEPOLIA_CONFIG.aavePoolAddressesProvider
       );
-      await atomArbitrage.deployed();
-      
-      deployedContracts.atomArbitrage = atomArbitrage.address;
-      console.log("✅ AtomArbitrage deployed to:", atomArbitrage.address);
+      await atomArbitrage.waitForDeployment();
+
+      deployedContracts.atomArbitrage = await atomArbitrage.getAddress();
+      console.log("✅ AtomArbitrage deployed to:", await atomArbitrage.getAddress());
     } catch (error) {
       console.log("⚠️  AtomArbitrage deployment skipped (contract may not exist)");
     }
@@ -102,9 +102,9 @@ async function main() {
     
     // Set configuration parameters
     await triangularArbitrage.updateConfig(
-      ethers.utils.parseUnits("50", "gwei"), // maxGasPrice: 50 gwei
+      ethers.parseUnits("50", "gwei"), // maxGasPrice: 50 gwei
       300, // maxSlippageBps: 3%
-      ethers.utils.parseEther("10") // minProfitUSD: $10
+      ethers.parseEther("10") // minProfitUSD: $10
     );
     console.log("✅ TriangularArbitrage configuration updated");
     
@@ -113,15 +113,15 @@ async function main() {
     
     // Update some mock external prices
     const mockPrices = {
-      [BASE_SEPOLIA_CONFIG.tokens.DAI]: ethers.utils.parseEther("1.001"), // $1.001
-      [BASE_SEPOLIA_CONFIG.tokens.USDC]: ethers.utils.parseEther("0.999"), // $0.999
-      [BASE_SEPOLIA_CONFIG.tokens.WETH]: ethers.utils.parseEther("2000") // $2000
+      [BASE_SEPOLIA_CONFIG.tokens.DAI]: ethers.parseEther("1.001"), // $1.001
+      [BASE_SEPOLIA_CONFIG.tokens.USDC]: ethers.parseEther("0.999"), // $0.999
+      [BASE_SEPOLIA_CONFIG.tokens.WETH]: ethers.parseEther("2000") // $2000
     };
     
     for (const [token, price] of Object.entries(mockPrices)) {
       try {
         await priceMonitor.updateExternalPrice(token, price, "0x-api");
-        console.log(`✅ Updated external price for ${token}: $${ethers.utils.formatEther(price)}`);
+        console.log(`✅ Updated external price for ${token}: $${ethers.formatEther(price)}`);
       } catch (error) {
         console.log(`⚠️  Failed to update price for ${token}:`, error.message);
       }
@@ -137,17 +137,17 @@ async function main() {
       poolAB: BASE_SEPOLIA_CONFIG.dexes.curveDAIUSDC,
       poolBC: BASE_SEPOLIA_CONFIG.dexes.curveUSDCGHO,
       poolCA: BASE_SEPOLIA_CONFIG.dexes.balancerVault,
-      amountIn: ethers.utils.parseEther("1000"), // $1000 test
+      amountIn: ethers.parseEther("1000"), // $1000 test
       minProfitBps: 23, // 0.23% minimum
       useBalancer: false,
       useCurve: true
     };
-    
+
     console.log("✅ Triangular path configured:", {
       "DAI → USDC": triangularPath.poolAB,
       "USDC → GHO": triangularPath.poolBC,
       "GHO → DAI": triangularPath.poolCA,
-      "Amount": ethers.utils.formatEther(triangularPath.amountIn),
+      "Amount": ethers.formatEther(triangularPath.amountIn),
       "Min Profit": `${triangularPath.minProfitBps} bps`
     });
     
@@ -156,14 +156,14 @@ async function main() {
       console.log("\n🔍 Verifying contracts on Basescan...");
       
       try {
-        await verify(priceMonitor.address, []);
+        await verify(await priceMonitor.getAddress(), []);
         console.log("✅ PriceMonitor verified");
       } catch (error) {
         console.log("⚠️  PriceMonitor verification failed:", error.message);
       }
-      
+
       try {
-        await verify(triangularArbitrage.address, [BASE_SEPOLIA_CONFIG.aavePoolAddressesProvider]);
+        await verify(await triangularArbitrage.getAddress(), [BASE_SEPOLIA_CONFIG.aavePoolAddressesProvider]);
         console.log("✅ TriangularArbitrage verified");
       } catch (error) {
         console.log("⚠️  TriangularArbitrage verification failed:", error.message);
@@ -191,7 +191,7 @@ async function main() {
         triangularPath,
         mockPrices: Object.fromEntries(
           Object.entries(mockPrices).map(([addr, price]) => [
-            addr, ethers.utils.formatEther(price)
+            addr, ethers.formatEther(price)
           ])
         )
       }
@@ -216,8 +216,8 @@ async function main() {
     console.log("4. Monitor gas costs and optimize parameters");
     console.log("5. Set up automated monitoring and execution");
     console.log("\n📚 Useful commands:");
-    console.log(`- Check PriceMonitor: npx hardhat verify --network baseSepolia ${priceMonitor.address}`);
-    console.log(`- Check TriangularArbitrage: npx hardhat verify --network baseSepolia ${triangularArbitrage.address} "${BASE_SEPOLIA_CONFIG.aavePoolAddressesProvider}"`);
+    console.log(`- Check PriceMonitor: npx hardhat verify --network baseSepolia ${await priceMonitor.getAddress()}`);
+    console.log(`- Check TriangularArbitrage: npx hardhat verify --network baseSepolia ${await triangularArbitrage.getAddress()} "${BASE_SEPOLIA_CONFIG.aavePoolAddressesProvider}"`);
     console.log(`- Test execution: npx hardhat run scripts/test-arbitrage.js --network baseSepolia`);
     
   } catch (error) {

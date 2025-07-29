@@ -1,342 +1,412 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   TrendingUp,
   Zap,
   Shield,
   Bot,
-  Settings,
-  Play,
-  Pause,
   DollarSign,
   Activity,
-  Clock,
   RefreshCw,
   Loader2,
   AlertCircle,
   Target,
   Network,
-  Flame
+  CheckCircle,
+  Play,
+  Clock
 } from "lucide-react";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
-import Link from "next/link";
-import { StatsGrid } from "@/components/dashboard/StatsGrid";
-import { AgentPanel } from "@/components/dashboard/AgentPanel";
-import { ProfitChart } from "@/components/dashboard/ProfitChart";
-import { ConsoleLogs } from "@/components/dashboard/ConsoleLogs";
-import { TradeHistory } from "@/components/dashboard/TradeHistory";
-import { ChatWithAgent } from "@/components/dashboard/ChatWithAgent";
-import { ArbitrageControls } from "@/components/dashboard/ArbitrageControls";
 import Navbar from "@/components/Navbar";
 import { useWeb3Auth } from "@/contexts/Web3AuthContext";
-import { RealTimeProfitTracker } from "@/components/dashboard/RealTimeProfitTracker";
-import { OpportunityHunter } from "@/components/dashboard/OpportunityHunter";
-import { AgentBattleArena } from "@/components/dashboard/AgentBattleArena";
-import { EpicLoadingScreen } from "@/components/dashboard/EpicLoadingScreen";
 
-interface SystemStatus {
-  status: string;
-  agents: any;
+// REAL API interfaces - NO FAKE DATA
+interface DashboardData {
+  system_status: string;
+  agents: Record<string, {
+    status: string;
+    profit: number;
+    trades: number;
+    type: string;
+  }>;
   total_profit: number;
   active_agents: number;
-  last_update: string;
+  dex_connections: Record<string, string>;
+  real_time_data: {
+    gas_price: number;
+    eth_price: number;
+    spread_opportunities: number;
+    profitable_paths: number;
+  };
+}
+
+interface Opportunity {
+  id: string;
+  path: string;
+  spread_bps: number;
+  profit_usd: number;
+  dex_route: string;
+  confidence: number;
+  detected_at: string;
 }
 
 export default function Dashboard() {
-  const { isConnected, address, isCorrectNetwork } = useWeb3Auth();
-  const [backendConnected, setBackendConnected] = useState(false);
-  const [tradingMode, setTradingMode] = useState<'test' | 'live'>('test');
-  const [selectedNetwork, setSelectedNetwork] = useState('ethereum');
-  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  const [showEpicLoading, setShowEpicLoading] = useState(true);
+  const { isConnected, address } = useWeb3Auth();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<string>("");
+  const [connectionStatus, setConnectionStatus] = useState<string>("connecting");
 
-  // Fetch system status
-  const fetchSystemStatus = async () => {
+  // Fetch REAL dashboard data from backend
+  const fetchDashboardData = async () => {
     try {
-      const response = await api.health();
-      if (response.success) {
-        setSystemStatus(response.data);
-        setBackendConnected(true);
-        setLastRefresh(new Date());
+      const response = await fetch('http://localhost:8000/api/dashboard/status');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.status === 'success') {
+        setDashboardData(result.data);
+        setLastUpdate(new Date().toLocaleTimeString());
+        setConnectionStatus("connected");
+        
+        // Only show success toast on first connection
+        if (connectionStatus !== "connected") {
+          toast.success('✅ Connected to REAL backend data');
+        }
+      } else {
+        throw new Error('Backend returned error status');
       }
     } catch (error) {
-      console.error('Failed to fetch system status:', error);
-      setBackendConnected(false);
-      toast.error('Failed to connect to backend');
-    } finally {
-      setLoading(false);
+      console.error('Error fetching dashboard data:', error);
+      setConnectionStatus("error");
+      toast.error('❌ Backend connection failed - Check if backend is running on port 8000');
     }
   };
 
-  // Auto-refresh system status
-  useEffect(() => {
-    fetchSystemStatus();
+  // Fetch REAL opportunities from backend
+  const fetchOpportunities = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/dashboard/opportunities');
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.status === 'success') {
+        setOpportunities(result.data.opportunities);
+      }
+    } catch (error) {
+      console.error('Error fetching opportunities:', error);
+    }
+  };
 
-    const interval = setInterval(fetchSystemStatus, 30000); // Refresh every 30 seconds
+  // Execute REAL opportunity via backend
+  const executeOpportunity = async (opportunityId: string) => {
+    try {
+      const response = await fetch('http://localhost:8000/api/dashboard/execute-opportunity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ opportunity_id: opportunityId })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.status === 'success') {
+        toast.success(`🚀 REAL execution! Profit: $${result.data.profit_realized.toFixed(2)} | TX: ${result.data.tx_hash.slice(0, 10)}...`);
+        
+        // Refresh data after execution
+        await Promise.all([fetchDashboardData(), fetchOpportunities()]);
+      } else {
+        throw new Error(result.detail || 'Execution failed');
+      }
+    } catch (error) {
+      console.error('Error executing opportunity:', error);
+      toast.error('❌ Failed to execute opportunity');
+    }
+  };
+
+  // Auto-refresh data every 10 seconds
+  useEffect(() => {
+    const fetchData = async () => {
+      await Promise.all([fetchDashboardData(), fetchOpportunities()]);
+      setIsLoading(false);
+    };
+
+    fetchData();
+    
+    // Refresh every 10 seconds
+    const interval = setInterval(fetchData, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      // Only trigger if not typing in an input
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      switch (e.key) {
-        case 'r':
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            // Trigger arbitrage
-            console.log('Keyboard shortcut: Run Arbitrage');
-          }
-          break;
-        case 's':
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            // Simulate flash loan
-            console.log('Keyboard shortcut: Simulate Flash Loan');
-          }
-          break;
-        case 'c':
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            // Toggle wallet connection
-            setBackendConnected(!backendConnected);
-          }
-          break;
-        case '?':
-          e.preventDefault();
-          // Show help modal (could implement later)
-          console.log('Keyboard shortcut: Show help');
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isConnected]);
-
-  // Show epic loading screen first
-  if (showEpicLoading) {
-    return <EpicLoadingScreen onComplete={() => setShowEpicLoading(false)} />;
+  // Wallet connection check
+  if (!isConnected) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-screen">
+          <Card className="w-96 bg-gray-900/50 border-gray-700">
+            <CardHeader className="text-center">
+              <CardTitle className="text-white">🔐 Wallet Required</CardTitle>
+              <CardDescription className="text-gray-300">
+                Connect your wallet to access the REAL-TIME dashboard
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
-  return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
+  // Loading state
+  if (isLoading || !dashboardData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
         <Navbar />
-
-        {/* Status Bar */}
-        <div className="border-b border-gray-800 bg-black/30 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-6">
-                {/* Connection Status */}
-                <div className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
-                  <span className="text-sm text-gray-300">
-                    {isConnected ? 'Backend Connected' : 'Backend Disconnected'}
-                  </span>
-                </div>
-
-                {/* System Status */}
-                {systemStatus && (
-                  <div className="text-sm text-gray-300">
-                    Profit: <span className="text-green-400 font-semibold">${systemStatus.total_profit.toFixed(2)}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center space-x-2">
-                {/* Refresh Button */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={fetchSystemStatus}
-                  disabled={loading}
-                  className="border-gray-600 hover:border-gray-500"
-                >
-                  {loading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
+        <div className="flex flex-col items-center justify-center h-64 space-y-4">
+          <RefreshCw className="h-8 w-8 animate-spin text-white" />
+          <span className="text-white">Loading REAL data from backend...</span>
+          <span className="text-sm text-gray-400">Status: {connectionStatus}</span>
         </div>
+      </div>
+    );
+  }
 
-      {/* Main Content */}
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'connected':
+      case 'active':
+      case 'running':
+        return 'bg-green-500';
+      case 'error':
+      case 'failed':
+      case 'configuration_error':
+        return 'bg-red-500';
+      case 'connecting':
+      case 'initializing':
+        return 'bg-yellow-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'connected':
+      case 'active':
+      case 'running':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'error':
+      case 'failed':
+      case 'configuration_error':
+        return <AlertCircle className="h-4 w-4" />;
+      case 'connecting':
+      case 'initializing':
+        return <RefreshCw className="h-4 w-4 animate-spin" />;
+      default:
+        return <Clock className="h-4 w-4" />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+      <Navbar />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Left Column - Stats and Controls */}
-          <div className="lg:col-span-3 space-y-8">
-            {/* Stats Grid */}
-            <StatsGrid />
-            
-            {/* Control Panel */}
-            <Card className="bg-gray-900/50 border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-white">Control Panel</CardTitle>
-                <CardDescription className="text-gray-300">
-                  Manage your arbitrage operations
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {/* 🚀 AEON NETWORK - THE FULL SYSTEM */}
-                <div className="mb-6 space-y-4">
-                  <Link href="/aeon">
-                    <Button
-                      size="lg"
-                      className="w-full bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 hover:from-blue-600 hover:via-purple-600 hover:to-green-600 text-white font-bold text-xl py-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-white/20"
-                    >
-                      <Network className="h-8 w-8 mr-4" />
-                      🧠 AEON NETWORK - ADVANCED, EFFICIENT, OPTIMIZED
-                      <Flame className="h-8 w-8 ml-4" />
-                    </Button>
-                  </Link>
-                  <p className="text-center text-gray-300 text-sm">
-                    🧠 AEON (On-chain) • 🔁 ATOM/ADOM (Hybrid) • ⚙️ SPECTRE (Analytics)
-                  </p>
-                  <p className="text-center text-gray-400 text-xs">
-                    Three Parallel Ecosystems • Antifragile Intelligence • Cross-Validation
-                  </p>
-                </div>
-
-                {/* 🚀 ARBITRAGE ENGINE - SINGLE SYSTEM */}
-                <div className="mb-6">
-                  <Link href="/arbitrage">
-                    <Button
-                      size="lg"
-                      className="w-full bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 hover:from-green-600 hover:via-blue-600 hover:to-purple-700 text-white font-bold text-lg py-4 shadow-lg hover:shadow-xl transition-all duration-300"
-                    >
-                      <Target className="h-6 w-6 mr-3" />
-                      🚀 ARBITRAGE ENGINE - $150K DAILY TARGET
-                      <DollarSign className="h-6 w-6 ml-3" />
-                    </Button>
-                  </Link>
-                  <p className="text-center text-gray-400 text-sm mt-2">
-                    $10M Flash Loans • 1% Profit • Real-time Opportunities
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Button
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                    disabled={!isConnected}
-                  >
-                    <Play className="h-4 w-4 mr-2" />
-                    Run Arbitrage
-                  </Button>
-                  
-                  <Button 
-                    variant="outline"
-                    className="border-gray-600 text-white hover:bg-gray-800"
-                    disabled={!isConnected}
-                  >
-                    <Zap className="h-4 w-4 mr-2" />
-                    Simulate Flash Loan
-                  </Button>
-                  
-                  <Button 
-                    variant="outline"
-                    className="border-gray-600 text-white hover:bg-gray-800"
-                    disabled={!isConnected}
-                  >
-                    <Bot className="h-4 w-4 mr-2" />
-                    Deploy Bot
-                  </Button>
-                  
-                  <Button 
-                    variant="outline"
-                    className="border-gray-600 text-white hover:bg-gray-800"
-                    disabled={!isConnected}
-                  >
-                    <TrendingUp className="h-4 w-4 mr-2" />
-                    Add Token Pair
-                  </Button>
-                </div>
-                
-                <div className="mt-6 flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div>
-                      <label className="text-sm text-gray-300">Network</label>
-                      <select 
-                        value={selectedNetwork}
-                        onChange={(e) => setSelectedNetwork(e.target.value)}
-                        className="ml-2 bg-gray-800 border border-gray-600 text-white rounded px-3 py-1"
-                      >
-                        <option value="ethereum">Ethereum</option>
-                        <option value="base">Base</option>
-                        <option value="arbitrum">Arbitrum</option>
-                        <option value="polygon">Polygon</option>
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm text-gray-300">Mode</label>
-                      <select 
-                        value={tradingMode}
-                        onChange={(e) => setTradingMode(e.target.value as 'test' | 'live')}
-                        className="ml-2 bg-gray-800 border border-gray-600 text-white rounded px-3 py-1"
-                      >
-                        <option value="test">Test Mode</option>
-                        <option value="live">Live Mode</option>
-                      </select>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
-                    <span className="text-sm text-gray-300">
-                      {isConnected ? 'Wallet Connected' : 'Wallet Disconnected'}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* 🔥 REAL-TIME PROFIT TRACKER */}
-            <RealTimeProfitTracker />
-
-            {/* 🎯 OPPORTUNITY HUNTER */}
-            <OpportunityHunter />
-
-            {/* ⚡ ARBITRAGE CONTROLS */}
-            <ArbitrageControls />
-
-            {/* 📊 PROFIT CHART */}
-            <ProfitChart />
-
-            {/* 📈 TRADE HISTORY */}
-            <TradeHistory />
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-white">🚀 REAL-TIME DASHBOARD</h1>
+            <p className="text-gray-300">Live DEX data • Last update: {lastUpdate}</p>
+            <p className="text-sm text-gray-400">Backend: {connectionStatus} • Port 8000</p>
           </div>
-          
-          {/* Right Column - EPIC AGENT FEATURES */}
-          <div className="space-y-8">
-            {/* 🏟️ AGENT BATTLE ARENA */}
-            <AgentBattleArena />
-
-            {/* 🤖 AI AGENTS PANEL */}
-            <AgentPanel />
-
-            {/* 💬 CONSOLE LOGS */}
-            <ConsoleLogs />
-
-            {/* 🧠 CHAT WITH AGENT */}
-            <ChatWithAgent />
-          </div>
+          <Badge variant={dashboardData.system_status === 'running' ? 'default' : 'destructive'}>
+            {dashboardData.system_status.toUpperCase()}
+          </Badge>
         </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-gray-900/50 border-gray-700">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-white">Total Profit</CardTitle>
+              <DollarSign className="h-4 w-4 text-green-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-400">
+                ${dashboardData.total_profit.toFixed(2)}
+              </div>
+              <p className="text-xs text-gray-400">
+                From REAL arbitrage execution
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-900/50 border-gray-700">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-white">Active Bots</CardTitle>
+              <Bot className="h-4 w-4 text-blue-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">
+                {dashboardData.active_agents}/{Object.keys(dashboardData.agents).length}
+              </div>
+              <p className="text-xs text-gray-400">
+                Connected to REAL DEXs
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-900/50 border-gray-700">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-white">Opportunities</CardTitle>
+              <Target className="h-4 w-4 text-purple-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">
+                {dashboardData.real_time_data.profitable_paths}
+              </div>
+              <p className="text-xs text-gray-400">
+                Profitable paths found
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-900/50 border-gray-700">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-white">ETH Price</CardTitle>
+              <TrendingUp className="h-4 w-4 text-yellow-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-white">
+                ${dashboardData.real_time_data.eth_price.toFixed(0)}
+              </div>
+              <p className="text-xs text-gray-400">
+                From REAL DEX quotes
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* DEX Connections */}
+        <Card className="bg-gray-900/50 border-gray-700 mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Network className="h-5 w-5" />
+              REAL DEX Connections
+            </CardTitle>
+            <CardDescription className="text-gray-400">Live connection status to decentralized exchanges</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {Object.entries(dashboardData.dex_connections).map(([dex, status]) => (
+                <div key={dex} className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${getStatusColor(status)}`} />
+                  <span className="text-sm font-medium text-white">{dex}</span>
+                  {getStatusIcon(status)}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Production Bots - THE 4 REAL BOTS */}
+        <Card className="bg-gray-900/50 border-gray-700 mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Bot className="h-5 w-5" />
+              Production Bots (NO FAKE DATA)
+            </CardTitle>
+            <CardDescription className="text-gray-400">REAL bot status and performance from backend</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {Object.entries(dashboardData.agents).map(([botName, bot]) => (
+                <div key={botName} className="flex items-center justify-between p-4 border border-gray-700 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full ${getStatusColor(bot.status)}`} />
+                    <div>
+                      <h4 className="font-medium text-white">{botName.toUpperCase()}</h4>
+                      <p className="text-sm text-gray-400">{bot.type}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-green-400">${bot.profit.toFixed(2)}</p>
+                    <p className="text-sm text-gray-400">{bot.trades} trades</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Live Opportunities */}
+        <Card className="bg-gray-900/50 border-gray-700">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Zap className="h-5 w-5" />
+              LIVE Arbitrage Opportunities
+            </CardTitle>
+            <CardDescription className="text-gray-400">Real-time opportunities from DEX aggregator</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {opportunities.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-400 mb-2">No profitable opportunities found (≥23bps)</p>
+                <p className="text-sm text-gray-500">Backend is scanning DEXs for arbitrage paths...</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {opportunities.map((opp) => (
+                  <motion.div
+                    key={opp.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-between p-4 border border-gray-700 rounded-lg bg-gradient-to-r from-green-900/20 to-blue-900/20"
+                  >
+                    <div>
+                      <h4 className="font-medium text-white">{opp.path}</h4>
+                      <p className="text-sm text-gray-400">
+                        via {opp.dex_route} • {opp.confidence.toFixed(1)}% confidence
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className="font-bold text-green-400">{opp.spread_bps}bps</p>
+                        <p className="text-sm text-gray-400">${opp.profit_usd.toFixed(2)}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => executeOpportunity(opp.id)}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <Play className="h-4 w-4 mr-1" />
+                        Execute
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
-      </div>
+    </div>
   );
 }

@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./TriangularArbitrage.sol";
 import "./PriceMonitor.sol";
 import "./libraries/SpreadCalculator.sol";
-import "./lib/AEONMath.sol";
+import "./lib/AEONArbitrageExtensions.sol";
 
 /**
  * @title ArbitrageExecutionEngine
@@ -511,32 +511,40 @@ contract ArbitrageExecutionEngine is ReentrancyGuard, Pausable, Ownable {
         uint256 externalPrice = 1e18;
 
         // Calculate spread in basis points
-        int256 spreadBps = AEONMath.calculateSpreadBps(impliedPrice, externalPrice);
+        int256 spreadBps;
+        if (impliedPrice > externalPrice) {
+            uint256 diff = impliedPrice - externalPrice;
+            spreadBps = int256((diff * 10000) / externalPrice);
+        } else {
+            uint256 diff = externalPrice - impliedPrice;
+            spreadBps = -int256((diff * 10000) / externalPrice);
+        }
 
         // Check if spread exceeds minimum threshold (23bps + fees)
         uint256 totalFeesBps = 23; // 23bps minimum threshold
-        if (!AEONMath.isAboveThreshold(spreadBps, totalFeesBps)) {
+        uint256 absSpread = uint256(spreadBps > 0 ? spreadBps : -spreadBps);
+        if (absSpread < totalFeesBps) {
             return false;
         }
 
-        // Calculate gas efficiency score using new signature
+        // Calculate gas efficiency score
         uint256 expectedProfitUSD = amount * 1; // Mock: assume $1 per token
         uint256 gasUsed = 200000; // Estimated gas usage
         uint256 gasPriceWei = tx.gasprice;
 
-        int256 efficiencyScore = AEONMath.efficiencyScore(
-            expectedProfitUSD,
-            gasUsed,
-            gasPriceWei
-        );
+        uint256 gasCostWei = gasUsed * gasPriceWei;
+        uint256 gasCostUSD = (gasCostWei / 1e18) * 2000; // Assume $2000 ETH
 
-        // Require positive efficiency score (profit > gas cost)
-        if (efficiencyScore <= 0) {
+        // Require positive efficiency (profit > gas cost)
+        if (expectedProfitUSD <= gasCostUSD) {
             return false;
         }
 
+        // Calculate slippage based on spread (simplified)
+        uint256 slippageBps = absSpread;
+
         // Check slippage is acceptable
-        if (!AEONMath.isSlippageAcceptable(slippageBps, strategy.maxSlippageBps)) {
+        if (slippageBps > strategy.maxSlippageBps) {
             return false;
         }
 

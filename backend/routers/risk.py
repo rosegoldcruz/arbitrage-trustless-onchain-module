@@ -11,6 +11,7 @@ from decimal import Decimal
 from enum import Enum
 import logging
 import asyncio
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -333,3 +334,137 @@ async def risk_health_check():
         "active_limits": len(risk_manager.position_limits),
         "active_breakers": len(risk_manager.circuit_breakers)
     }
+
+@router.get("/exposure")
+async def get_current_exposure():
+    """Get current market exposure and concentration risk"""
+    try:
+        # Mock exposure data
+        exposure_data = {
+            "total_exposure_usd": round(random.uniform(50000, 200000), 2),
+            "by_asset": {
+                "ETH": {
+                    "exposure_usd": round(random.uniform(20000, 80000), 2),
+                    "percentage": round(random.uniform(30, 50), 1),
+                    "risk_level": "medium"
+                },
+                "USDC": {
+                    "exposure_usd": round(random.uniform(10000, 40000), 2),
+                    "percentage": round(random.uniform(15, 25), 1),
+                    "risk_level": "low"
+                },
+                "DAI": {
+                    "exposure_usd": round(random.uniform(5000, 25000), 2),
+                    "percentage": round(random.uniform(10, 20), 1),
+                    "risk_level": "low"
+                }
+            },
+            "by_strategy": {
+                "triangular_arbitrage": round(random.uniform(40, 60), 1),
+                "flash_loan_arbitrage": round(random.uniform(20, 35), 1),
+                "cross_dex_arbitrage": round(random.uniform(10, 25), 1)
+            },
+            "concentration_risk": {
+                "score": round(random.uniform(0.2, 0.8), 2),
+                "level": random.choice(["low", "medium"]),
+                "max_single_asset": round(random.uniform(35, 55), 1)
+            },
+            "last_updated": datetime.now(timezone.utc).isoformat()
+        }
+
+        return exposure_data
+
+    except Exception as e:
+        logger.error(f"Error getting exposure data: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get exposure data")
+
+@router.get("/var")
+async def get_value_at_risk():
+    """Get Value at Risk (VaR) calculations"""
+    try:
+        # Mock VaR calculations
+        var_data = {
+            "daily_var": {
+                "95_confidence": round(random.uniform(500, 2000), 2),
+                "99_confidence": round(random.uniform(1000, 3500), 2),
+                "99_9_confidence": round(random.uniform(2000, 5000), 2)
+            },
+            "weekly_var": {
+                "95_confidence": round(random.uniform(1500, 5000), 2),
+                "99_confidence": round(random.uniform(3000, 8000), 2),
+                "99_9_confidence": round(random.uniform(5000, 12000), 2)
+            },
+            "expected_shortfall": {
+                "daily_es_95": round(random.uniform(800, 2500), 2),
+                "daily_es_99": round(random.uniform(1500, 4000), 2)
+            },
+            "historical_volatility": {
+                "daily": round(random.uniform(0.015, 0.045), 4),
+                "weekly": round(random.uniform(0.035, 0.085), 4),
+                "monthly": round(random.uniform(0.08, 0.15), 4)
+            },
+            "correlation_matrix": {
+                "ETH_USDC": round(random.uniform(-0.1, 0.3), 3),
+                "ETH_DAI": round(random.uniform(-0.05, 0.25), 3),
+                "USDC_DAI": round(random.uniform(0.7, 0.95), 3)
+            },
+            "calculation_date": datetime.now(timezone.utc).isoformat(),
+            "methodology": "Historical Simulation (250 days)"
+        }
+
+        return var_data
+
+    except Exception as e:
+        logger.error(f"Error calculating VaR: {e}")
+        raise HTTPException(status_code=500, detail="Failed to calculate VaR")
+
+@router.get("/stress-test")
+async def get_stress_test_results():
+    """Get stress test scenarios and results"""
+    try:
+        stress_scenarios = {
+            "scenarios": [
+                {
+                    "name": "Market Crash",
+                    "description": "30% drop in all crypto assets",
+                    "probability": 0.05,
+                    "potential_loss": round(random.uniform(15000, 45000), 2),
+                    "recovery_time": "2-4 weeks",
+                    "mitigation": "Reduce position sizes, increase cash reserves"
+                },
+                {
+                    "name": "Gas Price Spike",
+                    "description": "Gas prices increase 10x",
+                    "probability": 0.15,
+                    "potential_loss": round(random.uniform(2000, 8000), 2),
+                    "recovery_time": "1-3 days",
+                    "mitigation": "Switch to L2 solutions, pause high-gas strategies"
+                },
+                {
+                    "name": "DEX Liquidity Crisis",
+                    "description": "Major DEX loses 50% liquidity",
+                    "probability": 0.08,
+                    "potential_loss": round(random.uniform(5000, 20000), 2),
+                    "recovery_time": "1-2 weeks",
+                    "mitigation": "Diversify across multiple DEXes"
+                },
+                {
+                    "name": "Stablecoin Depeg",
+                    "description": "Major stablecoin loses peg",
+                    "probability": 0.12,
+                    "potential_loss": round(random.uniform(8000, 25000), 2),
+                    "recovery_time": "3-7 days",
+                    "mitigation": "Monitor depeg indicators, reduce stablecoin exposure"
+                }
+            ],
+            "overall_risk_score": round(random.uniform(0.25, 0.75), 2),
+            "worst_case_scenario": round(random.uniform(50000, 100000), 2),
+            "confidence_level": 0.95,
+            "last_updated": datetime.now(timezone.utc).isoformat()
+        }
+
+        return stress_scenarios
+
+    except Exception as e:
+        logger.error(f"Error getting stress test results: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get stress test results")

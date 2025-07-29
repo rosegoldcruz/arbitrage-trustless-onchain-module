@@ -17,7 +17,7 @@ import aiohttp
 
 logger = logging.getLogger(__name__)
 
-class DEXAggregator(str, Enum):
+class DEXProvider(str, Enum):
     ZEROX = "0x"
     ONEINCH = "1inch"
     PARASWAP = "paraswap"
@@ -36,7 +36,7 @@ class Chain(str, Enum):
 @dataclass
 class SwapQuote:
     """Swap quote from DEX aggregator"""
-    aggregator: DEXAggregator
+    aggregator: DEXProvider
     chain: Chain
     token_in: str
     token_out: str
@@ -56,7 +56,7 @@ class SwapExecution:
     """Swap execution record"""
     execution_id: str
     quote_id: str
-    aggregator: DEXAggregator
+    aggregator: DEXProvider
     chain: Chain
     token_in: str
     token_out: str
@@ -72,7 +72,7 @@ class SwapExecution:
     slippage_actual: float
     error_message: Optional[str] = None
 
-class DEXAggregatorManager:
+class DEXAggregator:
     """Manage DEX aggregator integrations"""
     
     def __init__(self):
@@ -93,7 +93,7 @@ class DEXAggregatorManager:
         
         # Configure aggregators
         self.aggregators = {
-            DEXAggregator.ZEROX: {
+            DEXProvider.ZEROX: {
                 "name": "0x Protocol",
                 "base_url": "https://api.0x.org",
                 "supported_chains": [Chain.ETHEREUM, Chain.POLYGON, Chain.BSC, Chain.ARBITRUM],
@@ -102,7 +102,7 @@ class DEXAggregatorManager:
                 "success_rate": 0.98,
                 "avg_response_time": 0.8
             },
-            DEXAggregator.ONEINCH: {
+            DEXProvider.ONEINCH: {
                 "name": "1inch",
                 "base_url": "https://api.1inch.io/v5.0",
                 "supported_chains": [Chain.ETHEREUM, Chain.POLYGON, Chain.BSC, Chain.ARBITRUM, Chain.OPTIMISM],
@@ -111,7 +111,7 @@ class DEXAggregatorManager:
                 "success_rate": 0.96,
                 "avg_response_time": 1.2
             },
-            DEXAggregator.PARASWAP: {
+            DEXProvider.PARASWAP: {
                 "name": "ParaSwap",
                 "base_url": "https://apiv5.paraswap.io",
                 "supported_chains": [Chain.ETHEREUM, Chain.POLYGON, Chain.BSC, Chain.AVALANCHE],
@@ -120,7 +120,7 @@ class DEXAggregatorManager:
                 "success_rate": 0.94,
                 "avg_response_time": 1.5
             },
-            DEXAggregator.COWSWAP: {
+            DEXProvider.COWSWAP: {
                 "name": "CoW Swap",
                 "base_url": "https://api.cow.fi",
                 "supported_chains": [Chain.ETHEREUM],
@@ -194,7 +194,7 @@ class DEXAggregatorManager:
     
     async def get_aggregator_quote(
         self,
-        aggregator: DEXAggregator,
+        aggregator: DEXProvider,
         token_in: str,
         token_out: str,
         amount_in: float,
@@ -206,7 +206,7 @@ class DEXAggregatorManager:
             config = self.aggregators[aggregator]
 
             # Make REAL API call to 0x
-            if aggregator == DEXAggregator.ZEROX:
+            if aggregator == DEXProvider.ZEROX:
                 return await self.get_0x_quote(token_in, token_out, amount_in, chain, slippage_tolerance)
 
             # For other aggregators, simulate for now (you can add real APIs later)
@@ -217,13 +217,13 @@ class DEXAggregatorManager:
             amount_out = amount_in * base_rate
             
             # Apply aggregator-specific adjustments
-            if aggregator == DEXAggregator.ZEROX:
+            if aggregator == DEXProvider.ZEROX:
                 amount_out *= 0.999  # Slightly better rates
-            elif aggregator == DEXAggregator.ONEINCH:
+            elif aggregator == DEXProvider.ONEINCH:
                 amount_out *= 0.998  # Good rates with higher fees
-            elif aggregator == DEXAggregator.PARASWAP:
+            elif aggregator == DEXProvider.PARASWAP:
                 amount_out *= 0.997  # Competitive rates
-            elif aggregator == DEXAggregator.COWSWAP:
+            elif aggregator == DEXProvider.COWSWAP:
                 amount_out *= 1.001  # MEV protection bonus
             
             # Calculate price impact
@@ -337,7 +337,7 @@ class DEXAggregatorManager:
                     quote_id = f"0x_quote_{int(time.time())}_{hash(str(data)) % 10000}"
 
                     quote = SwapQuote(
-                        aggregator=DEXAggregator.ZEROX,
+                        aggregator=DEXProvider.ZEROX,
                         chain=chain,
                         token_in=token_in,
                         token_out=token_out,
@@ -551,5 +551,5 @@ class DEXAggregatorManager:
         if self.session:
             await self.session.close()
 
-# Global DEX aggregator manager instance
-dex_aggregator = DEXAggregatorManager()
+# Global DEX aggregator instance
+dex_aggregator = DEXAggregator()

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./lib/AEONMath.sol";
+import "./lib/AEONArbitrageExtensions.sol";
 import "./lib/AEONArbitrageExtensions.sol";
 
 // AAVE V3 Flash Loan Interface
@@ -96,30 +96,13 @@ interface IFlashLoanRecipient {
     ) external;
 }
 
-// Curve Finance Interfaces
-interface ICurvePool {
-    function exchange(
-        int128 i,
-        int128 j,
-        uint256 dx,
-        uint256 min_dy
-    ) external returns (uint256);
-
-    function get_dy(
-        int128 i,
-        int128 j,
-        uint256 dx
-    ) external view returns (uint256);
-
-    function coins(uint256 i) external view returns (address);
-}
-
+// Additional interfaces not in AEONArbitrageExtensions.sol
 interface ICurveRegistry {
     function find_pool_for_coins(
         address from,
         address to
     ) external view returns (address);
-    
+
     function get_coin_indices(
         address pool,
         address from,
@@ -207,7 +190,7 @@ contract BaseAtomArbitrage is IFlashLoanSimpleReceiver, IFlashLoanRecipient, Ree
         uint256 timestamp
     );
 
-    constructor() Ownable(msg.sender) {}
+    constructor() Ownable() {}
 
     receive() external payable {}
 

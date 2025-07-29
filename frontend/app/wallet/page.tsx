@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
-import { useWeb3Auth } from '@/components/web3/web3auth-provider';
+import { useWeb3Auth } from '@/contexts/Web3AuthContext';
 import { 
   Wallet, 
   Network, 

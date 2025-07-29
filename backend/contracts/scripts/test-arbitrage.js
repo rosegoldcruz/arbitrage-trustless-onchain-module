@@ -21,7 +21,7 @@ async function main() {
   
   const [tester] = await ethers.getSigners();
   console.log("Testing with account:", tester.address);
-  console.log("Account balance:", ethers.utils.formatEther(await tester.getBalance()), "ETH");
+  console.log("Account balance:", ethers.formatEther(await ethers.provider.getBalance(tester.address)), "ETH");
   
   // Get contract instances
   const priceMonitor = await ethers.getContractAt("PriceMonitor", CONTRACTS.priceMonitor);
@@ -38,27 +38,27 @@ async function main() {
     for (const [symbol, address] of Object.entries(TOKENS)) {
       try {
         const [price, isStale] = await priceMonitor.getChainlinkPrice(address);
-        console.log(`${symbol}: $${ethers.utils.formatEther(price)} ${isStale ? '(STALE)' : '(FRESH)'}`);
+        console.log(`${symbol}: $${ethers.formatEther(price)} ${isStale ? '(STALE)' : '(FRESH)'}`);
       } catch (error) {
         console.log(`${symbol}: Price feed not available - ${error.message}`);
       }
     }
-    
+
     // Test 2: External Price Updates
     console.log("\n📈 Test 2: External Price Updates");
     console.log("-".repeat(40));
-    
+
     // Simulate 0x API price updates
     const mockExternalPrices = {
-      [TOKENS.DAI]: ethers.utils.parseEther("1.002"),   // $1.002 (slight premium)
-      [TOKENS.USDC]: ethers.utils.parseEther("0.998"),  // $0.998 (slight discount)
-      [TOKENS.GHO]: ethers.utils.parseEther("1.005")    // $1.005 (premium for arbitrage)
+      [TOKENS.DAI]: ethers.parseEther("1.002"),   // $1.002 (slight premium)
+      [TOKENS.USDC]: ethers.parseEther("0.998"),  // $0.998 (slight discount)
+      [TOKENS.GHO]: ethers.parseEther("1.005")    // $1.005 (premium for arbitrage)
     };
-    
+
     for (const [token, price] of Object.entries(mockExternalPrices)) {
       try {
         await priceMonitor.updateExternalPrice(token, price, "0x-api-test");
-        console.log(`✅ Updated external price for ${getTokenSymbol(token)}: $${ethers.utils.formatEther(price)}`);
+        console.log(`✅ Updated external price for ${getTokenSymbol(token)}: $${ethers.formatEther(price)}`);
       } catch (error) {
         console.log(`❌ Failed to update price for ${getTokenSymbol(token)}: ${error.message}`);
       }
@@ -74,21 +74,21 @@ async function main() {
         tokenA: TOKENS.DAI,
         tokenB: TOKENS.USDC,
         dex: "0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E", // Mock Curve pool
-        price: ethers.utils.parseEther("0.9975"), // DAI slightly cheaper on DEX
+        price: ethers.parseEther("0.9975"), // DAI slightly cheaper on DEX
         dexType: "curve"
       },
       {
         tokenA: TOKENS.USDC,
         tokenB: TOKENS.GHO,
         dex: "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0", // Mock Curve pool
-        price: ethers.utils.parseEther("1.008"), // USDC to GHO with premium
+        price: ethers.parseEther("1.008"), // USDC to GHO with premium
         dexType: "curve"
       },
       {
         tokenA: TOKENS.GHO,
         tokenB: TOKENS.DAI,
         dex: "0xBA12222222228d8Ba445958a75a0704d566BF2C8", // Balancer Vault
-        price: ethers.utils.parseEther("0.992"), // GHO to DAI with discount
+        price: ethers.parseEther("0.992"), // GHO to DAI with discount
         dexType: "balancer"
       }
     ];
@@ -102,16 +102,16 @@ async function main() {
           implied.price,
           implied.dexType
         );
-        console.log(`✅ Updated ${implied.dexType} implied price ${getTokenSymbol(implied.tokenA)}→${getTokenSymbol(implied.tokenB)}: ${ethers.utils.formatEther(implied.price)}`);
+        console.log(`✅ Updated ${implied.dexType} implied price ${getTokenSymbol(implied.tokenA)}→${getTokenSymbol(implied.tokenB)}: ${ethers.formatEther(implied.price)}`);
       } catch (error) {
         console.log(`❌ Failed to update implied price: ${error.message}`);
       }
     }
-    
+
     // Test 4: Spread Calculation
     console.log("\n📐 Test 4: Spread Calculations");
     console.log("-".repeat(40));
-    
+
     for (const implied of mockImpliedPrices) {
       try {
         const [spreadBps, impliedPrice, externalPrice] = await priceMonitor.calculateSpread(
@@ -119,13 +119,13 @@ async function main() {
           implied.tokenB,
           implied.dex
         );
-        
+
         const spreadPercent = (spreadBps / 100).toFixed(2);
         const isProfitable = Math.abs(spreadBps) >= 23; // 23 bps threshold
-        
+
         console.log(`${getTokenSymbol(implied.tokenA)}→${getTokenSymbol(implied.tokenB)} (${implied.dexType}):`);
-        console.log(`  Implied: $${ethers.utils.formatEther(impliedPrice)}`);
-        console.log(`  External: $${ethers.utils.formatEther(externalPrice)}`);
+        console.log(`  Implied: $${ethers.formatEther(impliedPrice)}`);
+        console.log(`  External: $${ethers.formatEther(externalPrice)}`);
         console.log(`  Spread: ${spreadPercent}% (${spreadBps} bps) ${isProfitable ? '✅ PROFITABLE' : '❌ NOT PROFITABLE'}`);
         console.log("");
       } catch (error) {
@@ -148,18 +148,18 @@ async function main() {
           console.log(`  Pair: ${getTokenSymbol(alert.tokenA)} → ${getTokenSymbol(alert.tokenB)}`);
           console.log(`  DEX: ${alert.dexType} (${alert.dexAddress})`);
           console.log(`  Spread: ${(alert.spreadBps / 100).toFixed(2)}% (${alert.spreadBps} bps)`);
-          console.log(`  Estimated Profit: $${ethers.utils.formatEther(alert.estimatedProfit)}`);
+          console.log(`  Estimated Profit: $${ethers.formatEther(alert.estimatedProfit)}`);
           console.log(`  Timestamp: ${new Date(alert.timestamp * 1000).toISOString()}`);
         }
       }
     } catch (error) {
       console.log(`❌ Failed to get arbitrage alerts: ${error.message}`);
     }
-    
+
     // Test 6: Triangular Arbitrage Simulation
     console.log("\n🔺 Test 6: Triangular Arbitrage Simulation");
     console.log("-".repeat(40));
-    
+
     const triangularPath = {
       tokenA: TOKENS.DAI,
       tokenB: TOKENS.USDC,
@@ -167,15 +167,15 @@ async function main() {
       poolAB: "0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E", // Mock Curve DAI/USDC
       poolBC: "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0", // Mock Curve USDC/GHO
       poolCA: "0xBA12222222228d8Ba445958a75a0704d566BF2C8", // Balancer Vault GHO/DAI
-      amountIn: ethers.utils.parseEther("100"), // $100 test amount
+      amountIn: ethers.parseEther("100"), // $100 test amount
       minProfitBps: 23, // 0.23% minimum
       useBalancer: false,
       useCurve: true
     };
-    
+
     console.log("Triangular Arbitrage Path:");
     console.log(`  ${getTokenSymbol(triangularPath.tokenA)} → ${getTokenSymbol(triangularPath.tokenB)} → ${getTokenSymbol(triangularPath.tokenC)} → ${getTokenSymbol(triangularPath.tokenA)}`);
-    console.log(`  Amount: $${ethers.utils.formatEther(triangularPath.amountIn)}`);
+    console.log(`  Amount: $${ethers.formatEther(triangularPath.amountIn)}`);
     console.log(`  Min Profit: ${triangularPath.minProfitBps} bps (0.23%)`);
     
     // Note: Actual execution would require test tokens and proper setup
@@ -201,9 +201,9 @@ async function main() {
       const maxSlippage = await triangularArbitrage.maxSlippageBps();
       const minProfit = await triangularArbitrage.minProfitUSD();
       
-      console.log(`Max Gas Price: ${ethers.utils.formatUnits(maxGasPrice, "gwei")} gwei`);
+      console.log(`Max Gas Price: ${ethers.formatUnits(maxGasPrice, "gwei")} gwei`);
       console.log(`Max Slippage: ${maxSlippage} bps (${(maxSlippage / 100).toFixed(2)}%)`);
-      console.log(`Min Profit: $${ethers.utils.formatEther(minProfit)}`);
+      console.log(`Min Profit: $${ethers.formatEther(minProfit)}`);
       
     } catch (error) {
       console.log(`❌ Failed to check configuration: ${error.message}`);
