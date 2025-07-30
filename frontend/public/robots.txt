@@ -4,6 +4,8 @@ Allow: /about
 Allow: /pricing
 Allow: /faq
 Allow: /demo
+Allow: /privacy
+Allow: /terms
 Disallow: /dashboard
 Disallow: /settings
 Disallow: /api/

@@ -3,19 +3,15 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import Web3AuthButton from '@/components/web3/Web3AuthButton'
-import { useWeb3Auth } from '@/contexts/Web3AuthContext'
-import { 
-  Home, 
-  BarChart3, 
-  Settings, 
+import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/nextjs'
+import {
+  Home,
+  BarChart3,
+  Settings,
   Monitor,
   Zap,
-  CheckCircle2,
-  AlertTriangle,
-  User
+  CheckCircle2
 } from 'lucide-react'
 
 const navigation = [
@@ -28,12 +24,6 @@ const navigation = [
 
 export default function Navbar() {
   const pathname = usePathname()
-  const { 
-    isConnected, 
-    isCorrectNetwork,
-    userInfo,
-    address 
-  } = useWeb3Auth()
   
   return (
     <nav className="bg-black/50 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-50">
@@ -51,17 +41,81 @@ export default function Navbar() {
             </Link>
           </div>
           
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-1">
+          {/* Navigation Links - Only show when signed in */}
+          <SignedIn>
+            <div className="hidden md:flex items-center space-x-1">
+              {navigation.map((item) => {
+                const Icon = item.icon
+                const isActive = pathname === item.href
+
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 ${
+                      isActive
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{item.name}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          </SignedIn>
+          
+          {/* Auth Section */}
+          <div className="flex items-center space-x-4">
+            {/* Signed In State */}
+            <SignedIn>
+              <Badge variant="default" className="bg-green-600 text-white">
+                <CheckCircle2 className="h-3 w-3 mr-1" />
+                Authenticated
+              </Badge>
+              <UserButton
+                appearance={{
+                  elements: {
+                    avatarBox: "h-8 w-8",
+                    userButtonPopoverCard: "bg-gray-900 border-gray-700",
+                    userButtonPopoverActionButton: "text-gray-300 hover:text-white hover:bg-gray-800"
+                  }
+                }}
+              />
+            </SignedIn>
+
+            {/* Signed Out State */}
+            <SignedOut>
+              <Badge variant="outline" className="border-gray-600 text-gray-400">
+                Not Authenticated
+              </Badge>
+              <SignInButton mode="modal">
+                <button
+                  type="button"
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                >
+                  Sign In
+                </button>
+              </SignInButton>
+            </SignedOut>
+          </div>
+        </div>
+      </div>
+      
+      {/* Mobile Navigation - Only show when signed in */}
+      <SignedIn>
+        <div className="md:hidden border-t border-gray-800">
+          <div className="px-2 pt-2 pb-3 space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
-              
+
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center space-x-2 ${
+                  className={`block px-3 py-2 rounded-md text-base font-medium transition-colors flex items-center space-x-2 ${
                     isActive
                       ? 'bg-blue-600 text-white'
                       : 'text-gray-300 hover:text-white hover:bg-gray-700'
@@ -73,61 +127,8 @@ export default function Navbar() {
               )
             })}
           </div>
-          
-          {/* Auth & Status Section */}
-          <div className="flex items-center space-x-4">
-            {/* Connection Status */}
-            <div className="flex items-center space-x-2">
-              {isConnected ? (
-                <Badge variant="default" className="bg-green-600 text-white">
-                  <CheckCircle2 className="h-3 w-3 mr-1" />
-                  {isCorrectNetwork ? 'Connected' : 'Wrong Network'}
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="border-gray-600 text-gray-400">
-                  Not Connected
-                </Badge>
-              )}
-            </div>
-            
-            {/* User Info (when connected) */}
-            {isConnected && userInfo && (
-              <div className="hidden sm:flex items-center space-x-2 text-sm text-gray-300">
-                <User className="h-4 w-4" />
-                <span>{userInfo.name || userInfo.email}</span>
-              </div>
-            )}
-            
-            {/* Web3Auth Button */}
-            <Web3AuthButton size="sm" />
-          </div>
         </div>
-      </div>
-      
-      {/* Mobile Navigation */}
-      <div className="md:hidden border-t border-gray-800">
-        <div className="px-2 pt-2 pb-3 space-y-1">
-          {navigation.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href
-            
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`block px-3 py-2 rounded-md text-base font-medium transition-colors flex items-center space-x-2 ${
-                  isActive
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:text-white hover:bg-gray-700'
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                <span>{item.name}</span>
-              </Link>
-            )
-          })}
-        </div>
-      </div>
+      </SignedIn>
     </nav>
   )
 }

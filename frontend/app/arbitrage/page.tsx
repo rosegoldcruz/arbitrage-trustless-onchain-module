@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useArbitrageContracts, TOKENS } from '@/hooks/useArbitrageContracts';
-import { useWeb3Auth } from '@/contexts/Web3AuthContext';
+import { useUser } from '@clerk/nextjs';
 
 interface ArbitrageOpportunity {
   id: string;
@@ -54,7 +54,7 @@ interface DailyStats {
 }
 
 export default function ArbitragePage() {
-  const { isConnected, address } = useWeb3Auth();
+  const { isSignedIn, user } = useUser();
   const {
     stats,
     opportunities: contractOpportunities,

@@ -23,7 +23,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
-import { useWeb3Auth } from "@/contexts/Web3AuthContext";
+import { SignedIn, SignedOut, useUser } from "@clerk/nextjs";
+import { useWeb3 } from "@/lib/web3-context";
 
 // REAL API interfaces - NO FAKE DATA
 interface DashboardData {
@@ -56,7 +57,8 @@ interface Opportunity {
 }
 
 export default function Dashboard() {
-  const { isConnected, address } = useWeb3Auth();
+  const { user } = useUser();
+  const { isConnected, address } = useWeb3();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -155,19 +157,51 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  // Wallet connection check
-  if (!isConnected) {
+  // Authentication and wallet connection check
+  if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
         <Navbar />
         <div className="flex items-center justify-center min-h-screen">
           <Card className="w-96 bg-gray-900/50 border-gray-700">
             <CardHeader className="text-center">
-              <CardTitle className="text-white">🔐 Wallet Required</CardTitle>
+              <CardTitle className="text-white">🔐 Authentication Required</CardTitle>
               <CardDescription className="text-gray-300">
-                Connect your wallet to access the REAL-TIME dashboard
+                Please sign in to access the dashboard
               </CardDescription>
             </CardHeader>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user has connected a Web3 wallet through Clerk
+  const hasWeb3Wallet = user?.web3Wallets && user.web3Wallets.length > 0;
+
+  if (!hasWeb3Wallet) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-screen">
+          <Card className="w-96 bg-gray-900/50 border-gray-700">
+            <CardHeader className="text-center">
+              <CardTitle className="text-white">🔗 Wallet Connection Required</CardTitle>
+              <CardDescription className="text-gray-300">
+                Connect your Web3 wallet through your account settings to access the REAL-TIME dashboard
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-sm text-gray-400 mb-4">
+                Supported wallets: MetaMask, Coinbase Wallet, OKX Wallet
+              </p>
+              <Button
+                onClick={() => window.location.href = '/dashboard'}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+              >
+                Refresh Page
+              </Button>
+            </CardContent>
           </Card>
         </div>
       </div>

@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
-import { useWeb3Auth } from "@/contexts/Web3AuthContext";
+import { useUser } from "@clerk/nextjs";
 
 // REAL API interfaces
 interface DashboardData {
@@ -56,7 +56,7 @@ interface Opportunity {
 }
 
 export default function Dashboard() {
-  const { isConnected, address } = useWeb3Auth();
+  const { isSignedIn, user } = useUser();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -134,8 +134,8 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  // Wallet check
-  if (!isConnected) {
+  // Auth check
+  if (!isSignedIn) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
         <Navbar />
