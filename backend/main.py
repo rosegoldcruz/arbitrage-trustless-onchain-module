@@ -16,7 +16,7 @@ import random
 
 # Import routers
 from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades, tokens
-from routers import analytics, risk, zeroex
+from routers import analytics, risk, zeroex, parallel_dashboard, parallel_dashboard
 
 # Import REAL bot integrations
 import sys
@@ -259,6 +259,7 @@ app.include_router(tokens.router, prefix="/tokens", tags=["Token Management"])
 app.include_router(analytics.router, prefix="/analytics", tags=["Analytics"])
 app.include_router(risk.router, prefix="/risk", tags=["Risk Management"])
 app.include_router(zeroex.router, prefix="/0x", tags=["0x Protocol"])
+app.include_router(parallel_dashboard.router, tags=["Parallel Dashboard"])
 
 # REAL-TIME DATA ENDPOINTS FOR FRONTEND
 @app.get("/api/dashboard/status")

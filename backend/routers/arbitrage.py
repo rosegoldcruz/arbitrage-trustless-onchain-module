@@ -14,6 +14,9 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from web3 import Web3
 
+# Import the new Balancer client
+from backend.integrations.balancer_client import balancer_client, BalancerPool
+
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
@@ -634,33 +637,71 @@ async def get_fallback_price(token_address: str, base_token: str, amount: str) -
 
 @router.get("/balancer/pools")
 async def get_balancer_pools():
-    """Get Balancer pool information for arbitrage"""
-    return {
-        "pools": [
-            {
-                "id": "0x5c6ee304399dbdb9c8ef030ab642b10820db8f56000200000000000000000014",
-                "address": "0x5c6Ee304399DBdB9C8Ef030aB642B10820DB8F56",
-                "tokens": [TOKENS["WETH"], TOKENS["USDC"]],
-                "weights": [0.8, 0.2],  # 80/20 pool
-                "type": "weighted",
-                "swap_fee": 0.003,  # 0.3%
-                "balances": ["100000000000000000000", "200000000000"],  # Mock balances
-                "network": "base_sepolia"
-            },
-            {
-                "id": "0x32296969ef14eb0c6d29669c550d4a0449130230000200000000000000000080",
-                "address": "0x32296969Ef14EB0c6d29669C550D4a0449130230",
-                "tokens": [TOKENS["DAI"], TOKENS["GHO"]],
-                "weights": [0.5, 0.5],  # 50/50 pool
-                "type": "stable",
-                "swap_fee": 0.0004,  # 0.04%
-                "balances": ["1000000000000000000000000", "1000000000000000000000000"],
-                "network": "base_sepolia"
+    """Get REAL Balancer pool information from GraphQL API"""
+    try:
+        async with balancer_client as client:
+            # Get high-TVL pools from Base network
+            pools = await client.get_high_tvl_pools(
+                chains=["BASE"],
+                min_tvl=10000,
+                limit=50
+            )
+
+            formatted_pools = []
+            for pool in pools:
+                # Convert to API format
+                formatted_pool = {
+                    "id": pool.id,
+                    "address": pool.address,
+                    "name": pool.name,
+                    "tokens": [
+                        {
+                            "address": token.get("address", ""),
+                            "symbol": token.get("symbol", ""),
+                            "name": token.get("name", "")
+                        } for token in pool.tokens
+                    ],
+                    "weights": pool.weights,
+                    "type": pool.pool_type,
+                    "swap_fee": pool.swap_fee,
+                    "balances": pool.balances,
+                    "tvl": pool.total_liquidity,
+                    "apr_items": pool.apr_items,
+                    "network": pool.chain.lower(),
+                    "version": pool.version
+                }
+                formatted_pools.append(formatted_pool)
+
+            return {
+                "pools": formatted_pools,
+                "total_pools": len(formatted_pools),
+                "source": "balancer_graphql_api",
+                "timestamp": datetime.utcnow().isoformat()
             }
-        ],
-        "total_pools": 2,
-        "timestamp": datetime.utcnow().isoformat()
-    }
+
+    except Exception as e:
+        logger.error(f"Failed to fetch Balancer pools: {e}")
+        # Fallback to basic mock data if API fails
+        return {
+            "pools": [
+                {
+                    "id": "fallback_pool_1",
+                    "address": "0x0000000000000000000000000000000000000000",
+                    "name": "Fallback Pool",
+                    "tokens": [{"address": TOKENS["WETH"], "symbol": "WETH"}, {"address": TOKENS["USDC"], "symbol": "USDC"}],
+                    "weights": [0.8, 0.2],
+                    "type": "weighted",
+                    "swap_fee": 0.003,
+                    "balances": ["0", "0"],
+                    "tvl": 0,
+                    "network": "base",
+                    "error": str(e)
+                }
+            ],
+            "total_pools": 1,
+            "source": "fallback",
+            "timestamp": datetime.utcnow().isoformat()
+        }
 
 @router.get("/curve/pools")
 async def get_curve_pools():
@@ -1093,4 +1134,127 @@ async def get_arbitrage_history(
 
     except Exception as e:
         logger.error(f"❌ History endpoint error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/balancer/opportunities")
+async def get_balancer_arbitrage_opportunities(
+    min_spread_bps: int = 23,
+    chains: str = "BASE"
+):
+    """Get real-time Balancer arbitrage opportunities using GraphQL API"""
+    try:
+        chain_list = [chain.strip().upper() for chain in chains.split(",")]
+
+        async with balancer_client as client:
+            opportunities = await client.find_arbitrage_opportunities(
+                chains=chain_list,
+                min_spread_bps=min_spread_bps
+            )
+
+            return {
+                "opportunities": opportunities,
+                "total_found": len(opportunities),
+                "filters": {
+                    "min_spread_bps": min_spread_bps,
+                    "chains": chain_list
+                },
+                "source": "balancer_graphql_api",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+
+    except Exception as e:
+        logger.error(f"Failed to get Balancer opportunities: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/balancer/high-volume-pools")
+async def get_high_volume_pools(chains: str = "BASE"):
+    """Monitor high-volume Balancer pools for MEV opportunities"""
+    try:
+        chain_list = [chain.strip().upper() for chain in chains.split(",")]
+
+        async with balancer_client as client:
+            high_volume_pools = await client.monitor_high_volume_pools(chains=chain_list)
+
+            return {
+                "high_volume_pools": high_volume_pools,
+                "total_pools": len(high_volume_pools),
+                "chains": chain_list,
+                "source": "balancer_graphql_api",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+
+    except Exception as e:
+        logger.error(f"Failed to get high volume pools: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/balancer/pool/{pool_id}")
+async def get_balancer_pool_details(pool_id: str, chain: str = "BASE"):
+    """Get detailed information for a specific Balancer pool"""
+    try:
+        async with balancer_client as client:
+            pool = await client.get_pool_details(pool_id=pool_id, chain=chain.upper())
+
+            if not pool:
+                raise HTTPException(status_code=404, detail="Pool not found")
+
+            return {
+                "pool": {
+                    "id": pool.id,
+                    "address": pool.address,
+                    "name": pool.name,
+                    "type": pool.pool_type,
+                    "version": pool.version,
+                    "tokens": pool.tokens,
+                    "balances": pool.balances,
+                    "weights": pool.weights,
+                    "tvl": pool.total_liquidity,
+                    "swap_fee": pool.swap_fee,
+                    "apr_items": pool.apr_items,
+                    "chain": pool.chain
+                },
+                "source": "balancer_graphql_api",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get pool details: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/balancer/swap-quote")
+async def get_balancer_swap_quote(
+    token_in: str,
+    token_out: str,
+    amount: str,
+    chain: str = "BASE"
+):
+    """Get Smart Order Router swap quote from Balancer"""
+    try:
+        async with balancer_client as client:
+            swap_path = await client.get_smart_order_router_paths(
+                token_in=token_in,
+                token_out=token_out,
+                amount=amount,
+                chain=chain.upper()
+            )
+
+            if not swap_path:
+                raise HTTPException(status_code=404, detail="No swap path found")
+
+            return {
+                "swap_quote": {
+                    "amount_in": swap_path.swap_amount_raw,
+                    "amount_out": swap_path.return_amount_raw,
+                    "price_impact": swap_path.price_impact,
+                    "route": swap_path.route
+                },
+                "source": "balancer_sor_api",
+                "timestamp": datetime.utcnow().isoformat()
+            }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get swap quote: {e}")
         raise HTTPException(status_code=500, detail=str(e))

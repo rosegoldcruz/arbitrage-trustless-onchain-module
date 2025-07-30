@@ -20,9 +20,10 @@ from web3 import Web3
 from web3.middleware import ExtraDataToPOAMiddleware
 import requests
 
-# Add parent directory to path to import DEX aggregator
+# Add parent directory to path to import integrations
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote
+from integrations.balancer_client import balancer_client, BalancerPool
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -180,7 +181,13 @@ class ATOMBot:
                 self.execution_stats['total_scans'] += 1
                 
                 # Scan triangular arbitrage paths
-                opportunities = await self._scan_triangular_paths()
+                triangular_opportunities = await self._scan_triangular_paths()
+
+                # Scan real Balancer opportunities
+                balancer_opportunities = await self._scan_balancer_opportunities()
+
+                # Combine all opportunities
+                opportunities = triangular_opportunities + balancer_opportunities
                 
                 # Filter profitable opportunities
                 profitable_opps = [
@@ -218,6 +225,45 @@ class ATOMBot:
             except Exception as e:
                 logger.error(f"Error analyzing path {token_a}→{token_b}→{token_c}: {e}")
         
+        return opportunities
+
+    async def _scan_balancer_opportunities(self) -> List[ArbitrageOpportunity]:
+        """Scan real Balancer pools for arbitrage opportunities"""
+        opportunities = []
+
+        try:
+            async with balancer_client as client:
+                # Get real Balancer arbitrage opportunities
+                balancer_opps = await client.find_arbitrage_opportunities(
+                    chains=["BASE"],
+                    min_spread_bps=self.config.min_spread_bps
+                )
+
+                for opp in balancer_opps:
+                    try:
+                        # Convert Balancer opportunity to ATOM format
+                        arbitrage_opp = ArbitrageOpportunity(
+                            token_a=opp["token_in"]["symbol"],
+                            token_b=opp["token_out"]["symbol"],
+                            token_c="",  # Not triangular
+                            spread_bps=opp["spread_bps"],
+                            net_profit=Decimal(str(opp["tvl"] * opp["price_impact"] / 100)),
+                            gas_estimate=300_000,  # Balancer swap gas estimate
+                            confidence_score=min(95.0, 80.0 + (opp["spread_bps"] - 23) * 0.3),
+                            dex_path=f"balancer:{opp['pool_address']}",
+                            timestamp=time.time()
+                        )
+                        opportunities.append(arbitrage_opp)
+
+                    except Exception as e:
+                        logger.warning(f"Failed to convert Balancer opportunity: {e}")
+                        continue
+
+                logger.info(f"🏊 Found {len(opportunities)} Balancer opportunities")
+
+        except Exception as e:
+            logger.error(f"Failed to scan Balancer opportunities: {e}")
+
         return opportunities
 
     async def _analyze_triangular_path(self, token_a: str, token_b: str, token_c: str) -> Optional[ArbitrageOpportunity]:

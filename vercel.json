@@ -1,32 +1,5 @@
 {
-  "version": 2,
-  "name": "arbitrage-trustless-onchain-module",
-  "builds": [
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/$1"
-    }
-  ],
-  "env": {
-    "NEXT_PUBLIC_APP_NAME": "ATOM",
-    "NEXT_PUBLIC_APP_URL": "https://aeoninvestmentstechnologies.com",
-    "NEXT_PUBLIC_BACKEND_URL": "http://152.42.234.243:8000",
-    "NODE_ENV": "production"
-  },
-  "functions": {
-    "frontend/app/**/*.tsx": {
-      "runtime": "nodejs18.x"
-    }
-  },
-  "outputDirectory": "frontend/.next"
+  "buildCommand": "cd frontend && pnpm run build",
+  "outputDirectory": "frontend/.next",
+  "installCommand": "cd frontend && pnpm install"
 }
