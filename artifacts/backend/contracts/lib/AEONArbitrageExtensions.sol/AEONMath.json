@@ -1,0 +1,10 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "AEONMath",
+  "sourceName": "backend/contracts/lib/AEONArbitrageExtensions.sol",
+  "abi": [],
+  "bytecode": "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea26469706673582212204a5d13ca901b38159484f00470e06865d98b1c97b51fbe57eb45692d58dc096364736f6c63430008140033",
+  "deployedBytecode": "0x600080fdfea26469706673582212204a5d13ca901b38159484f00470e06865d98b1c97b51fbe57eb45692d58dc096364736f6c63430008140033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
