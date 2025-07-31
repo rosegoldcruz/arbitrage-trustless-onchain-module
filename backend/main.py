@@ -1,8 +1,10 @@
 """
-ATOM Backend - FastAPI Application
-Arbitrage Trustless On-Chain Module
+🧬 AEON Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module - REAL MONEY EXECUTION
 """
 
+import os
+import sys
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -11,19 +13,20 @@ from contextlib import asynccontextmanager
 import logging
 import asyncio
 from datetime import datetime
-import os
 import random
 
-# Import routers
-from backend.routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades, tokens
-from backend.routers import analytics, risk, zeroex, parallel_dashboard, telegram
+# 🔐 PERMANENT BACKEND IMPORT FIX
+# Add current directory to Python path for relative imports
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'integrations'))
+
+# Import routers (using relative imports since we're inside backend/)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades, tokens
+from routers import analytics, risk, zeroex, parallel_dashboard, telegram
 
 # Import REAL bot integrations
-import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
-sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
-
-from backend.integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
 from bots.working.config import get_atom_config, validate_production_config
 
 # Configure logging

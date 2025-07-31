@@ -13,6 +13,12 @@ import time
 import signal
 from pathlib import Path
 
+# 🔐 PERMANENT BACKEND IMPORT FIX
+# Add backend directory to Python path to resolve imports like 'from backend.routers import ...'
+# This makes the script self-contained and immune to PYTHONPATH issues across all environments
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "backend")))
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
