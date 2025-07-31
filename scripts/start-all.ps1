@@ -25,13 +25,13 @@ try {
     exit 1
 }
 
-# Check pnpm
+# Check npm
 try {
-    $pnpmVersion = pnpm --version
-    Write-Host "✅ pnpm: $pnpmVersion" -ForegroundColor Green
+    $npmVersion = npm --version
+    Write-Host "✅ npm: $npmVersion" -ForegroundColor Green
 } catch {
-    Write-Host "❌ pnpm not found. Installing..." -ForegroundColor Yellow
-    npm install -g pnpm
+    Write-Host "❌ npm not found. Please install Node.js" -ForegroundColor Red
+    exit 1
 }
 
 Write-Host "`n🚀 Starting ATOM/AEON System..." -ForegroundColor Cyan
@@ -45,7 +45,7 @@ Start-Sleep -Seconds 5
 
 # Start Frontend (Next.js)
 Write-Host "🌐 Starting Frontend..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend; pnpm dev"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd frontend; npm run dev"
 
 # Wait for frontend to start
 Start-Sleep -Seconds 10

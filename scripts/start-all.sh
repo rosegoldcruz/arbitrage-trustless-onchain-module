@@ -26,12 +26,12 @@ else
     exit 1
 fi
 
-# Check pnpm
-if command -v pnpm &> /dev/null; then
-    echo "✅ pnpm: $(pnpm --version)"
+# Check npm
+if command -v npm &> /dev/null; then
+    echo "✅ npm: $(npm --version)"
 else
-    echo "❌ pnpm not found. Installing..."
-    npm install -g pnpm
+    echo "❌ npm not found. Please install Node.js"
+    exit 1
 fi
 
 echo ""
@@ -50,7 +50,7 @@ sleep 5
 # Start Frontend (Next.js)
 echo "🌐 Starting Frontend..."
 cd frontend
-pnpm dev &
+npm run dev &
 FRONTEND_PID=$!
 cd ..
 
