@@ -11,6 +11,7 @@ from datetime import datetime
 from typing import Dict, Any
 
 from ..integrations.telegram_notifier import telegram_notifier, AlertType, Priority, TelegramAlert
+from ..core.aeon_execution_mode import aeon_mode, AEONExecutionMode
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/telegram", tags=["telegram"])
@@ -160,14 +161,20 @@ async def handle_command(text: str, user: Dict):
             await telegram_notifier._send_message(welcome_msg)
             
         elif command == "/status":
-            # Get bot status (would integrate with actual bot monitoring)
+            # Get bot status with AEON mode
+            current_status = aeon_mode.get_status()
             status_msg = (
-                "🤖 *ATOM Bot Status*\n\n"
+                "🧬 *AEON SYSTEM STATUS*\n\n"
+                f"**Execution Mode:** {current_status['mode'].upper()} {current_status['emoji']}\n"
+                f"_{current_status['description']}_\n\n"
+                "**System Status:**\n"
                 "• ATOM Bot: 🟢 Running\n"
                 "• ADOM Bot: 🟢 Running\n"
                 "• Telegram Notifier: 🟢 Active\n"
-                "• Base Sepolia: 🟢 Connected\n\n"
-                f"Last update: {datetime.now().strftime('%H:%M:%S')}"
+                "• Base Sepolia: 🟢 Connected\n"
+                f"• Execution Mode: {current_status['emoji']} {current_status['mode'].title()}\n\n"
+                f"Last update: {datetime.now().strftime('%H:%M:%S')}\n\n"
+                "Use `/auto` to change execution mode"
             )
             await telegram_notifier._send_message(status_msg)
             
@@ -202,22 +209,85 @@ async def handle_command(text: str, user: Dict):
             )
             await telegram_notifier.send_alert(test_alert)
             
+        elif command == "/auto":
+            # Show auto-trade control menu with current mode
+            current_status = aeon_mode.get_status()
+            auto_msg = (
+                "🧬 *AEON EXECUTION CONTROL*\n\n"
+                f"**Current Mode:** {current_status['mode'].upper()} {current_status['emoji']}\n"
+                f"_{current_status['description']}_\n\n"
+                "Choose your execution mode:\n\n"
+                "🔴 `/manual` - All trades require approval\n"
+                "🟡 `/hybrid` - Small auto, large manual\n"
+                "🟢 `/autonomous` - Fully autonomous\n\n"
+                "⚡ **AEON** = Advanced Efficient Optimized Network"
+            )
+            await telegram_notifier._send_message(auto_msg)
+
+        elif command == "/manual":
+            # Set manual mode
+            success = aeon_mode.set_mode(AEONExecutionMode.MANUAL)
+            if success:
+                await telegram_notifier._send_message(
+                    "🔴 *MANUAL MODE ACTIVATED*\n\n"
+                    "✅ All trades require your approval\n"
+                    "✅ Maximum safety and control\n"
+                    "✅ Approval buttons for every trade\n\n"
+                    "🧬 **AEON is now in MANUAL mode**"
+                )
+            else:
+                await telegram_notifier._send_message("❌ Failed to set manual mode")
+
+        elif command == "/hybrid":
+            # Set hybrid mode
+            success = aeon_mode.set_mode(AEONExecutionMode.HYBRID)
+            if success:
+                await telegram_notifier._send_message(
+                    "🟡 *HYBRID MODE ACTIVATED*\n\n"
+                    "✅ Small trades (<$100): Auto-execute\n"
+                    "✅ Large trades (>$100): Manual approval\n"
+                    "✅ High spreads (>75bps): Manual approval\n\n"
+                    "🧬 **AEON is now in HYBRID mode**"
+                )
+            else:
+                await telegram_notifier._send_message("❌ Failed to set hybrid mode")
+
+        elif command == "/autonomous":
+            # Set autonomous mode
+            success = aeon_mode.set_mode(AEONExecutionMode.AUTONOMOUS)
+            if success:
+                await telegram_notifier._send_message(
+                    "🟢 *AUTONOMOUS MODE ACTIVATED*\n\n"
+                    "⚡ All profitable trades execute automatically\n"
+                    "⚡ 23bps minimum threshold enforced\n"
+                    "⚡ Circuit breakers protect against losses\n\n"
+                    "⚠️ **WARNING:** AEON will trade without approval!\n"
+                    "Use `/manual` to regain control anytime.\n\n"
+                    "🧬 **AEON is now FULLY AUTONOMOUS**"
+                )
+            else:
+                await telegram_notifier._send_message("❌ Failed to set autonomous mode")
+
         elif command == "/help":
             help_msg = (
-                "🆘 *ATOM Telegram Bot Help*\n\n"
-                "*Commands:*\n"
+                "🧬 *AEON TELEGRAM CONTROL*\n\n"
+                "**🤖 EXECUTION CONTROL:**\n"
+                "/auto - Choose execution mode\n"
+                "/manual - Manual approval mode 🔴\n"
+                "/hybrid - Hybrid auto/manual mode 🟡\n"
+                "/autonomous - Full auto mode 🟢\n\n"
+                "**📊 MONITORING:**\n"
                 "/start - Welcome message\n"
                 "/status - Current bot status\n"
                 "/stats - Trading statistics\n"
-                "/test - Send test notification\n"
-                "/help - Show this help\n\n"
-                "*Notifications:*\n"
+                "/test - Send test notification\n\n"
+                "**🔔 NOTIFICATIONS:**\n"
                 "🎯 Arbitrage opportunities\n"
                 "🌊 Depeg alerts\n"
                 "✅ Trade confirmations\n"
                 "❌ Error alerts\n"
                 "🔐 Manual approvals\n\n"
-                "*Support:* Contact @your_username"
+                "🧬 **AEON** = Advanced Efficient Optimized Network"
             )
             await telegram_notifier._send_message(help_msg)
             
@@ -352,6 +422,46 @@ async def remove_webhook():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/aeon/mode")
+async def get_aeon_mode():
+    """Get current AEON execution mode"""
+    try:
+        status = aeon_mode.get_status()
+        return {
+            "status": "success",
+            "aeon_mode": status,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/aeon/mode/{mode}")
+async def set_aeon_mode(mode: str):
+    """Set AEON execution mode"""
+    try:
+        mode_map = {
+            "manual": AEONExecutionMode.MANUAL,
+            "hybrid": AEONExecutionMode.HYBRID,
+            "autonomous": AEONExecutionMode.AUTONOMOUS
+        }
+
+        if mode.lower() not in mode_map:
+            raise HTTPException(status_code=400, detail="Invalid mode. Use: manual, hybrid, or autonomous")
+
+        success = aeon_mode.set_mode(mode_map[mode.lower()])
+        if success:
+            status = aeon_mode.get_status()
+            return {
+                "status": "success",
+                "message": f"AEON mode set to {mode.upper()}",
+                "aeon_mode": status
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to set mode")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/health")
 async def telegram_health():
     """Health check for Telegram integration"""
@@ -359,5 +469,6 @@ async def telegram_health():
         "status": "healthy" if telegram_notifier.enabled else "disabled",
         "bot_token_configured": bool(telegram_notifier.bot_token),
         "chat_id_configured": bool(telegram_notifier.chat_id),
-        "pending_approvals": len(telegram_notifier.pending_approvals)
+        "pending_approvals": len(telegram_notifier.pending_approvals),
+        "aeon_mode": aeon_mode.get_status()
     }

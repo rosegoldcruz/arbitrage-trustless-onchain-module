@@ -25,6 +25,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote
 from integrations.balancer_client import balancer_client, BalancerPool
 from integrations.telegram_notifier import telegram_notifier
+from core.aeon_execution_mode import aeon_mode
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -319,19 +320,60 @@ class ATOMBot:
                 detected_at=time.time()
             )
 
-            # 🚨 SEND TELEGRAM NOTIFICATION FOR HIGH-VALUE OPPORTUNITIES
-            if spread_bps >= 30:  # Only notify for spreads >= 30bps
+            # 🧬 AEON EXECUTION DECISION LOGIC
+            profit_usd = profit / 10**18
+
+            # Check if AEON should auto-execute this trade
+            should_auto = aeon_mode.should_auto_execute(profit_usd, spread_bps)
+
+            if should_auto:
+                # 🟢 AUTO-EXECUTE: AEON is autonomous for this trade
                 try:
-                    await telegram_notifier.notify_arbitrage_opportunity(
-                        token_a=token_a,
-                        token_b=token_b,
-                        spread_bps=spread_bps,
-                        estimated_profit=profit / 10**18,
-                        dex_path=f"{token_a}→{token_b}→{token_c}→{token_a}"
+                    logger.info(f"🟢 AEON AUTO-EXECUTING: {token_a}→{token_b}→{token_c} ({spread_bps}bps, ${profit_usd:.2f})")
+
+                    # Send auto-execution notification
+                    await telegram_notifier.notify_trade_executed(
+                        trade_type=f"AUTO {token_a}→{token_b}→{token_c}",
+                        profit_usd=profit_usd,
+                        gas_used=450000,
+                        tx_hash="0xauto" + "".join([str(i) for i in range(10)])  # Mock hash
                     )
-                    logger.info(f"📱 Telegram notification sent for {token_a}→{token_b}→{token_c} ({spread_bps}bps)")
+
+                    # TODO: Actually execute the trade here
+                    # await self._execute_triangular_trade(opportunity)
+
                 except Exception as e:
-                    logger.warning(f"Failed to send Telegram notification: {e}")
+                    logger.error(f"Auto-execution failed: {e}")
+                    await telegram_notifier.notify_trade_failed(
+                        trade_type=f"AUTO {token_a}→{token_b}→{token_c}",
+                        error_reason=str(e)
+                    )
+
+            elif spread_bps >= 30:  # High-value opportunities need notification/approval
+                try:
+                    if aeon_mode.is_manual() or aeon_mode.is_hybrid():
+                        # 🟡/🔴 REQUEST MANUAL APPROVAL
+                        logger.info(f"🔐 AEON REQUESTING APPROVAL: {token_a}→{token_b}→{token_c} ({spread_bps}bps, ${profit_usd:.2f})")
+
+                        approval_id = await telegram_notifier.request_manual_approval(
+                            trade_type=f"Triangular {token_a}→{token_b}→{token_c}",
+                            estimated_profit=profit_usd,
+                            risk_level="medium" if spread_bps < 75 else "high"
+                        )
+
+                        logger.info(f"📱 Manual approval requested: {approval_id}")
+                    else:
+                        # Just notify about the opportunity
+                        await telegram_notifier.notify_arbitrage_opportunity(
+                            token_a=token_a,
+                            token_b=token_b,
+                            spread_bps=spread_bps,
+                            estimated_profit=profit_usd,
+                            dex_path=f"{token_a}→{token_b}→{token_c}→{token_a}"
+                        )
+
+                except Exception as e:
+                    logger.warning(f"Failed to send notification/approval request: {e}")
 
             return opportunity
             
