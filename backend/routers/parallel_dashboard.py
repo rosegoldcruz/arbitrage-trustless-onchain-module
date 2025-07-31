@@ -13,6 +13,11 @@ import logging
 from datetime import datetime
 import traceback
 
+# 🔐 PERMANENT IMPORT FIX - Use relative imports since we're inside backend/
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 # Import our production services
 from integrations.balancer_client import balancer_client
 from integrations.zrx_service import ZrxService, ZrxChain

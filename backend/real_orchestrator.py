@@ -23,8 +23,22 @@ from dataclasses import dataclass, asdict
 import threading
 from pathlib import Path
 
+# 🔐 PERMANENT BACKEND IMPORT FIX FOR DIGITALOCEAN
 # Add backend to path for real integrations
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'core')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'integrations')))
+
+# Configure logging first
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('orchestrator.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 try:
     from core.aeon_execution_mode import aeon_mode, AEONExecutionMode
@@ -37,15 +51,7 @@ except ImportError as e:
     REAL_INTEGRATIONS_AVAILABLE = False
     logger.warning(f"⚠️ AEON integrations not available: {e}")
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('orchestrator.log'),
-        logging.StreamHandler()
-    ]
-)
+# Logging already configured above
 logger = logging.getLogger(__name__)
 
 @dataclass

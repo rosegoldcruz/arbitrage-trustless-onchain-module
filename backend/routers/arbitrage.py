@@ -14,9 +14,14 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from web3 import Web3
 
+# 🔐 PERMANENT IMPORT FIX - Use relative imports since we're inside backend/
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 # Import the new Balancer client
-from backend.integrations.balancer_client import balancer_client, BalancerPool
-from backend.integrations.telegram_notifier import telegram_notifier
+from integrations.balancer_client import balancer_client, BalancerPool
+from integrations.telegram_notifier import telegram_notifier
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
