@@ -76,13 +76,20 @@ async def handle_approval_callback(callback_data: str, user: Dict, message_id: i
         username = user.get("username", "Unknown")
         
         if action == "approve":
-            approval_responses[approval_id] = {
+            # Store approval for both approval_id and trade_id
+            trade_id = alert.data.get('trade_id')
+
+            approval_data = {
                 "approved": True,
                 "user_id": user_id,
                 "username": username,
                 "timestamp": datetime.now().isoformat()
             }
-            
+
+            approval_responses[approval_id] = approval_data
+            if trade_id:
+                approval_responses[trade_id] = approval_data  # For trading engine
+
             # Send confirmation
             await telegram_notifier._send_message(
                 f"✅ *APPROVED* by @{username}\n\n"
@@ -90,25 +97,32 @@ async def handle_approval_callback(callback_data: str, user: Dict, message_id: i
                 f"Estimated Profit: ${alert.data.get('estimated_profit_usd', 0):.2f}\n"
                 f"Executing trade..."
             )
-            
-            logger.info(f"Trade approved by {username}: {approval_id}")
-            
+
+            logger.info(f"Trade approved by {username}: {approval_id} (trade_id: {trade_id})")
+
         elif action == "reject":
-            approval_responses[approval_id] = {
+            # Store rejection for both approval_id and trade_id
+            trade_id = alert.data.get('trade_id')
+
+            approval_data = {
                 "approved": False,
                 "user_id": user_id,
                 "username": username,
                 "timestamp": datetime.now().isoformat()
             }
-            
+
+            approval_responses[approval_id] = approval_data
+            if trade_id:
+                approval_responses[trade_id] = approval_data  # For trading engine
+
             # Send confirmation
             await telegram_notifier._send_message(
                 f"❌ *REJECTED* by @{username}\n\n"
                 f"Trade: {alert.title}\n"
                 f"Trade cancelled."
             )
-            
-            logger.info(f"Trade rejected by {username}: {approval_id}")
+
+            logger.info(f"Trade rejected by {username}: {approval_id} (trade_id: {trade_id})")
             
         elif action == "details":
             # Send detailed information

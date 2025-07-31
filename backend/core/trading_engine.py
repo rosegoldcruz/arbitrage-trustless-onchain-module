@@ -1,17 +1,22 @@
 """
-🚀 ATOM Trading Engine - Core Trading Algorithms
-Advanced arbitrage detection and execution system
+🧬 AEON FLASHLOAN EXECUTION ENGINE
+Real money, real profits, real flashloan arbitrage execution
+Uses AAVE V3 + Multi-DEX routing for atomic profit extraction
 """
 
 import asyncio
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Tuple
-from decimal import Decimal
-import json
 import time
 from dataclasses import dataclass
 from enum import Enum
+
+# AEON Core Integration
+from .aeon_execution_mode import aeon_mode, AEONExecutionMode
+from ..integrations.telegram_notifier import telegram_notifier, TelegramAlert, AlertType, Priority
+from ..integrations.flashloan_providers import flashloan_manager, FlashLoanProvider, FlashLoanQuote
+from ..integrations.dex_aggregator import dex_aggregator, Chain
 
 logger = logging.getLogger(__name__)
 
@@ -258,10 +263,10 @@ class TradingEngine:
                 await asyncio.sleep(1.0)
     
     async def execute_arbitrage_trade(self, opportunity: ArbitrageOpportunity) -> TradeExecution:
-        """Execute an arbitrage trade"""
+        """Execute an arbitrage trade with AEON mode support"""
         try:
             trade_id = f"trade_{int(time.time())}_{hash(opportunity.opportunity_id) % 10000}"
-            
+
             # Create trade execution record
             trade = TradeExecution(
                 trade_id=trade_id,
@@ -277,54 +282,155 @@ class TradingEngine:
                 block_number=None,
                 executed_at=datetime.now(timezone.utc)
             )
-            
+
             self.active_trades[trade_id] = trade
-            
-            logger.info(f"🔄 Executing trade: {trade_id} for opportunity {opportunity.opportunity_id}")
-            
-            # Simulate trade execution
+
+            logger.info(f"🔄 Processing trade: {trade_id} for opportunity {opportunity.opportunity_id}")
+
+            # 🧬 AEON EXECUTION MODE CHECK
+            spread_bps = (opportunity.price_difference / min(opportunity.price_a, opportunity.price_b)) * 10000
+            amount_usd = opportunity.net_profit  # Simplified
+
+            should_auto_execute = aeon_mode.should_auto_execute(amount_usd, spread_bps)
+
+            if not should_auto_execute:
+                # 🔴 MANUAL APPROVAL REQUIRED
+                logger.info(f"🔴 Manual approval required for trade {trade_id}")
+
+                # Send approval request via Telegram
+                approval_alert = TelegramAlert(
+                    alert_type=AlertType.MANUAL_APPROVAL,
+                    priority=Priority.HIGH,
+                    title=f"Trade Approval Required",
+                    message=f"Arbitrage opportunity detected:\n"
+                           f"• Pair: {opportunity.token_pair}\n"
+                           f"• DEXs: {opportunity.dex_a} → {opportunity.dex_b}\n"
+                           f"• Spread: {spread_bps:.1f}bps\n"
+                           f"• Est. Profit: ${opportunity.net_profit:.2f}\n"
+                           f"• Confidence: {opportunity.confidence_score:.1%}",
+                    data={
+                        "trade_id": trade_id,
+                        "opportunity_id": opportunity.opportunity_id,
+                        "spread_bps": spread_bps,
+                        "estimated_profit_usd": opportunity.net_profit,
+                        "token_pair": opportunity.token_pair,
+                        "dex_path": f"{opportunity.dex_a} → {opportunity.dex_b}"
+                    },
+                    timestamp=datetime.now(),
+                    requires_approval=True
+                )
+
+                await telegram_notifier.send_alert(approval_alert)
+
+                # Wait for approval (timeout after 5 minutes)
+                approved = await self._wait_for_approval(trade_id, timeout=300)
+
+                if not approved:
+                    trade.status = TradeStatus.CANCELLED
+                    trade.error_message = "Manual approval timeout or rejected"
+                    logger.info(f"❌ Trade {trade_id} cancelled - no approval")
+                    return trade
+
+                logger.info(f"✅ Trade {trade_id} approved - proceeding with execution")
+
+            # 🔥 EXECUTE REAL FLASHLOAN ARBITRAGE
             start_time = time.time()
             trade.status = TradeStatus.EXECUTING
-            
-            # Simulate execution delay
-            await asyncio.sleep(0.05 + (hash(trade_id) % 100) / 2000)  # 50-100ms
-            
-            # Simulate success/failure (95% success rate)
-            success = (hash(trade_id) % 100) < 95
-            
-            if success:
-                # Successful execution
-                execution_time = time.time() - start_time
-                slippage_factor = 1 - opportunity.slippage_estimate
-                
-                trade.amount_out = opportunity.potential_profit * slippage_factor
-                trade.actual_profit = trade.amount_out - opportunity.gas_cost
-                trade.gas_used = 180000 + (hash(trade_id) % 50000)
-                trade.execution_time = execution_time
-                trade.status = TradeStatus.COMPLETED
-                trade.tx_hash = f"0x{hash(trade_id):064x}"
-                trade.block_number = 18000000 + (int(time.time()) % 100000)
-                
-                # Update performance metrics
-                self.performance_metrics["total_trades"] += 1
-                self.performance_metrics["successful_trades"] += 1
-                self.performance_metrics["total_profit"] += trade.actual_profit
-                self.performance_metrics["total_volume"] += trade.amount_in * opportunity.price_a
-                
-                logger.info(
-                    f"✅ Trade completed: {trade_id} - "
-                    f"Profit: ${trade.actual_profit:.2f} - "
-                    f"Time: {execution_time:.3f}s"
+
+            logger.info(f"⚡ EXECUTING REAL FLASHLOAN: {trade_id}")
+
+            try:
+                # Get best flashloan quote (AAVE V3 or Balancer)
+                flashloan_quote = await flashloan_manager.get_best_quote(
+                    asset="WETH",  # Primary asset for Base
+                    amount=opportunity.net_profit * 10,  # 10x leverage via flashloan
+                    chain=Chain.BASE
                 )
-                
-            else:
-                # Failed execution
+
+                if not flashloan_quote:
+                    raise Exception("No flashloan providers available")
+
+                # Prepare arbitrage parameters for smart contract
+                arbitrage_params = {
+                    "token_a": opportunity.token_pair.split("/")[0],
+                    "token_b": opportunity.token_pair.split("/")[1],
+                    "buy_dex": opportunity.dex_a,
+                    "sell_dex": opportunity.dex_b,
+                    "expected_profit": opportunity.net_profit,
+                    "max_slippage": opportunity.slippage_estimate,
+                    "gas_limit": 500000  # 500k gas limit
+                }
+
+                # Execute flashloan arbitrage via smart contract
+                execution_result = await flashloan_manager.execute_flash_loan_arbitrage(
+                    flashloan_quote,
+                    arbitrage_params
+                )
+
+                execution_time = time.time() - start_time
+
+                if execution_result.status.value == "completed":
+                    # ✅ SUCCESSFUL FLASHLOAN ARBITRAGE
+                    trade.amount_out = execution_result.amount + execution_result.arbitrage_profit
+                    trade.actual_profit = execution_result.net_profit
+                    trade.gas_used = execution_result.gas_used
+                    trade.execution_time = execution_time
+                    trade.status = TradeStatus.COMPLETED
+                    trade.tx_hash = execution_result.tx_hash
+                    trade.block_number = execution_result.block_number
+
+                    # Update performance metrics
+                    self.performance_metrics["total_trades"] += 1
+                    self.performance_metrics["successful_trades"] += 1
+                    self.performance_metrics["total_profit"] += trade.actual_profit
+                    self.performance_metrics["total_volume"] += flashloan_quote.amount
+
+                    # Send success notification
+                    await telegram_notifier.notify_trade_executed(
+                        "Flashloan Arbitrage",
+                        trade.actual_profit,
+                        trade.gas_used,
+                        trade.tx_hash
+                    )
+
+                    logger.info(
+                        f"🚀 FLASHLOAN SUCCESS: {trade_id} - "
+                        f"Profit: ${trade.actual_profit:.2f} - "
+                        f"Provider: {flashloan_quote.provider.value} - "
+                        f"Time: {execution_time:.3f}s"
+                    )
+
+                else:
+                    # ❌ FLASHLOAN FAILED
+                    trade.status = TradeStatus.FAILED
+                    trade.error_message = f"Flashloan execution failed: {execution_result.status.value}"
+
+                    self.performance_metrics["total_trades"] += 1
+
+                    await telegram_notifier.notify_trade_failed(
+                        "Flashloan Arbitrage",
+                        trade.error_message,
+                        opportunity.gas_cost
+                    )
+
+                    logger.warning(f"❌ FLASHLOAN FAILED: {trade_id} - {trade.error_message}")
+
+            except Exception as e:
+                # Handle execution errors
                 trade.status = TradeStatus.FAILED
-                trade.error_message = "Insufficient liquidity"
-                
+                trade.error_message = f"Execution error: {str(e)}"
+                execution_time = time.time() - start_time
+                trade.execution_time = execution_time
+
                 self.performance_metrics["total_trades"] += 1
-                
-                logger.warning(f"❌ Trade failed: {trade_id} - {trade.error_message}")
+
+                await telegram_notifier.notify_trade_failed(
+                    "Flashloan Arbitrage",
+                    str(e),
+                    opportunity.gas_cost
+                )
+
+                logger.error(f"💥 EXECUTION ERROR: {trade_id} - {str(e)}")
             
             # Move to completed trades
             self.completed_trades[trade_id] = trade
@@ -399,6 +505,39 @@ class TradingEngine:
         trades = list(self.completed_trades.values())
         trades.sort(key=lambda x: x.executed_at, reverse=True)
         return trades[:limit]
+
+    async def _wait_for_approval(self, trade_id: str, timeout: int = 300) -> bool:
+        """Wait for manual approval via Telegram"""
+        try:
+            start_time = time.time()
+
+            while time.time() - start_time < timeout:
+                # Check if approval was received via Telegram webhook
+                # This integrates with the existing telegram.py approval system
+                from ..routers.telegram import approval_responses
+
+                if trade_id in approval_responses:
+                    response = approval_responses.pop(trade_id)
+                    approved = response.get("approved", False)
+                    username = response.get("username", "Unknown")
+
+                    if approved:
+                        logger.info(f"✅ Trade {trade_id} approved by {username}")
+                        return True
+                    else:
+                        logger.info(f"❌ Trade {trade_id} rejected by {username}")
+                        return False
+
+                # Check every 1 second
+                await asyncio.sleep(1.0)
+
+            # Timeout reached
+            logger.warning(f"⏰ Trade {trade_id} approval timeout after {timeout}s")
+            return False
+
+        except Exception as e:
+            logger.error(f"Error waiting for approval: {e}")
+            return False
 
 # Global trading engine instance
 trading_engine = TradingEngine()
