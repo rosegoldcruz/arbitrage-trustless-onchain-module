@@ -22,7 +22,7 @@ python backend/test_balancer_integration.py
 python backend/main.py
 
 # Test API endpoints
-curl http://localhost:8000/api/arbitrage/balancer/pools
+curl http://64.23.154.163:8000/api/arbitrage/balancer/pools
 ```
 
 ### 2. Run ATOM Bot with Balancer

@@ -34,7 +34,7 @@ export default function SettingsPage() {
     defaultNetwork: "ethereum",
     
     // API Settings
-    backendUrl: "http://localhost:8000",
+    backendUrl: "http://64.23.154.163:8000",
     apiKey: "",
     
     // Risk Management

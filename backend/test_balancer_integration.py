@@ -157,7 +157,7 @@ async def test_balancer_integration():
     print("🎯 Balancer Integration Test Complete!")
     print("\nNext Steps:")
     print("- Run the backend server: python backend/main.py")
-    print("- Test endpoints: curl http://localhost:8000/api/arbitrage/balancer/pools")
+    print("- Test endpoints: curl http://64.23.154.163:8000/api/arbitrage/balancer/pools")
     print("- Check ATOM bot: python backend/bots/working/ATOM.py")
 
 async def test_api_endpoints():
@@ -166,7 +166,7 @@ async def test_api_endpoints():
     
     print("\n🌐 Testing API Endpoints...")
     
-    base_url = "http://localhost:8000/api/arbitrage"
+    base_url = "http://64.23.154.163:8000/api/arbitrage"
     
     endpoints = [
         "/balancer/pools",

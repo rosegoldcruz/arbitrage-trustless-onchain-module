@@ -14,13 +14,737 @@ from datetime import datetime
 import os
 import random
 
-# Import routers
-from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades, tokens
-from routers import analytics, risk, zeroex, parallel_dashboard, parallel_dashboard
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
 
 # Import REAL bot integrations
 import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
 import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_configtats, trades, tokens
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_configashboard
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_config
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
+
+from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
+from bots.working.config import get_atom_config, validate_production_configXProvider
+"""
+ATOM Backend - FastAPI Application
+Arbitrage Trustless On-Chain Module
+"""
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+from contextlib import asynccontextmanager
+import logging
+import asyncio
+from datetime import datetime
+import os
+import random
+
+# Import routers (REMOVED tokens to avoid crash)
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from routers import analytics, risk, zeroex, parallel_dashboard
+
+# Import REAL bot integrations
+import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), 'bots', 'working'))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'integrations'))
 

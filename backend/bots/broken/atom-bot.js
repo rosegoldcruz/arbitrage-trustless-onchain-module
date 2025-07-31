@@ -35,8 +35,8 @@ const CONFIG = {
     RETRY_ATTEMPTS: parseInt(process.env.ATOM_RETRY_ATTEMPTS) || 3,
     
     // API Endpoints
-    BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://152.42.234.243:3001',
-    TRIGGER_ENDPOINT: process.env.ATOM_ENDPOINT || 'http://152.42.234.243:3002/api/execute-trade',
+    BACKEND_URL: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://64.23.154.163:8000',
+    TRIGGER_ENDPOINT: process.env.ATOM_ENDPOINT || 'http://64.23.154.163:8000/api/execute-trade',
     
     // Token Triples for Monitoring
     TOKEN_TRIPLES: [

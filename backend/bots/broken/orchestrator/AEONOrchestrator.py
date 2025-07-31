@@ -71,10 +71,10 @@ class AEONOrchestrator:
         
         # Ecosystem endpoints
         self.endpoints = {
-            'AEON': 'ws://localhost:8001',      # On-chain autonomous
-            'ATOM': 'ws://localhost:8002',      # Python hybrid bot
-            'ADOM': 'ws://localhost:8003',      # Node.js MEV bot
-            'SPECTRE': 'http://localhost:8004'  # Analytics engine
+            'AEON': 'ws://64.23.154.163:8000',      # On-chain autonomous
+            'ATOM': 'ws://64.23.154.163:8000',      # Python hybrid bot
+            'ADOM': 'ws://64.23.154.163:8000',      # Node.js MEV bot
+            'SPECTRE': 'http://64.23.154.163:8000'  # Analytics engine
         }
         
         # Performance tracking

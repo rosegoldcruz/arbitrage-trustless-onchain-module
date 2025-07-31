@@ -185,7 +185,7 @@ pip install -r requirements.txt
 python start.py
 ```
 
-The backend will be available at `http://localhost:8000`
+The backend will be available at `http://64.23.154.163:8000`
 
 ## 🔧 Environment Variables
 
@@ -195,7 +195,7 @@ Create `.env.local` files in both frontend and backend directories:
 ```
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_key
 CLERK_SECRET_KEY=your_clerk_secret
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://64.23.154.163:8000
 ```
 
 ### Backend (.env)
@@ -395,7 +395,7 @@ services:
     volumes:
       - ./backend:/app
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://64.23.154.163:8000/health')"]
       interval: 30s
       timeout: 10s
       retries: 3

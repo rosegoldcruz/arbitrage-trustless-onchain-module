@@ -10,7 +10,7 @@
   },
   "build": {
     "env": {
-      "NEXT_PUBLIC_BACKEND_URL": "http://152.42.234.243:3001"
+      "NEXT_PUBLIC_BACKEND_URL": "http://64.23.154.163:8000"
     }
   },
   "functions": {
@@ -40,7 +40,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://your-backend-url.com/:path*"
+      "destination": "http://64.23.154.163:8000/:path*"
     }
   ]
 }

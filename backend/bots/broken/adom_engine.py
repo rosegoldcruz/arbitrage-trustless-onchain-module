@@ -37,7 +37,7 @@ class AdomConfig:
     risk_tolerance: float = float(os.getenv('ADOM_RISK_TOLERANCE', 0.02))  # 2%
     
     # Network & APIs
-    backend_url: str = os.getenv('NEXT_PUBLIC_BACKEND_URL', 'http://152.42.234.243:3001')
+    backend_url: str = os.getenv('NEXT_PUBLIC_BACKEND_URL', 'http://64.23.154.163:8000')
     rpc_url: str = os.getenv('BASE_SEPOLIA_RPC_URL', 'https://base-sepolia.g.alchemy.com/v2/ESBtk3UKjPt2rK2Yz0hnzUj0tIJGTe-d')
     
     # Thresholds

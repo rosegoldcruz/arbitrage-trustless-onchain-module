@@ -59,14 +59,14 @@ export const GOD_CONFIG = {
       minProfitThreshold: 10.0,
       maxGasPrice: 50,
       riskTolerance: 0.02,
-      endpoint: "http://152.42.234.243:3002/api/execute-trade"
+      endpoint: "http://64.23.154.163:8000/api/execute-trade"
     },
     ADOM: {
       enabled: true,
       signalInterval: 5000,
       maxTradeSize: 1.0,
       riskTolerance: 0.02,
-      endpoint: "http://152.42.234.243:3001/api/adom"
+      endpoint: "http://64.23.154.163:8000/api/adom"
     }
   },
   
