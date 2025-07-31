@@ -16,6 +16,7 @@ from web3 import Web3
 
 # Import the new Balancer client
 from backend.integrations.balancer_client import balancer_client, BalancerPool
+from backend.integrations.telegram_notifier import telegram_notifier
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -340,10 +341,32 @@ async def execute_triangular_arbitrage_task(token_a: str, token_b: str, token_c:
         # 4. Calculate actual profit
 
         await asyncio.sleep(3)  # Simulate execution time
+
+        # 📱 Send success notification
+        try:
+            await telegram_notifier.notify_trade_executed(
+                trade_type=f"Triangular {token_a}→{token_b}→{token_c}",
+                profit_usd=45.67,  # Simulated profit
+                gas_used=420000,
+                tx_hash="0x1234567890abcdef1234567890abcdef12345678"
+            )
+        except Exception as notify_error:
+            logger.warning(f"Failed to send success notification: {notify_error}")
+
         logger.info("Triangular arbitrage execution completed")
 
     except Exception as e:
         logger.error(f"Triangular arbitrage task failed: {e}")
+
+        # 📱 Send failure notification
+        try:
+            await telegram_notifier.notify_trade_failed(
+                trade_type=f"Triangular {token_a}→{token_b}→{token_c}",
+                error_reason=str(e),
+                estimated_loss=5.0  # Gas cost estimate
+            )
+        except Exception as notify_error:
+            logger.warning(f"Failed to send failure notification: {notify_error}")
 
 @router.get("/opportunities")
 async def get_arbitrage_opportunities(

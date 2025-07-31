@@ -24,6 +24,7 @@ import requests
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote
 from integrations.balancer_client import balancer_client, BalancerPool
+from integrations.telegram_notifier import telegram_notifier
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -154,6 +155,17 @@ class ATOMBot:
         """Start the ATOM bot"""
         logger.info("🚀 Starting ATOM Bot...")
         self.is_running = True
+
+        # 📱 Send startup notification
+        try:
+            await telegram_notifier.notify_bot_status(
+                bot_name="ATOM",
+                status="starting",
+                uptime="0s",
+                opportunities_found=0
+            )
+        except Exception as e:
+            logger.warning(f"Failed to send startup notification: {e}")
         
         # Start parallel tasks
         tasks = [
@@ -294,7 +306,7 @@ class ATOMBot:
             gas_estimate = 450_000  # Triangular arbitrage gas estimate
             confidence = min(95.0, 70.0 + (spread_bps - 23) * 0.5)  # Higher spread = higher confidence
             
-            return ArbitrageOpportunity(
+            opportunity = ArbitrageOpportunity(
                 token_a=self.tokens[token_a],
                 token_b=self.tokens[token_b],
                 token_c=self.tokens[token_c],
@@ -306,6 +318,22 @@ class ATOMBot:
                 confidence=confidence,
                 detected_at=time.time()
             )
+
+            # 🚨 SEND TELEGRAM NOTIFICATION FOR HIGH-VALUE OPPORTUNITIES
+            if spread_bps >= 30:  # Only notify for spreads >= 30bps
+                try:
+                    await telegram_notifier.notify_arbitrage_opportunity(
+                        token_a=token_a,
+                        token_b=token_b,
+                        spread_bps=spread_bps,
+                        estimated_profit=profit / 10**18,
+                        dex_path=f"{token_a}→{token_b}→{token_c}→{token_a}"
+                    )
+                    logger.info(f"📱 Telegram notification sent for {token_a}→{token_b}→{token_c} ({spread_bps}bps)")
+                except Exception as e:
+                    logger.warning(f"Failed to send Telegram notification: {e}")
+
+            return opportunity
             
         except Exception as e:
             logger.error(f"Error in triangular analysis: {e}")
