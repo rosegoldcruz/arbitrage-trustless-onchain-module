@@ -2,6 +2,5 @@
   "buildCommand": "cd frontend && npm install -g pnpm && pnpm run build",
   "outputDirectory": "frontend/.next",
   "installCommand": "cd frontend && npm install -g pnpm && pnpm install",
-  "framework": "nextjs",
-  "nodeVersion": "18.x"
+  "framework": "nextjs"
 }
