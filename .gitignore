@@ -8,23 +8,28 @@
 # ============================================================================
 # 🚨 ENVIRONMENT & SECRETS - ABSOLUTELY FORBIDDEN 🚨
 # ============================================================================
-# NO environment files of ANY kind - not even examples!
-.env*
-*.env*
-env*
-ENV*
-.environment*
-environment*
-config.env*
-settings.env*
-secrets.env*
-local.env*
-dev.env*
-prod.env*
-production.env*
-development.env*
-staging.env*
-test.env*
+# Block ALL real environment files but ALLOW templates/examples
+.env
+.env.*
+!.env.example
+!.env.template
+*.env
+!*.env.example
+!*.env.template
+env/
+ENV/
+.environment
+environment/
+config.env
+settings.env
+secrets.env
+local.env
+dev.env
+prod.env
+production.env
+development.env
+staging.env
+test.env
 
 # Environment directories
 env/
