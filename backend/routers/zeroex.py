@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Real Configuration for Base Network
-THEATOM_API_KEY = os.getenv("THEATOM_API_KEY", "7324a2b4-3b05-4288-b353-68322f49a283")
+THEATOM_API_KEY = os.getenv("THEATOM_API_KEY")
 # Use Base mainnet (8453) since it's supported by 0x API
 BASE_CHAIN_ID = 8453
 
