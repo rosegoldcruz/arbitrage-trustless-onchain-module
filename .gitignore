@@ -148,7 +148,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+backend/lib/
+python/lib/
 lib64/
 parts/
 sdist/
