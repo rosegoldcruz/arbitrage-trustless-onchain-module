@@ -1,8 +1,9 @@
 import sys
 import os
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-
+# 🔧 Fix Python path so we can import from repo root (lib/, bots/, etc.)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "lib")))
 
 # ⚙️ FastAPI + Core imports
 from fastapi import FastAPI, HTTPException
@@ -22,10 +23,6 @@ from routers import analytics, risk, zeroex, parallel_dashboard, telegram, token
 # 🤖 Core bot integrations
 from integrations.dex_aggregator import DEXAggregator, Chain
 from bots.working_config import get_atom_config, validate_production_config
-
-# Logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
-logger = logging.getLogger(__name__)
 
 # 🧠 Shared state
 app_state = {
@@ -50,9 +47,14 @@ app_state = {
     }
 }
 
+# 🔧 Logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
+logger = logging.getLogger(__name__)
+
 dex_aggregator = DEXAggregator()
 production_config = get_atom_config()
 
+# 🔁 Async data loop
 async def update_real_time_data():
     while True:
         try:
@@ -132,10 +134,10 @@ async def lifespan(app: FastAPI):
     yield
     logger.info("🧯 Shutting down...")
 
-# 🧠 FastAPI App
+# 🚀 FastAPI App
 app = FastAPI(title="ATOM API", lifespan=lifespan)
 
-# Middleware
+# 🌐 CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*", "http://localhost:3000", "https://atom-arbitrage.vercel.app"],
@@ -144,7 +146,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routers
+# 🔌 Route Mounts
 app.include_router(health.router)
 app.include_router(arbitrage.router)
 app.include_router(flashloan.router)
@@ -170,4 +172,4 @@ async def root():
     }
 
 if __name__ == "__main__":
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, app_dir="backend")
