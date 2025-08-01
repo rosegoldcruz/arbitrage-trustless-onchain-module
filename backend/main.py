@@ -1,8 +1,8 @@
 import sys
 import os
 
-# 🔧 Fix Python path so we can import from repo root (lib/, bots/, etc.)
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+
 
 # ⚙️ FastAPI + Core imports
 from fastapi import FastAPI, HTTPException
