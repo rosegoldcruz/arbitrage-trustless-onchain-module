@@ -1,285 +1,32 @@
-# AEON Network - Python Dependencies
-# Complete requirements for all three ecosystems
-
-# Core Dependencies
 asyncio-mqtt==0.16.1
 aiohttp==3.9.1
 aiofiles==23.2.1
 asyncio==3.4.3
 websockets==12.0
-
-# Web Framework (FastAPI Backend)
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.5.0
 python-multipart==0.0.6
-
-# Blockchain & Web3
 web3==6.12.0
 eth-account==0.10.0
 eth-utils==2.3.1
 hexbytes==0.3.1
-
-# Data Analysis & Analytics (SPECTRE)
 pandas==2.1.4
 numpy==1.25.2
 matplotlib==3.8.2
 seaborn==0.13.0
 scipy==1.11.4
-
-# Database & Caching
 redis==5.0.1
-sqlite3  # Built-in Python module
 sqlalchemy==2.0.23
-
-# HTTP Requests & APIs
 requests==2.31.0
 httpx==0.25.2
 urllib3==2.1.0
-
-# Async & Concurrency
 asyncio-throttle==1.0.2
 aioredis==2.0.1
-
-# Cryptography & Security
-cryptography==41.0.8
 pycryptodome==3.19.0
-
-# Configuration & Environment
 python-dotenv==1.0.0
 pyyaml==6.0.1
 toml==0.10.2
-
-# Logging & Monitoring
 structlog==23.2.0
 colorlog==6.8.0
-
-# Math & Calculations
-decimal  # Built-in Python module
-fractions  # Built-in Python module
-
-# Date & Time
-python-dateutil==2.8.2
-pytz==2023.3
-
-# JSON & Serialization
-orjson==3.9.10
-msgpack==1.0.7
-
-# Testing (Optional)
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-mock==3.12.0
-
-# Development Tools (Optional)
-black==23.11.0
-flake8==6.1.0
-mypy==1.7.1
-
-# Performance & Optimization
-cython==3.0.6
-numba==0.58.1
-
-# Network & Communication
-websocket-client==1.6.4
-python-socketio==5.10.0
-
-# Data Validation
-marshmallow==3.20.1
-cerberus==1.3.5
-
-# Utilities
-click==8.1.7
-rich==13.7.0
-tqdm==4.66.1
-
-# Financial & Trading Libraries
-ccxt==4.1.64  # Cryptocurrency exchange library
-ta-lib==0.4.28  # Technical analysis library (requires separate installation)
-
-# Machine Learning (for SPECTRE advanced analytics)
-scikit-learn==1.3.2
-joblib==1.3.2
-
-# Time Series Analysis
-statsmodels==0.14.0
-
-# Parallel Processing
-multiprocessing  # Built-in Python module
-concurrent.futures  # Built-in Python module
-
-# Memory Management
-psutil==5.9.6
-memory-profiler==0.61.0
-
-# Configuration Management
-hydra-core==1.3.2
-omegaconf==2.3.0
-
-# API Documentation
-sphinx==7.2.6
-sphinx-rtd-theme==1.3.0
-
-# Error Handling & Monitoring
-sentry-sdk==1.38.0
-rollbar==0.16.3
-
-# Rate Limiting
-slowapi==0.1.9
-limits==3.6.0
-
-# Caching
-cachetools==5.3.2
-diskcache==5.6.3
-
-# Data Compression
-lz4==4.3.2
-zstandard==0.22.0
-
-# Protocol Buffers (for efficient data serialization)
-protobuf==4.25.1
-
-# Message Queues
-celery==5.3.4
-kombu==5.3.4
-
-# Monitoring & Metrics
-prometheus-client==0.19.0
-statsd==4.0.1
-
-# Load Balancing
-haproxy-stats==2.2.0
-
-# Security
-authlib==1.2.1
-passlib==1.7.4
-bcrypt==4.1.2
-
-# Email (for notifications)
-emails==0.6.0
-sendgrid==6.10.0
-
-# File Handling
-pathlib  # Built-in Python module
-glob  # Built-in Python module
-shutil  # Built-in Python module
-
-# System Integration
-systemd-python==235  # Linux only
-schedule==1.2.0
-
-# Development & Debugging
-ipython==8.17.2
-jupyter==1.0.0
-notebook==7.0.6
-
-# API Rate Limiting & Throttling
-ratelimit==2.2.1
-backoff==2.2.1
-
-# Advanced Async Libraries
-trio==0.23.1
-anyio==4.1.0
-
-# Data Streaming
-kafka-python==2.0.2
-confluent-kafka==2.3.0
-
-# Graph & Network Analysis
-networkx==3.2.1
-igraph==0.11.3
-
-# Image Processing (for charts/graphs)
-pillow==10.1.0
-opencv-python==4.8.1.78
-
-# Audio/Video (if needed for notifications)
-pygame==2.5.2
-
-# Blockchain Specific
-py-evm==0.7.0a4
-eth-tester==0.9.1b1
-
-# MEV & DeFi Libraries
-flashloan==0.1.0  # Custom library if available
-uniswap-python==0.7.0
-balancer-python==0.1.0  # Custom if available
-
-# Price Feed Libraries
-pycoingecko==3.1.0
-cryptocompare==0.7.6
-
-# Technical Indicators
-TA-Lib==0.4.28  # Requires separate C library installation
-pandas-ta==0.3.14b0
-
-# Risk Management
-quantlib==1.32
-pyfolio==0.9.2
-
-# Backtesting
-backtrader==1.9.78.123
-zipline==2.2.0
-
-# Options & Derivatives
-mibian==0.1.3
-py_vollib==1.0.1
-
-# Portfolio Optimization
-cvxpy==1.4.1
-pypfopt==1.5.5
-
-# Alternative Data
-alpha-vantage==2.3.1
-quandl==3.7.0
-
-# Social Sentiment
-tweepy==4.14.0
-praw==7.7.1  # Reddit API
-
-# News & Events
-newsapi-python==0.2.7
-feedparser==6.0.10
-
-# Geolocation (if needed)
-geopy==2.4.1
-folium==0.15.0
-
-# Cloud Services
-boto3==1.34.0  # AWS
-google-cloud-storage==2.10.0  # GCP
-azure-storage-blob==12.19.0  # Azure
-
-# Container & Orchestration
-docker==6.1.3
-kubernetes==28.1.0
-
-# Monitoring & Alerting
-slack-sdk==3.26.1
-discord.py==2.3.2
-telegram-bot==0.1.0
-
-# Load Testing
-locust==2.17.0
-artillery==1.0.0  # If Python wrapper available
-
-# Documentation
-mkdocs==1.5.3
-mkdocs-material==9.4.8
-
-# Code Quality
-bandit==1.7.5  # Security linting
-safety==2.3.5  # Dependency vulnerability checking
-pre-commit==3.6.0
-
-# Environment Management
-pipenv==2023.11.15
-poetry==1.7.1
-
-# Deployment
-gunicorn==21.2.0
-supervisor==4.2.5
-
-# Health Checks
-healthcheck==1.3.3
-py-healthcheck==1.10.1
+cryptography==41.0.7

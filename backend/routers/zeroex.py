@@ -25,7 +25,10 @@ BASE_CHAIN_ID = 8453
 USE_TESTNET = False
 
 # Import our real 0x client
-from backend.lib.zeroex_client import ZeroXClient, ZeroXAPIError
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from lib.zeroex_client import ZeroXClient, ZeroXAPIError
 
 # Initialize real 0x client for Base mainnet
 zx_client = ZeroXClient(
