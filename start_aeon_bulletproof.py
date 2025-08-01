@@ -91,27 +91,33 @@ def install_backend_dependencies():
         return False
 
 def start_fastapi_server():
-    """Start FastAPI server with bulletproof imports"""
-    logger.info("⚡ Starting FastAPI server...")
-    
+    """Start FastAPI server with bulletproof imports - PUBLIC ACCESS ENABLED"""
+    logger.info("⚡ Starting FastAPI server for PUBLIC ACCESS...")
+
     try:
-        # Set environment variables for the subprocess
-        env = os.environ.copy()
-        env['PYTHONPATH'] = ':'.join(paths_to_add)
-        
-        # Start FastAPI server
+        # Import FastAPI app directly for public deployment
+        sys.path.insert(0, backend_dir)
+        os.chdir(backend_dir)
+
+        # Import the app and uvicorn
+        from main import app
+        import uvicorn
+
+        logger.info("🌐 Starting FastAPI on 0.0.0.0:8000 for external access")
+
+        # Start FastAPI server with public host binding
+        # This allows Vercel frontend to connect to DigitalOcean backend
         process = subprocess.Popen([
-            sys.executable, "-m", "uvicorn", "main:app",
-            "--host", "0.0.0.0", 
-            "--port", "8000",
-            "--reload"
-        ], cwd=backend_dir, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        
+            sys.executable, "-c",
+            "import sys; sys.path.insert(0, '.'); from main import app; import uvicorn; uvicorn.run(app, host='0.0.0.0', port=8000)"
+        ], cwd=backend_dir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
         # Give it time to start
         time.sleep(8)
-        
+
         if process.poll() is None:
-            logger.info("✅ FastAPI server started on http://0.0.0.0:8000")
+            logger.info("✅ FastAPI server started on http://0.0.0.0:8000 (PUBLIC ACCESS)")
+            logger.info("🌐 External access enabled for Vercel → DigitalOcean connection")
             return process
         else:
             stdout, stderr = process.communicate()
@@ -119,10 +125,13 @@ def start_fastapi_server():
             logger.error(f"STDOUT: {stdout.decode()}")
             logger.error(f"STDERR: {stderr.decode()}")
             return None
-            
+
     except Exception as e:
         logger.error(f"❌ FastAPI startup error: {e}")
         return None
+    finally:
+        # Change back to original directory
+        os.chdir(current_dir)
 
 def start_orchestrator():
     """Start AEON orchestrator"""
