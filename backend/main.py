@@ -1,15 +1,11 @@
 import sys
 import os
 
-# Add the backend/ directory to the import path
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+# 🔧 Fix Python path so we can import from repo root (lib/, bots/, etc.)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "lib")))
 
-# Add the repo root directory (arbitrage-trustless-onchain-module/)
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-# 🔥 Add the lib/ directory explicitly
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'lib')))
-
+# ⚙️ FastAPI + Core imports
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -20,15 +16,13 @@ import asyncio
 from datetime import datetime
 import random
 
-
-
-# Import routers (using relative imports since we're inside backend/)
-from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades, tokens
+# 🚦 Internal Routers
+from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
 from routers import analytics, risk, zeroex, parallel_dashboard, telegram
 
-# Import REAL bot integrations
+# 🤖 Core bot integrations
 from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote, DEXProvider
-from bots.working.config import get_atom_config, validate_production_config
+from bots.working_config import get_atom_config, validate_production_config
 
 # Configure logging
 logging.basicConfig(
