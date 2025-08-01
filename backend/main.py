@@ -20,11 +20,11 @@ import random
 from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
 from routers import analytics, risk, zeroex, parallel_dashboard, telegram, tokens
 
-# 🤖 Core bot integrations
+# 🧠 Core bot integrations
 from integrations.dex_aggregator import DEXAggregator, Chain
 from bots.working_config import get_atom_config, validate_production_config
 
-# 🧠 Shared state
+# 🫠 Shared state
 app_state = {
     "agents": {
         "atom": {"status": "initializing", "profit": 0.0, "trades": 0, "type": "offchain"},
@@ -132,7 +132,7 @@ async def lifespan(app: FastAPI):
     logger.info("🔌 Starting up...")
     asyncio.create_task(update_real_time_data())
     yield
-    logger.info("🧯 Shutting down...")
+    logger.info("🚯 Shutting down...")
 
 # 🚀 FastAPI App
 app = FastAPI(title="ATOM API", lifespan=lifespan)
@@ -172,4 +172,10 @@ async def root():
     }
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, app_dir="backend")
+    uvicorn.run(
+        "backend.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        factory=True
+    )
