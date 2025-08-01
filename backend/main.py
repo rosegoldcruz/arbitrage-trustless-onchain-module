@@ -1,8 +1,3 @@
-"""
-🧬 AEON Backend - FastAPI Application
-Arbitrage Trustless On-Chain Module - REAL MONEY EXECUTION
-"""
-
 import sys
 import os
 
@@ -11,6 +6,10 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 # Add the repo root directory (arbitrage-trustless-onchain-module/)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# 🔥 Add the lib/ directory explicitly
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'lib')))
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
