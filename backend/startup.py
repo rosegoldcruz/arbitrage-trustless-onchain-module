@@ -4,12 +4,16 @@
 Complete system initialization and health verification
 """
 
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import asyncio
 import logging
-import sys
 import time
 from datetime import datetime, timezone
-import os
 from pathlib import Path
 
 # Add the backend directory to Python path

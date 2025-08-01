@@ -3,8 +3,14 @@
 Arbitrage Trustless On-Chain Module - REAL MONEY EXECUTION
 """
 
-import os
 import sys
+import os
+
+# Add the backend/ directory to the import path
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
+# Add the repo root directory (arbitrage-trustless-onchain-module/)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -15,13 +21,7 @@ import asyncio
 from datetime import datetime
 import random
 
-# 🔐 PERMANENT BACKEND IMPORT FIX FOR DIGITALOCEAN
-# Add current directory to Python path for relative imports
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'bots', 'working'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'integrations'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'core'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'routers'))
+
 
 # Import routers (using relative imports since we're inside backend/)
 from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades, tokens
