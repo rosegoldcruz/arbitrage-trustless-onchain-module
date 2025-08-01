@@ -10,8 +10,8 @@ import json
 from datetime import datetime
 from typing import Dict, Any
 
-from ..integrations.telegram_notifier import telegram_notifier, AlertType, Priority, TelegramAlert
-from ..core.aeon_execution_mode import aeon_mode, AEONExecutionMode
+from integrations.telegram_notifier import telegram_notifier, AlertType, Priority, TelegramAlert
+from core.aeon_execution_mode import aeon_mode, AEONExecutionMode
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/telegram", tags=["telegram"])
