@@ -17,12 +17,23 @@ from datetime import datetime
 import random
 
 # 🚦 Internal Routers
-from routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
-from routers import analytics, risk, zeroex, parallel_dashboard, telegram, tokens
+from backend.routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
+from backend.routers import analytics, risk, zeroex, parallel_dashboard, telegram, tokens
 
 # 🧠 Core bot integrations
-from integrations.dex_aggregator import DEXAggregator, Chain
-from bots.working_config import get_atom_config, validate_production_config
+try:
+    from backend.integrations.dex_aggregator import DEXAggregator, Chain
+except ImportError:
+    DEXAggregator = None
+    Chain = None
+
+try:
+    from backend.bots.working_config import get_atom_config, validate_production_config
+except ImportError:
+    def get_atom_config():
+        return {}
+    def validate_production_config():
+        return True
 
 # 🫠 Shared state
 app_state = {
