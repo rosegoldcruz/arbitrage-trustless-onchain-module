@@ -7,7 +7,7 @@
   "env": {
     "NEXT_PUBLIC_APP_NAME": "ATOM",
     "NEXT_PUBLIC_APP_URL": "https://atom-arbitrage.vercel.app",
-    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_dGVzdC1hdG9tLWFyYml0cmFnZS0xMjM0NTY3ODkw",
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_aW5mb3JtZWQtcGVhY29jay0yNS5jbGVyay5hY2NvdW50cy5kZXYk",
     "NEXT_PUBLIC_SUPABASE_URL": "https://nmjvebcauoyqzjlnluos.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tanZlYmNhdW95cXpqbG5sdW9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY5NzI4MDAsImV4cCI6MjA1MjU0ODgwMH0.example",
     "NEXT_PUBLIC_CHAIN_ID": "84532",
