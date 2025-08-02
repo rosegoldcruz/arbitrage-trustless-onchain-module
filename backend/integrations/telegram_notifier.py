@@ -30,6 +30,11 @@ class AlertType(Enum):
     SECURITY_ALERT = "security_alert"
     MANUAL_APPROVAL = "manual_approval"
 
+class Priority(Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
 @dataclass
 class TelegramAlert:
     message: str
