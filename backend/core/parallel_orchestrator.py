@@ -13,9 +13,9 @@ import json
 import traceback
 
 # Import our production services
-from integrations.balancer_client import balancer_client
-from integrations.zrx_service import ZrxService, ZrxChain
-from integrations.thegraph_service import thegraph_service, ArbitrageOpportunity
+from backend.integrations.balancer_client import balancer_client
+from backend.integrations.zrx_service import ZrxService, ZrxChain
+from backend.integrations.thegraph_service import thegraph_service, ArbitrageOpportunity
 
 logger = logging.getLogger(__name__)
 

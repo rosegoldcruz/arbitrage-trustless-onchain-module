@@ -22,10 +22,10 @@ import requests
 
 # Add parent directory to path to import integrations
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote
-from integrations.balancer_client import balancer_client, BalancerPool
-from integrations.telegram_notifier import telegram_notifier
-from core.aeon_execution_mode import aeon_mode
+from backend.integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote
+from backend.integrations.balancer_client import balancer_client, BalancerPool
+from backend.integrations.telegram_notifier import telegram_notifier
+from backend.core.aeon_execution_mode import aeon_mode
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

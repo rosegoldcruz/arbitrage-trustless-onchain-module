@@ -40,15 +40,15 @@ async def initialize_atom_platform():
         logger.info("🔧 Starting initialization...")
 
         # 📦 Core systems
-        from core.trading_engine import trading_engine
-        from core.orchestrator import master_orchestrator
-        from core.mev_protection import mev_protection
-        from core.security import security_manager
+        from backend.core.trading_engine import trading_engine
+        from backend.core.orchestrator import master_orchestrator
+        from backend.core.mev_protection import mev_protection
+        from backend.core.security import security_manager
 
         # 🔗 Integrations
-        from integrations.flashloan_providers import flash_loan_manager
-        from integrations.dex_aggregator import dex_aggregator
-        from integrations.blockchain import blockchain_manager
+        from backend.integrations.flashloan_providers import flash_loan_manager
+        from backend.integrations.dex_aggregator import dex_aggregator
+        from backend.integrations.blockchain import blockchain_manager
 
         print("✅ Modules loaded successfully\n")
 

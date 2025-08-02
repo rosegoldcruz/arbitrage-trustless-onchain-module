@@ -28,7 +28,7 @@ USE_TESTNET = False
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from lib.zeroex_client import ZeroXClient, ZeroXAPIError
+from backend.lib.zeroex_client import ZeroXClient, ZeroXAPIError
 
 # Initialize real 0x client for Base mainnet
 zx_client = ZeroXClient(

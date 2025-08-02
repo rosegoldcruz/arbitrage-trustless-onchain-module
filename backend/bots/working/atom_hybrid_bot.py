@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 
 # Add parent directory to path to import DEX aggregator
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
-from integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote
+from backend.integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote
 
 # Load environment variables
 load_dotenv()

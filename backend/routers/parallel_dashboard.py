@@ -19,10 +19,10 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import our production services
-from integrations.balancer_client import balancer_client
+from backend.integrations.balancer_client import balancer_client
 # TODO: Fix zrx_service import - currently only exists as TypeScript file
-# from integrations.zrx_service import ZrxService, ZrxChain
-from integrations.thegraph_service import thegraph_service
+# from backend.integrations.zrx_service import ZrxService, ZrxChain
+from backend.integrations.thegraph_service import thegraph_service
 # TODO: Fix parallel_orchestrator import if it doesn't exist
 # from core.parallel_orchestrator import orchestrator, ArbitrageOpportunity
 
