@@ -8,7 +8,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_BACKEND_URL=http://64.23.154.163:8000
+      - NEXT_PUBLIC_BACKEND_URL=http://128.199.95.97:8000
       - NEXT_PUBLIC_APP_URL=https://aeoninvestmentstechnologies.com
     depends_on:
       - backend
@@ -31,7 +31,7 @@ services:
     volumes:
       - ./backend:/app
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://64.23.154.163:8000/health')"]
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://128.199.95.97:8000/health')"]
       interval: 30s
       timeout: 10s
       retries: 3

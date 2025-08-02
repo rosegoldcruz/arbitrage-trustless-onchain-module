@@ -106,10 +106,10 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ### **5. Verify Installation**
 ```bash
 # Check system status
-curl http://64.23.154.163:8000/
+curl http://128.199.95.97:8000/
 
 # View API documentation
-open http://64.23.154.163:8000/docs
+open http://128.199.95.97:8000/docs
 ```
 
 ---

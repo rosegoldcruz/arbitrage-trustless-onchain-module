@@ -61,8 +61,8 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd bots; python a
 Write-Host "`n✅ ATOM/AEON System Started!" -ForegroundColor Green
 Write-Host "==============================" -ForegroundColor Green
 Write-Host "🌐 Frontend: http://localhost:3000" -ForegroundColor Cyan
-Write-Host "📡 Backend: http://64.23.154.163:8000" -ForegroundColor Cyan
-Write-Host "📊 API Docs: http://64.23.154.163:8000/docs" -ForegroundColor Cyan
+Write-Host "📡 Backend: http://128.199.95.97:8000" -ForegroundColor Cyan
+Write-Host "📊 API Docs: http://128.199.95.97:8000/docs" -ForegroundColor Cyan
 Write-Host "📈 Monitor: http://localhost:3000/monitor" -ForegroundColor Cyan
 Write-Host "`n🤖 Bots are running in background terminals" -ForegroundColor Yellow
 Write-Host "Press Ctrl+C in each terminal to stop services" -ForegroundColor Gray
