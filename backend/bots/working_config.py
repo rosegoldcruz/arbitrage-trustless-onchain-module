@@ -12,7 +12,13 @@ def get_atom_config():
         "flash_loan_address": os.getenv("FLASH_LOAN_CONTRACT_ADDRESS"),
         "min_profit_threshold": float(os.getenv("MIN_PROFIT_THRESHOLD", "0.01")),
         "max_gas_price": int(os.getenv("MAX_GAS_PRICE_GWEI", "50")),
-        "scan_interval": int(os.getenv("ATOM_SCAN_INTERVAL", "3000"))
+        "scan_interval": int(os.getenv("ATOM_SCAN_INTERVAL", "3000")),
+        "tokens": {
+            "WETH": "0x4200000000000000000000000000000000000006",
+            "USDC": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+            "DAI": "0x174956bDf96C89F96B5d3d42F3C6d7E8E8F8F8F8",
+            "GHO": "0x5d00fab5f2F97C4D682C1053cDCAA59c2c37900D"
+        }
     }
 
 def validate_production_config():

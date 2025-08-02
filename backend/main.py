@@ -80,8 +80,8 @@ async def update_real_time_data():
 async def test_dex_connections():
     try:
         quote = await dex_aggregator.get_best_swap_quote(
-            token_in=production_config.tokens["WETH"],
-            token_out=production_config.tokens["USDC"],
+            token_in=production_config["tokens"]["WETH"],
+            token_out=production_config["tokens"]["USDC"],
             amount_in=1.0,
             chain=Chain.ETHEREUM,
             slippage_tolerance=0.005
@@ -101,8 +101,8 @@ async def fetch_real_opportunities():
         opps = []
         for a, b, c in paths:
             quote = await dex_aggregator.get_best_swap_quote(
-                token_in=production_config.tokens[a],
-                token_out=production_config.tokens[b],
+                token_in=production_config["tokens"][a],
+                token_out=production_config["tokens"][b],
                 amount_in=1000.0,
                 chain=Chain.ETHEREUM,
                 slippage_tolerance=0.005
