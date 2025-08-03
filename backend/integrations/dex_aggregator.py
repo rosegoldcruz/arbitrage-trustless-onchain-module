@@ -81,15 +81,25 @@ class DEXAggregator:
         self.performance_stats = {}
         self.price_cache = {}
         self.session = None
+
+    async def __aenter__(self):
+        """Async context manager entry"""
+        await self.initialize_aggregators()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit"""
+        await self.cleanup()
     
     async def initialize_aggregators(self):
         """Initialize DEX aggregator configurations"""
         logger.info("🔗 Initializing DEX Aggregators")
-        
-        # Initialize HTTP session
-        self.session = aiohttp.ClientSession(
-            timeout=aiohttp.ClientTimeout(total=10)
-        )
+
+        # Initialize HTTP session with proper cleanup
+        if not self.session or self.session.closed:
+            self.session = aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=10)
+            )
         
         # Configure aggregators
         self.aggregators = {

@@ -65,13 +65,13 @@ class BalancerClient:
     async def _execute_query(self, query: str, variables: Optional[Dict] = None) -> Optional[Dict]:
         """Execute GraphQL query with error handling"""
         try:
-            if not self.session:
+            if not self.session or self.session.closed:
                 self.session = aiohttp.ClientSession()
-                
+
             payload = {"query": query}
             if variables:
                 payload["variables"] = variables
-                
+
             async with self.session.post(self.api_url, json=payload) as response:
                 if response.status == 200:
                     data = await response.json()

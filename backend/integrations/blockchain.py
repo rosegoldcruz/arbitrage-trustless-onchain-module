@@ -167,7 +167,7 @@ class BlockchainManager:
                 w3 = Web3(Web3.HTTPProvider(config.rpc_url))
 
                 # Add PoA middleware for networks that need it
-                if network in [Network.BSC, Network.POLYGON]:
+                if network in [Network.BSC, Network.POLYGON, Network.ARBITRUM]:
                     w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
 
                 # Test connection
