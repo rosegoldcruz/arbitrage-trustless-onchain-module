@@ -14,7 +14,8 @@ import traceback
 
 # Import our production services
 from backend.integrations.balancer_client import balancer_client
-from backend.integrations.zrx_service import ZrxService, ZrxChain
+# from backend.integrations.zrx_service import ZrxService, ZrxChain  # DEPRECATED - using DEX aggregator instead
+from backend.integrations.dex_aggregator import dex_aggregator, DEXProvider, Chain
 from backend.integrations.thegraph_service import thegraph_service, ArbitrageOpportunity
 
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SystemHealth:
     balancer_status: str
-    zrx_status: str
+    dex_status: str  # Renamed from zrx_status - now uses DEX aggregator
     thegraph_status: str
     last_update: int
     total_errors: int = 0
@@ -45,7 +46,7 @@ class ParallelOrchestrator:
     def __init__(self):
         self.is_running = False
         self.latest_snapshot: Optional[MarketSnapshot] = None
-        self.zrx_service = ZrxService()
+        # self.zrx_service = ZrxService()  # DEPRECATED - using DEX aggregator instead
         self.update_interval = 30  # seconds
         self.error_count = 0
         self.max_errors = 10
@@ -88,7 +89,7 @@ class ParallelOrchestrator:
                     f"📊 Market Update: "
                     f"{len(snapshot.arbitrage_opportunities)} opportunities, "
                     f"Health: {snapshot.system_health.balancer_status}/"
-                    f"{snapshot.system_health.zrx_status}/"
+                    f"{snapshot.system_health.dex_status}/"
                     f"{snapshot.system_health.thegraph_status}"
                 )
                 
@@ -121,7 +122,7 @@ class ParallelOrchestrator:
         
         # Health status tracking
         balancer_status = "unknown"
-        zrx_status = "unknown"
+        dex_status = "unknown"  # Renamed from zrx_status
         thegraph_status = "unknown"
         
         # Fetch data from all sources in parallel
@@ -140,12 +141,12 @@ class ParallelOrchestrator:
             logger.error(f"Balancer fetch failed: {results[0]}")
             balancer_status = "error"
             
-        # Process 0x results
+        # Process 0x results (via DEX aggregator)
         if not isinstance(results[1], Exception):
-            zrx_data, zrx_status = results[1]
+            zrx_data, dex_status = results[1]
         else:
             logger.error(f"0x fetch failed: {results[1]}")
-            zrx_status = "error"
+            dex_status = "error"
             
         # Process The Graph results
         if not isinstance(results[2], Exception):
@@ -164,7 +165,7 @@ class ParallelOrchestrator:
         # Create system health
         system_health = SystemHealth(
             balancer_status=balancer_status,
-            zrx_status=zrx_status,
+            dex_status=dex_status,
             thegraph_status=thegraph_status,
             last_update=timestamp,
             total_errors=self.error_count
@@ -210,30 +211,36 @@ class ParallelOrchestrator:
             return {}, "error"
             
     async def _fetch_zrx_data(self) -> tuple[Dict[str, Any], str]:
-        """Fetch data from 0x API"""
+        """Fetch data from 0x API via DEX aggregator"""
         try:
-            # Get token prices
+            # Get token prices using DEX aggregator
             token_addresses = list(self.base_sepolia_tokens.values())
-            prices = await self.zrx_service.getTokenPrices(
-                tokens=token_addresses,
-                chainId=ZrxChain.BASE_SEPOLIA
-            )
-            
-            # Get market data
-            market_data = await self.zrx_service.getMarketData(
-                tokens=token_addresses,
-                chainId=ZrxChain.BASE_SEPOLIA
-            )
-            
+            prices = []
+
+            # Get prices for each token using DEX aggregator
+            for token_address in token_addresses:
+                try:
+                    price = await dex_aggregator.get_token_price(
+                        token=token_address,
+                        chain=Chain.BASE
+                    )
+                    if price:
+                        prices.append({"token": token_address, "priceUsd": price})
+                except Exception as e:
+                    logger.warning(f"Failed to get price for token {token_address}: {e}")
+
+            # Create market data structure
+            market_data = [{"token": p["token"], "priceUsd": p["priceUsd"]} for p in prices]
+
             data = {
                 "prices": prices,
                 "marketData": market_data,
                 "tokenCount": len(prices),
                 "avgPrice": sum(float(p.get("priceUsd", 0)) for p in prices) / len(prices) if prices else 0
             }
-            
+
             return data, "healthy"
-            
+
         except Exception as e:
             logger.error(f"0x data fetch failed: {e}")
             return {}, "error"

@@ -20,8 +20,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 # Import our production services
 from backend.integrations.balancer_client import balancer_client
-# TODO: Fix zrx_service import - currently only exists as TypeScript file
-# from backend.integrations.zrx_service import ZrxService, ZrxChain
+# FIXED: Using DEX aggregator instead of zrx_service
+from backend.integrations.dex_aggregator import dex_aggregator, DEXProvider, Chain
 from backend.integrations.thegraph_service import thegraph_service
 # TODO: Fix parallel_orchestrator import if it doesn't exist
 # from core.parallel_orchestrator import orchestrator, ArbitrageOpportunity
@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/parallel", tags=["Parallel Dashboard"])
 
 # Initialize services for Base Sepolia
-# TODO: Initialize ZrxService when Python implementation is available
-zrx_service = None
+# FIXED: Using DEX aggregator instead of zrx_service
+# zrx_service = None  # No longer needed
 
 # Mock orchestrator for now
 class MockOrchestrator:
@@ -42,7 +42,7 @@ class MockOrchestrator:
 
 orchestrator = MockOrchestrator()
 
-# Mock enums for compatibility
+# Mock enums for compatibility (keeping for backward compatibility)
 class ZrxChain:
     BASE_SEPOLIA = "base_sepolia"
 
@@ -127,10 +127,11 @@ async def health_check():
             balancer_status = f"error: {str(e)[:100]}"
         
         try:
-            # Quick 0x test
-            await zrx_service.getTokenPrices(
-                tokens=list(BASE_SEPOLIA_TOKENS.values())[:1],
-                chainId=ZrxChain.BASE_SEPOLIA
+            # Quick 0x test via DEX aggregator
+            test_token = list(BASE_SEPOLIA_TOKENS.values())[0]
+            await dex_aggregator.get_token_price(
+                token=test_token,
+                chain=Chain.BASE
             )
         except Exception as e:
             zrx_status = f"error: {str(e)[:100]}"
@@ -221,11 +222,19 @@ async def get_zrx_prices(
         token_list = tokens.split(",") if tokens else list(BASE_SEPOLIA_TOKENS.values())
         logger.info(f"Fetching 0x prices for {len(token_list)} tokens")
         
-        market_data = await zrx_service.getMarketData(
-            tokens=token_list,
-            chainId=ZrxChain.BASE_SEPOLIA
-        )
-        
+        # Get market data via DEX aggregator
+        market_data = []
+        for token in token_list:
+            try:
+                price = await dex_aggregator.get_token_price(
+                    token=token,
+                    chain=Chain.BASE
+                )
+                if price:
+                    market_data.append({"token": token, "priceUsd": price})
+            except Exception as e:
+                logger.warning(f"Failed to get price for token {token}: {e}")
+
         # Format for frontend
         formatted_prices = []
         for data in market_data:
@@ -335,13 +344,14 @@ async def get_zrx_quote(
     try:
         logger.info(f"Getting 0x quote: {sellToken} -> {buyToken}, amount: {sellAmount}")
         
-        quote = await zrx_service.getQuote({
-            "chainId": ZrxChain.BASE_SEPOLIA,
-            "sellToken": sellToken,
-            "buyToken": buyToken,
-            "sellAmount": sellAmount,
-            "slippagePercentage": slippagePercentage
-        })
+        # Get quote via DEX aggregator (0x integration)
+        quote = await dex_aggregator.get_0x_quote(
+            token_in=sellToken,
+            token_out=buyToken,
+            amount_in=float(sellAmount),
+            chain=Chain.BASE,
+            slippage_tolerance=slippagePercentage
+        )
         
         return {
             "success": True,
