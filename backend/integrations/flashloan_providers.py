@@ -390,4 +390,9 @@ class FlashLoanManager:
         return loans[:limit]
 
 # Global flash loan manager instance
-flash_loan_manager = FlashLoanManager()
+try:
+    flash_loan_manager = FlashLoanManager()
+    logger.info("✅ FlashLoanManager instance created successfully")
+except Exception as e:
+    logger.error(f"❌ Failed to create FlashLoanManager instance: {e}")
+    raise

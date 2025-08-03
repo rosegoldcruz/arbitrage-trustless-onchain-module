@@ -39,27 +39,59 @@ async def initialize_atom_platform():
     try:
         logger.info("🔧 Starting initialization...")
 
-        # 📦 Core systems
-        from backend.core.trading_engine import trading_engine
-        from backend.core.orchestrator import master_orchestrator
-        from backend.core.mev_protection import mev_protection
-        from backend.core.security import security_manager
+        # 📦 Core systems - Import one by one to catch specific errors
+        try:
+            from backend.core.trading_engine import trading_engine
+            logger.info("✅ Trading engine imported")
+        except Exception as e:
+            logger.error(f"❌ Failed to import trading_engine: {e}")
+            raise
 
-        # 🔗 Integrations
-        from backend.integrations.flashloan_providers import flash_loan_manager
-        from backend.integrations.dex_aggregator import dex_aggregator
-        from backend.integrations.blockchain import blockchain_manager
+        try:
+            from backend.core.parallel_orchestrator import orchestrator
+            logger.info("✅ Parallel orchestrator imported")
+        except Exception as e:
+            logger.error(f"❌ Failed to import orchestrator: {e}")
+            raise
 
-        print("✅ Modules loaded successfully\n")
+        try:
+            from backend.core.security import security_manager
+            logger.info("✅ Security manager imported")
+        except Exception as e:
+            logger.error(f"❌ Failed to import security_manager: {e}")
+            raise
+
+        # 🔗 Integrations - Import one by one to catch specific errors
+        try:
+            from backend.integrations.flashloan_providers import flash_loan_manager
+            logger.info("✅ Flash loan manager imported")
+        except Exception as e:
+            logger.error(f"❌ Failed to import flash_loan_manager: {e}")
+            raise
+
+        try:
+            from backend.integrations.dex_aggregator import dex_aggregator
+            logger.info("✅ DEX aggregator imported")
+        except Exception as e:
+            logger.error(f"❌ Failed to import dex_aggregator: {e}")
+            raise
+
+        try:
+            from backend.integrations.blockchain import blockchain_manager
+            logger.info("✅ Blockchain manager imported")
+        except Exception as e:
+            logger.error(f"❌ Failed to import blockchain_manager: {e}")
+            raise
+
+        print("✅ All modules loaded successfully\n")
 
         steps = [
             ("🔒 Security & Compliance", security_manager.initialize_security),
             ("⚓️ Blockchain Networks", blockchain_manager.initialize_networks),
             ("🔗 DEX Aggregators", dex_aggregator.initialize_aggregators),
             ("⚡ Flash Loan Providers", flash_loan_manager.initialize_providers),
-            ("🛡️ MEV Protection", mev_protection.initialize_protection),
             ("🚀 Trading Engine", trading_engine.start_engine),
-            ("🧐 AI Agent Orchestrator", master_orchestrator.initialize_agents),
+            ("🧐 Parallel Orchestrator", orchestrator.start),
         ]
 
         print("🔄 Initializing Systems:\n" + "-" * 40)
@@ -77,8 +109,7 @@ async def initialize_atom_platform():
         print("\n🔍 Verifying Health:\n" + "-" * 40)
         checks = [
             ("Trading Engine", lambda: trading_engine.is_running),
-            ("AI Agents", lambda: len(master_orchestrator.agents) > 0),
-            ("MEV Protection", lambda: mev_protection.is_monitoring),
+            ("Orchestrator", lambda: orchestrator.isRunning),
             ("Flash Loans", lambda: len(flash_loan_manager.providers) > 0),
             ("DEX Aggregators", lambda: len(dex_aggregator.aggregators) > 0),
             ("Blockchains", lambda: len(blockchain_manager.networks) > 0),
@@ -101,7 +132,7 @@ async def initialize_atom_platform():
         # 📊 Metrics
         print("\n📊 System Stats:\n" + "-" * 40)
         stats = {
-            "AI Agents": len(master_orchestrator.agents),
+            "Orchestrator Status": "Running" if orchestrator.isRunning else "Stopped",
             "Flash Loan Providers": len(flash_loan_manager.providers),
             "DEX Aggregators": len(dex_aggregator.aggregators),
             "Blockchain Networks": len(blockchain_manager.networks),
@@ -117,15 +148,15 @@ async def initialize_atom_platform():
         opps = trading_engine.get_current_opportunities()
         print(f"✅ {len(opps)} found ({(time.time()-t0)*1000:.1f}ms)")
 
-        print("  Testing agent coordination...", end=" ", flush=True)
+        print("  Testing orchestrator status...", end=" ", flush=True)
         t0 = time.time()
-        status = master_orchestrator.get_system_status()
-        print(f"✅ {status['global_metrics']['active_agents']} active ({(time.time()-t0)*1000:.1f}ms)")
+        status = orchestrator.isRunning
+        print(f"✅ {'Running' if status else 'Stopped'} ({(time.time()-t0)*1000:.1f}ms)")
 
-        print("  Testing MEV Protection...", end=" ", flush=True)
+        print("  Testing security monitoring...", end=" ", flush=True)
         t0 = time.time()
-        mev = mev_protection.get_protection_stats()
-        print(f"✅ {mev['protection_level']} level ({(time.time()-t0)*1000:.1f}ms)")
+        security_status = security_manager.is_monitoring
+        print(f"✅ {'Active' if security_status else 'Inactive'} ({(time.time()-t0)*1000:.1f}ms)")
 
         print("\n" + "=" * 80)
         print("🎉 ATOM PLATFORM INITIALIZATION COMPLETE!")

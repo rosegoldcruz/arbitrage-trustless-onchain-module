@@ -15,7 +15,7 @@ from enum import Enum
 # AEON Core Integration
 from .aeon_execution_mode import aeon_mode, AEONExecutionMode
 from ..integrations.telegram_notifier import telegram_notifier, TelegramAlert, AlertType, Priority
-from ..integrations.flashloan_providers import flashloan_manager, FlashLoanProvider, FlashLoanQuote
+from ..integrations.flashloan_providers import flash_loan_manager, FlashLoanProvider, FlashLoanQuote
 from ..integrations.dex_aggregator import dex_aggregator, Chain
 
 logger = logging.getLogger(__name__)
@@ -341,10 +341,9 @@ class TradingEngine:
 
             try:
                 # Get best flashloan quote (AAVE V3 or Balancer)
-                flashloan_quote = await flashloan_manager.get_best_quote(
+                flashloan_quote = await flash_loan_manager.get_best_flash_loan_quote(
                     asset="WETH",  # Primary asset for Base
-                    amount=opportunity.net_profit * 10,  # 10x leverage via flashloan
-                    chain=Chain.BASE
+                    amount=opportunity.net_profit * 10  # 10x leverage via flashloan
                 )
 
                 if not flashloan_quote:
@@ -362,7 +361,7 @@ class TradingEngine:
                 }
 
                 # Execute flashloan arbitrage via smart contract
-                execution_result = await flashloan_manager.execute_flash_loan_arbitrage(
+                execution_result = await flash_loan_manager.execute_flash_loan_arbitrage(
                     flashloan_quote,
                     arbitrage_params
                 )
