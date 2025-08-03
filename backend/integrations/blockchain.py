@@ -15,7 +15,7 @@ import json
 import time
 import aiohttp
 from web3 import Web3
-from web3.middleware import geth_poa_middleware
+from web3.middleware import ExtraDataToPOAMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +168,7 @@ class BlockchainManager:
 
                 # Add PoA middleware for networks that need it
                 if network in [Network.BSC, Network.POLYGON]:
-                    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+                    w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
 
                 # Test connection
                 if w3.is_connected():

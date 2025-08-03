@@ -2,7 +2,7 @@
 # For ATOM/ADOM Hybrid Bot and SPECTRE Analytics Engine
 
 # Web3 and blockchain interaction
-web3==6.11.3
+web3>=7.0.0,<8.0.0
 eth-account==0.9.0
 eth-utils==2.3.1
 

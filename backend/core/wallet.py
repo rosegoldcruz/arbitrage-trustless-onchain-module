@@ -8,7 +8,7 @@ import logging
 from typing import Dict, Optional, Any
 from decimal import Decimal
 from web3 import Web3
-from web3.middleware import geth_poa_middleware
+from web3.middleware import ExtraDataToPOAMiddleware
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
 import asyncio
@@ -92,7 +92,7 @@ class SecureWallet:
                     
                     # Add PoA middleware for networks that need it
                     if network_name in ["polygon", "base_sepolia"]:
-                        w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+                        w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
                     
                     # Test connection
                     if w3.is_connected():

@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 import aiohttp
 from web3 import Web3
-from web3.middleware import geth_poa_middleware
+from web3.middleware import ExtraDataToPOAMiddleware
 import os
 from dotenv import load_dotenv
 
@@ -88,7 +88,7 @@ class AtomHybridBot:
 
         # Initialize Web3
         self.w3 = Web3(Web3.HTTPProvider(self.rpc_url))
-        self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+        self.w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
 
         if self.private_key:
             self.account = self.w3.eth.account.from_key(self.private_key)
