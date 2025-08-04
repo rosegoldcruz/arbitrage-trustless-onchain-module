@@ -1,21 +1,10 @@
 # ============================================================================
-# 🛡️ ATOM ULTIMATE SECURITY GITIGNORE - FORTRESS MODE ACTIVATED 🛡️
+# 🛡️ ATOM CLEAN SECURITY GITIGNORE - NO BULLSHIT VERSION 🛡️
 # ============================================================================
-# The most comprehensive .gitignore file ever created for maximum security
-# ZERO environment files, ZERO secrets, ZERO vulnerabilities allowed!
-# ============================================================================
-
-# ============================================================================
-# ✅ ALLOWED FILES - EXCEPTIONS FIRST 🔓
-# ============================================================================
-# These files are explicitly allowed despite matching security patterns
-!backend/routers/tokens.py
-!**/tokens.py
 
 # ============================================================================
 # 🚨 ENVIRONMENT & SECRETS - ABSOLUTELY FORBIDDEN 🚨
 # ============================================================================
-# Block ALL real environment files but ALLOW templates/examples
 .env
 .env.*
 !.env.example
@@ -38,61 +27,20 @@ development.env
 staging.env
 test.env
 
-# Environment directories
-env/
-ENV/
-venv/
-.venv/
-.virtualenv/
-virtualenv/
-.conda/
-conda-meta/
-
-# Configuration files that might contain secrets
-config.json
-config.yaml
-config.yml
-settings.json
-settings.yaml
-settings.yml
-secrets.json
-secrets.yaml
-secrets.yml
-credentials.json
-credentials.yaml
-credentials.yml
-
 # ============================================================================
-# 🔐 API KEYS & AUTHENTICATION - MAXIMUM SECURITY 🔐
+# 🔐 SPECIFIC SECRET FILES - NO WILDCARDS 🔐
 # ============================================================================
-# Allow legitimate code files
-!backend/routers/tokens.py
-!**/tokens.py
-# Commented out overly aggressive patterns that block legitimate code files
-# *key*
-# *secret*
-# *token*
-# *password*
-# *auth*
-# *credential*
-# *private*
-
-# More specific patterns for actual secrets
-*.key
-*.secret
-*_token
-*_password
-*_auth
-*_credential
-*_private
+# API Keys and secrets (specific patterns only)
 api_key*
 secret_key*
 private_key*
 auth_token*
+access_token*
+refresh_token*
+*.key
 *.pem
 *.p12
 *.pfx
-*.key
 *.crt
 *.cert
 *.cer
@@ -107,18 +55,18 @@ id_ed25519*
 known_hosts
 authorized_keys
 
-# Wallet files and private keys
+# Wallet files
 wallet.json
-keystore/
-wallets/
+wallet.dat
 *.wallet
+*.keystore
 mnemonic*
 seed*
 private-key*
 privatekey*
 
 # ============================================================================
-# 📦 NODE.JS & NPM - COMPREHENSIVE COVERAGE 📦
+# 📦 NODE.JS & DEPENDENCIES 📦
 # ============================================================================
 node_modules/
 npm-debug.log*
@@ -137,34 +85,9 @@ lerna-debug.log*
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-.next/
-out/
-build/
-dist/
-.nuxt/
-.vuepress/dist
-.serverless/
-.fusebox/
-.dynamodb/
-.tern-port
-.vscode-test
-coverage/
-nyc_output/
-lib-cov
-*.lcov
-.nyc_output
-.grunt
-bower_components
-.lock-wscript
-logs
-*.log
-pids
-*.pid
-*.seed
-*.pid.lock
 
 # ============================================================================
-# 🐍 PYTHON - TOTAL LOCKDOWN 🐍
+# 🐍 PYTHON 🐍
 # ============================================================================
 __pycache__/
 *.py[cod]
@@ -177,8 +100,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-backend/lib/
-python/lib/
+lib/
 lib64/
 parts/
 sdist/
@@ -189,8 +111,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-*.manifest
-*.spec
 pip-log.txt
 pip-delete-this-directory.txt
 .tox/
@@ -210,46 +130,22 @@ dmypy.json
 .pyre/
 .pytype/
 cython_debug/
-.spyderproject
-.spyproject
-.rope_project_settings
+
+# Virtual environments
+venv/
+.venv/
+.virtualenv/
+virtualenv/
+.conda/
+conda-meta/
 
 # ============================================================================
-# 🗄️ DATABASES - ZERO DATA LEAKS 🗄️
+# 🏗️ BUILD OUTPUTS 🏗️
 # ============================================================================
-*.db
-*.sqlite
-*.sqlite3
-*.db3
-*.s3db
-*.sl3
-database.json
-db.json
-*.mdb
-*.accdb
-*.dbf
-*.odb
-*.frm
-*.myd
-*.myi
-*.ibd
-mysql/
-postgresql/
-postgres/
-redis/
-mongodb/
-mongo/
-cassandra/
-elasticsearch/
-influxdb/
-neo4j/
-orientdb/
-couchdb/
-rethinkdb/
-
-# ============================================================================
-# 🏗️ BUILD ARTIFACTS - CLEAN REPOSITORY 🏗️
-# ============================================================================
+.next/
+out/
+build/
+dist/
 target/
 bin/
 obj/
@@ -265,26 +161,18 @@ obj/
 *.war
 *.ear
 *.nar
-*.zip
-*.tar
-*.gz
-*.rar
-*.7z
-*.dmg
-*.iso
-*.msi
-*.deb
-*.rpm
 
 # ============================================================================
-# 🎨 FRONTEND BUILD OUTPUTS 🎨
+# 🗄️ DATABASES 🗄️
 # ============================================================================
-.sass-cache/
-.parcel-cache/
-.rpt2_cache/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
+*.db
+*.sqlite
+*.sqlite3
+*.db3
+*.s3db
+*.sl3
+database.json
+db.json
 
 # ============================================================================
 # 🔧 DEVELOPMENT TOOLS & IDEs 🔧
@@ -301,86 +189,25 @@ obj/
 .Trashes
 ehthumbs.db
 Thumbs.db
-.AppleDouble
-.LSOverride
-Icon
-.DocumentRevisions-V100
-.fseventsd
-.TemporaryItems
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
 
 # ============================================================================
-# 🐳 DOCKER & CONTAINERS 🐳
-# ============================================================================
-.dockerignore
-docker-compose.override.yml
-docker-compose.override.yaml
-.docker/
-Dockerfile.local
-Dockerfile.dev
-Dockerfile.prod
-
-# ============================================================================
-# ☁️ CLOUD & DEPLOYMENT 🌩️
+# ☁️ DEPLOYMENT 🌩️
 # ============================================================================
 .vercel
 .netlify/
 .firebase/
-.gcloud/
-.aws/
-.azure/
 .terraform/
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
 terraform.tfvars
 terraform.tfvars.json
-*.auto.tfvars
-*.auto.tfvars.json
-.pulumi/
-Pulumi.*.yaml
-.serverless/
-serverless.yml.bak
 
 # ============================================================================
-# 💰 BLOCKCHAIN & CRYPTO - MAXIMUM PROTECTION 💰
+# 📝 LOGS & TEMP FILES 📝
 # ============================================================================
-# Wallet files
-wallet.dat
-*.keystore
-chaindata/
-geth/
-blocks/
-state/
-transactions/
-receipts/
-
-# ============================================================================
-# 🎯 ATOM SPECIFIC - CUSTOM EXCLUSIONS 🎯
-# ============================================================================
-# ATOM specific files that should never be committed
-atom-secrets/
-atom-keys/
-atom-config/
-trading-keys/
-api-credentials/
-exchange-keys/
-mev-keys/
-flashloan-config/
-arbitrage-secrets/
-profit-data/
-trade-history/
-wallet-backups/
-recovery-phrases/
-private-configs/
-
-# Temporary files
+logs/
+*.log
 *.tmp
 *.temp
 *.bak
@@ -390,56 +217,5 @@ private-configs/
 *.save
 
 # ============================================================================
-# 🚫 ABSOLUTELY FORBIDDEN PATTERNS 🚫
+# END OF CLEAN GITIGNORE - NO MORE WILDCARD BULLSHIT
 # ============================================================================
-# These patterns catch any potential security risks
-# More specific patterns instead of wildcards
-*_secret*
-*_password*
-*_credential*
-*_confidential*
-*_sensitive*
-*_internal*
-
-# ============================================================================
-# 🚨 ADDITIONAL SECURITY PATTERNS 🚨
-# ============================================================================
-# Catch any missed sensitive patterns
-# Allow legitimate code files first
-!backend/routers/tokens.py
-!**/tokens.py
-**/secrets/**
-**/private/**
-**/confidential/**
-**/.env*
-# More specific patterns to avoid blocking legitimate code files
-**/*_key*
-**/*_secret*
-**/*_password*
-**/*_credential*
-**/*_token*
-**/*_auth*
-**/api_key*
-**/secret_key*
-**/private_key*
-**/auth_token*
-
-# IDE and editor files
-**/.vscode/
-**/.idea/
-**/*.swp
-**/*.swo
-**/*~
-
-# OS generated files
-**/.DS_Store
-**/Thumbs.db
-**/desktop.ini
-
-# ============================================================================
-# END OF ULTIMATE SECURITY GITIGNORE
-# 🛡️ FORTRESS MODE: MAXIMUM PROTECTION ACTIVATED 🛡️
-# ============================================================================
-
-.vercel
-node_modules
