@@ -6,6 +6,13 @@
 # ============================================================================
 
 # ============================================================================
+# ✅ ALLOWED FILES - EXCEPTIONS FIRST 🔓
+# ============================================================================
+# These files are explicitly allowed despite matching security patterns
+!backend/routers/tokens.py
+!**/tokens.py
+
+# ============================================================================
 # 🚨 ENVIRONMENT & SECRETS - ABSOLUTELY FORBIDDEN 🚨
 # ============================================================================
 # Block ALL real environment files but ALLOW templates/examples
@@ -58,6 +65,9 @@ credentials.yml
 # ============================================================================
 # 🔐 API KEYS & AUTHENTICATION - MAXIMUM SECURITY 🔐
 # ============================================================================
+# Allow legitimate code files
+!backend/routers/tokens.py
+!**/tokens.py
 *key*
 *secret*
 *token*
@@ -369,6 +379,9 @@ private-configs/
 # 🚫 ABSOLUTELY FORBIDDEN PATTERNS 🚫
 # ============================================================================
 # These patterns catch any potential security risks
+# Allow legitimate code files first
+!backend/routers/tokens.py
+!**/tokens.py
 *secret*
 *password*
 *credential*
@@ -380,6 +393,9 @@ private-configs/
 # 🚨 ADDITIONAL SECURITY PATTERNS 🚨
 # ============================================================================
 # Catch any missed sensitive patterns
+# Allow legitimate code files first
+!backend/routers/tokens.py
+!**/tokens.py
 **/secrets/**
 **/private/**
 **/confidential/**
