@@ -68,13 +68,27 @@ credentials.yml
 # Allow legitimate code files
 !backend/routers/tokens.py
 !**/tokens.py
-*key*
-*secret*
-*token*
-*password*
-*auth*
-*credential*
-*private*
+# Commented out overly aggressive patterns that block legitimate code files
+# *key*
+# *secret*
+# *token*
+# *password*
+# *auth*
+# *credential*
+# *private*
+
+# More specific patterns for actual secrets
+*.key
+*.secret
+*_token
+*_password
+*_auth
+*_credential
+*_private
+api_key*
+secret_key*
+private_key*
+auth_token*
 *.pem
 *.p12
 *.pfx
@@ -379,15 +393,13 @@ private-configs/
 # 🚫 ABSOLUTELY FORBIDDEN PATTERNS 🚫
 # ============================================================================
 # These patterns catch any potential security risks
-# Allow legitimate code files first
-!backend/routers/tokens.py
-!**/tokens.py
-*secret*
-*password*
-*credential*
-*confidential*
-*sensitive*
-*internal*
+# More specific patterns instead of wildcards
+*_secret*
+*_password*
+*_credential*
+*_confidential*
+*_sensitive*
+*_internal*
 
 # ============================================================================
 # 🚨 ADDITIONAL SECURITY PATTERNS 🚨
@@ -400,12 +412,17 @@ private-configs/
 **/private/**
 **/confidential/**
 **/.env*
-**/*key*
-**/*secret*
-**/*password*
-**/*credential*
-**/*token*
-**/*auth*
+# More specific patterns to avoid blocking legitimate code files
+**/*_key*
+**/*_secret*
+**/*_password*
+**/*_credential*
+**/*_token*
+**/*_auth*
+**/api_key*
+**/secret_key*
+**/private_key*
+**/auth_token*
 
 # IDE and editor files
 **/.vscode/
