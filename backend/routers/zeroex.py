@@ -33,8 +33,7 @@ from backend.lib.zeroex_client import ZeroXClient, ZeroXAPIError
 # Initialize real 0x client for Base mainnet
 zx_client = ZeroXClient(
     api_key=THEATOM_API_KEY,
-    chain_id=BASE_CHAIN_ID,
-    use_testnet=False  # Use mainnet since it's supported
+    network="base"
 )
 
 # Pydantic Models for API responses
