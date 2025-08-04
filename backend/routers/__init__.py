@@ -12,6 +12,7 @@ from . import stats
 from . import telegram
 from . import trades
 from . import zeroex
+from .tokens import router as tokens
 
 __all__ = [
     'agent',
@@ -27,5 +28,6 @@ __all__ = [
     'stats',
     'telegram',
     'trades',
-    'zeroex'
+    'zeroex',
+    'tokens'
 ]
