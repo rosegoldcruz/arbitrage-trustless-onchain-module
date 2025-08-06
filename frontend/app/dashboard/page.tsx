@@ -22,7 +22,7 @@ import {
 // Import your awesome components
 import { AgentBattleArena } from "@/components/dashboard/AgentBattleArena";
 import { RealTimeDashboard } from "@/components/dashboard/RealTimeDashboard";
-import { ParallelDashboard } from "@/components/dashboard/ParallelDashboard";
+import ParallelDashboard from "@/components/dashboard/ParallelDashboard";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("arena");
