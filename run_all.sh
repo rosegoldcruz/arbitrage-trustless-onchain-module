@@ -1,18 +1,44 @@
 #!/bin/bash
-echo "🌀 Starting ATOM Arbitrage Full Stack..."
+echo "🚀 ATOM - LEAN MEAN ARBITRAGE MACHINE"
+echo "====================================="
 
 # Activate venv
 source venv/bin/activate
 
-# Install packages from proper requirements file
+# Install dependencies
 pip install -r backend/requirements.txt
 
-# Run backend systems
+# Create logs directory
 mkdir -p logs
 
-nohup python3 backend/startup.py > logs/startup.log 2>&1 &
-nohup python3 backend/real_orchestrator.py > logs/orchestrator.log 2>&1 &
-nohup uvicorn backend.main:app --host 0.0.0.0 --port 8000 > logs/api.log 2>&1 &
+echo "🔥 Starting ATOM Core Systems..."
 
-echo "✅ All systems running in background"
-echo "🔍 Check logs in ./logs/"
+# Start FastAPI Backend (Dashboard API)
+echo "📡 Starting Dashboard API..."
+nohup uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload > logs/api.log 2>&1 &
+API_PID=$!
+
+# Start Real Orchestrator (Master Bot Controller)
+echo "🧠 Starting Master Orchestrator..."
+nohup python3 backend/real_orchestrator.py > logs/orchestrator.log 2>&1 &
+ORCHESTRATOR_PID=$!
+
+# Start Startup Services (Bot Initialization)
+echo "⚡ Starting Bot Services..."
+nohup python3 backend/startup.py > logs/startup.log 2>&1 &
+STARTUP_PID=$!
+
+echo ""
+echo "✅ ATOM SYSTEMS ONLINE!"
+echo "====================================="
+echo "🌐 Dashboard API: http://128.199.15.97:8000"
+echo "📊 API Docs: http://128.199.15.97:8000/docs"
+echo "📈 Health Check: http://128.199.15.97:8000/health"
+echo ""
+echo "🤖 Process IDs:"
+echo "   API: $API_PID"
+echo "   Orchestrator: $ORCHESTRATOR_PID"
+echo "   Startup: $STARTUP_PID"
+echo ""
+echo "🔍 Monitor logs: tail -f logs/*.log"
+echo "🛑 Stop all: pkill -f 'uvicorn|orchestrator|startup'"

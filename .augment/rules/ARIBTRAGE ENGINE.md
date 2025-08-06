@@ -10,7 +10,7 @@ type: "always_apply"
   • 0x, Uniswap, 1inch API spreads
 - All routes must enforce spreadBps > 23bps
 - Token path examples (Base Sepolia): WETH → USDC → GHO → DAI
-- Smart contracts must include:
+- Smart contracts must include:a
   • FlashLoanExecutor
   • Dynamic DEX router detection
   • Slippage, gas, and ROI simulation logic

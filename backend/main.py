@@ -16,9 +16,9 @@ import asyncio
 from datetime import datetime
 import random
 
-# 🚦 Internal Routers
+# 🚦 Internal Routers - DASHBOARD FOCUSED
 from backend.routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
-from backend.routers import analytics, risk, zeroex, parallel_dashboard, telegram, tokens
+from backend.routers import analytics, risk, zeroex, parallel_dashboard, tokens
 
 # 🧠 Core bot integrations
 try:
@@ -170,7 +170,6 @@ app.include_router(tokens.router)
 app.include_router(analytics.router)
 app.include_router(risk.router)
 app.include_router(zeroex.router)
-app.include_router(telegram.router)
 app.include_router(parallel_dashboard.router)
 
 @app.get("/")
