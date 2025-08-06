@@ -1,0 +1,7 @@
+{
+  "mode": "production",
+  "retry_interval": 30,
+  "max_concurrent_tasks": 5,
+  "chains": ["ethereum", "polygon", "base", "optimism"],
+  "aggregators": ["0x", "1inch", "openocean", "paraswap"]
+}
