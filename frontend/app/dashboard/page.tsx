@@ -1,121 +1,61 @@
 "use client";
 
-// Force dynamic rendering to avoid SSG issues with Clerk
-export const dynamic = 'force-dynamic';
-
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  TrendingUp,
-  Zap,
-  Shield,
-  Bot,
-  DollarSign,
-  Activity,
-  RefreshCw,
-  Loader2,
-  AlertCircle,
-  Target,
-  Network,
-  CheckCircle,
-  Play,
-  Clock
-} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
-import Navbar from "@/components/Navbar";
-import { SignedIn, SignedOut, useUser } from "@clerk/nextjs";
-import { useWeb3 } from "@/lib/web3-context";
 
-// REAL API interfaces - NO FAKE DATA
-interface DashboardData {
-  system_status: string;
-  agents: Record<string, {
-    status: string;
-    profit: number;
-    trades: number;
-    type: string;
-  }>;
-  total_profit: number;
-  active_agents: number;
-  dex_connections: Record<string, string>;
-  real_time_data: {
-    gas_price: number;
-    eth_price: number;
-    spread_opportunities: number;
-    profitable_paths: number;
-  };
-}
-
-interface Opportunity {
-  id: string;
-  path: string;
-  spread_bps: number;
-  profit_usd: number;
-  dex_route: string;
-  confidence: number;
-  detected_at: string;
-}
-
-export default function Dashboard() {
+export default function DashboardPage() {
   const { user } = useUser();
-  const { isConnected, address } = useWeb3();
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState<string>("");
-  const [connectionStatus, setConnectionStatus] = useState<string>("connecting");
+  const [loading, setLoading] = useState(false);
+  const [response, setResponse] = useState<string | null>(null);
 
-  // Fetch REAL dashboard data from backend
-  const fetchDashboardData = async () => {
+  const triggerBot = async () => {
+    setLoading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/dashboard/status');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-      
-      if (result.status === 'success') {
-        setDashboardData(result.data);
-        setLastUpdate(new Date().toLocaleTimeString());
-        setConnectionStatus("connected");
-        
-        // Only show success toast on first connection
-        if (connectionStatus !== "connected") {
-          toast.success('✅ Connected to REAL backend data');
-        }
-      } else {
-        throw new Error('Backend returned error status');
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      setConnectionStatus("error");
-      toast.error('❌ Backend connection failed - Check if backend is running on port 8000');
+      const res = await fetch("https://api.aeoninvestmentstechnologies.com/trigger", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mode: "manual", strategy: "atom" }),
+      });
+      const data = await res.json();
+      setResponse(JSON.stringify(data, null, 2));
+      toast.success("Bot triggered successfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to trigger bot");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Fetch REAL opportunities from backend
-  const fetchOpportunities = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/api/dashboard/opportunities');
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const result = await response.json();
-      
-      if (result.status === 'success') {
-        setOpportunities(result.data.opportunities);
-      }
-    } catch (error) {
-      console.error('Error fetching opportunities:', error);
-    }
-  };
+  return (
+    <div className="min-h-screen p-6 bg-black text-white">
+      <h1 className="text-3xl font-bold mb-6">ATOM Arbitrage Dashboard</h1>
+
+      <Card className="bg-neutral-900 border border-neutral-800">
+        <CardContent className="p-6">
+          <p className="text-lg mb-4">
+            Welcome, <span className="font-bold">{user?.firstName || "Trader"}</span>.
+          </p>
+
+          <Button onClick={triggerBot} disabled={loading}>
+            {loading ? "Running..." : "Trigger ATOM Bot"}
+          </Button>
+
+          {response && (
+            <pre className="mt-6 p-4 bg-neutral-800 rounded text-sm overflow-x-auto">
+              {response}
+            </pre>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
   // Execute REAL opportunity via backend
   const executeOpportunity = async (opportunityId: string) => {

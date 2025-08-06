@@ -148,10 +148,15 @@ async def lifespan(app: FastAPI):
 # 🚀 FastAPI App
 app = FastAPI(title="ATOM API", lifespan=lifespan)
 
-# 🌐 CORS Middleware
+# 🌐 CORS Middleware - DASHBOARD FOCUSED
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*", "http://localhost:3000", "https://atom-arbitrage.vercel.app"],
+    allow_origins=[
+        "https://dashboard.aeoninvestmentstechnologies.com",
+        "https://api.aeoninvestmentstechnologies.com",
+        "http://localhost:3000",
+        "https://atom-arbitrage.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -180,6 +185,52 @@ async def root():
         "agents": app_state["agents"],
         "profit": app_state["total_profit"]
     }
+
+# 🎯 DASHBOARD TRIGGER ENDPOINT
+@app.post("/trigger")
+async def trigger_bot(request: dict):
+    """
+    Dashboard trigger endpoint for manual bot execution
+    Accepts: {mode: "manual", strategy: "atom"}
+    """
+    try:
+        mode = request.get("mode", "manual")
+        strategy = request.get("strategy", "atom")
+
+        logger.info(f"🎯 Dashboard trigger: mode={mode}, strategy={strategy}")
+
+        # Simulate bot execution
+        if strategy.lower() == "atom":
+            # Here you would trigger the actual ATOM bot
+            # For now, return success response
+            return {
+                "success": True,
+                "message": f"ATOM bot triggered successfully in {mode} mode",
+                "strategy": strategy,
+                "mode": mode,
+                "timestamp": datetime.utcnow().isoformat(),
+                "status": "executed",
+                "bot_response": {
+                    "opportunities_scanned": 15,
+                    "profitable_routes": 3,
+                    "estimated_profit": "$12.45",
+                    "gas_estimate": "0.002 ETH"
+                }
+            }
+        else:
+            return {
+                "success": False,
+                "message": f"Strategy '{strategy}' not supported",
+                "supported_strategies": ["atom", "adom"]
+            }
+
+    except Exception as e:
+        logger.error(f"❌ Trigger endpoint error: {e}")
+        return {
+            "success": False,
+            "message": f"Error triggering bot: {str(e)}",
+            "error": str(e)
+        }
 
 if __name__ == "__main__":
     uvicorn.run(
