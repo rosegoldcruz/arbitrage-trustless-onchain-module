@@ -24,7 +24,6 @@ import requests
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from backend.integrations.dex_aggregator import DEXAggregator, Chain, SwapQuote
 from backend.integrations.balancer_client import balancer_client, BalancerPool
-from backend.integrations.telegram_notifier import telegram_notifier
 from backend.core.aeon_execution_mode import aeon_mode
 
 # Configure logging
@@ -157,16 +156,8 @@ class ATOMBot:
         logger.info("🚀 Starting ATOM Bot...")
         self.is_running = True
 
-        # 📱 Send startup notification
-        try:
-            await telegram_notifier.notify_bot_status(
-                bot_name="ATOM",
-                status="starting",
-                uptime="0s",
-                opportunities_found=0
-            )
-        except Exception as e:
-            logger.warning(f"Failed to send startup notification: {e}")
+        # 📱 Startup notification (Telegram disabled)
+        logger.info("🚀 ATOM Bot starting up - notifications disabled")
         
         # Start parallel tasks
         tasks = [
@@ -331,23 +322,14 @@ class ATOMBot:
                 try:
                     logger.info(f"🟢 AEON AUTO-EXECUTING: {token_a}→{token_b}→{token_c} ({spread_bps}bps, ${profit_usd:.2f})")
 
-                    # Send auto-execution notification
-                    await telegram_notifier.notify_trade_executed(
-                        trade_type=f"AUTO {token_a}→{token_b}→{token_c}",
-                        profit_usd=profit_usd,
-                        gas_used=450000,
-                        tx_hash="0xauto" + "".join([str(i) for i in range(10)])  # Mock hash
-                    )
+                    # Auto-execution notification (Telegram disabled)
+                    logger.info(f"✅ AUTO-EXECUTED: {token_a}→{token_b}→{token_c}, Profit: ${profit_usd:.2f}")
 
                     # TODO: Actually execute the trade here
                     # await self._execute_triangular_trade(opportunity)
 
                 except Exception as e:
-                    logger.error(f"Auto-execution failed: {e}")
-                    await telegram_notifier.notify_trade_failed(
-                        trade_type=f"AUTO {token_a}→{token_b}→{token_c}",
-                        error_reason=str(e)
-                    )
+                    logger.error(f"❌ AUTO-EXECUTION FAILED: {token_a}→{token_b}→{token_c}, Error: {str(e)}")
 
             elif spread_bps >= 30:  # High-value opportunities need notification/approval
                 try:
@@ -355,22 +337,11 @@ class ATOMBot:
                         # 🟡/🔴 REQUEST MANUAL APPROVAL
                         logger.info(f"🔐 AEON REQUESTING APPROVAL: {token_a}→{token_b}→{token_c} ({spread_bps}bps, ${profit_usd:.2f})")
 
-                        approval_id = await telegram_notifier.request_manual_approval(
-                            trade_type=f"Triangular {token_a}→{token_b}→{token_c}",
-                            estimated_profit=profit_usd,
-                            risk_level="medium" if spread_bps < 75 else "high"
-                        )
-
-                        logger.info(f"📱 Manual approval requested: {approval_id}")
+                        # Manual approval (Telegram disabled)
+                        logger.info(f"🔐 MANUAL APPROVAL NEEDED: {token_a}→{token_b}→{token_c} ({spread_bps}bps, ${profit_usd:.2f})")
                     else:
-                        # Just notify about the opportunity
-                        await telegram_notifier.notify_arbitrage_opportunity(
-                            token_a=token_a,
-                            token_b=token_b,
-                            spread_bps=spread_bps,
-                            estimated_profit=profit_usd,
-                            dex_path=f"{token_a}→{token_b}→{token_c}→{token_a}"
-                        )
+                        # Opportunity notification (Telegram disabled)
+                        logger.info(f"💰 OPPORTUNITY FOUND: {token_a}→{token_b}→{token_c}, Spread: {spread_bps}bps, Profit: ${profit_usd:.2f}")
 
                 except Exception as e:
                     logger.warning(f"Failed to send notification/approval request: {e}")

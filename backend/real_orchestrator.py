@@ -43,7 +43,6 @@ logger = logging.getLogger(__name__)
 try:
     from backend.core.aeon_execution_mode import aeon_mode, AEONExecutionMode
     from backend.core.trading_engine import trading_engine
-    from backend.integrations.telegram_notifier import telegram_notifier
     from backend.integrations.flashloan_providers import flashloan_manager
     REAL_INTEGRATIONS_AVAILABLE = True
     logger.info("✅ REAL AEON INTEGRATIONS LOADED")

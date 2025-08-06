@@ -9,7 +9,6 @@ from . import institutional
 from . import parallel_dashboard
 from . import risk
 from . import stats
-from . import telegram
 from . import trades
 from . import zeroex
 from .tokens import router as tokens
@@ -26,7 +25,6 @@ __all__ = [
     'parallel_dashboard',
     'risk',
     'stats',
-    'telegram',
     'trades',
     'zeroex',
     'tokens'

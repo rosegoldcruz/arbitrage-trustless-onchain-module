@@ -14,7 +14,6 @@ from enum import Enum
 
 # AEON Core Integration
 from .aeon_execution_mode import aeon_mode, AEONExecutionMode
-from ..integrations.telegram_notifier import telegram_notifier, TelegramAlert, AlertType, Priority
 from ..integrations.flashloan_providers import flash_loan_manager, FlashLoanProvider, FlashLoanQuote
 from ..integrations.dex_aggregator import dex_aggregator, Chain
 
@@ -297,33 +296,11 @@ class TradingEngine:
                 # 🔴 MANUAL APPROVAL REQUIRED
                 logger.info(f"🔴 Manual approval required for trade {trade_id}")
 
-                # Send approval request via Telegram
-                approval_alert = TelegramAlert(
-                    alert_type=AlertType.MANUAL_APPROVAL,
-                    priority=Priority.HIGH,
-                    title=f"Trade Approval Required",
-                    message=f"Arbitrage opportunity detected:\n"
-                           f"• Pair: {opportunity.token_pair}\n"
-                           f"• DEXs: {opportunity.dex_a} → {opportunity.dex_b}\n"
-                           f"• Spread: {spread_bps:.1f}bps\n"
-                           f"• Est. Profit: ${opportunity.net_profit:.2f}\n"
-                           f"• Confidence: {opportunity.confidence_score:.1%}",
-                    data={
-                        "trade_id": trade_id,
-                        "opportunity_id": opportunity.opportunity_id,
-                        "spread_bps": spread_bps,
-                        "estimated_profit_usd": opportunity.net_profit,
-                        "token_pair": opportunity.token_pair,
-                        "dex_path": f"{opportunity.dex_a} → {opportunity.dex_b}"
-                    },
-                    timestamp=datetime.now(),
-                    requires_approval=True
-                )
+                # Manual approval (Telegram disabled)
+                logger.info(f"🔐 MANUAL APPROVAL REQUIRED: {opportunity.token_pair}, Profit: ${opportunity.net_profit:.2f}")
 
-                await telegram_notifier.send_alert(approval_alert)
-
-                # Wait for approval (timeout after 5 minutes)
-                approved = await self._wait_for_approval(trade_id, timeout=300)
+                # Manual approval disabled - auto-reject
+                approved = False
 
                 if not approved:
                     trade.status = TradeStatus.CANCELLED
@@ -384,13 +361,8 @@ class TradingEngine:
                     self.performance_metrics["total_profit"] += trade.actual_profit
                     self.performance_metrics["total_volume"] += flashloan_quote.amount
 
-                    # Send success notification
-                    await telegram_notifier.notify_trade_executed(
-                        "Flashloan Arbitrage",
-                        trade.actual_profit,
-                        trade.gas_used,
-                        trade.tx_hash
-                    )
+                    # Success notification (Telegram disabled)
+                    logger.info(f"✅ FLASHLOAN EXECUTED: Profit ${trade.actual_profit:.2f}, Gas: {trade.gas_used}")
 
                     logger.info(
                         f"🚀 FLASHLOAN SUCCESS: {trade_id} - "
@@ -406,11 +378,8 @@ class TradingEngine:
 
                     self.performance_metrics["total_trades"] += 1
 
-                    await telegram_notifier.notify_trade_failed(
-                        "Flashloan Arbitrage",
-                        trade.error_message,
-                        opportunity.gas_cost
-                    )
+                    # Failure notification (Telegram disabled)
+                    logger.error(f"❌ FLASHLOAN FAILED: {trade.error_message}")
 
                     logger.warning(f"❌ FLASHLOAN FAILED: {trade_id} - {trade.error_message}")
 
@@ -423,11 +392,8 @@ class TradingEngine:
 
                 self.performance_metrics["total_trades"] += 1
 
-                await telegram_notifier.notify_trade_failed(
-                    "Flashloan Arbitrage",
-                    str(e),
-                    opportunity.gas_cost
-                )
+                # Failure notification (Telegram disabled)
+                logger.error(f"❌ FLASHLOAN EXCEPTION: {str(e)}")
 
                 logger.error(f"💥 EXECUTION ERROR: {trade_id} - {str(e)}")
             
@@ -506,37 +472,9 @@ class TradingEngine:
         return trades[:limit]
 
     async def _wait_for_approval(self, trade_id: str, timeout: int = 300) -> bool:
-        """Wait for manual approval via Telegram"""
-        try:
-            start_time = time.time()
-
-            while time.time() - start_time < timeout:
-                # Check if approval was received via Telegram webhook
-                # This integrates with the existing telegram.py approval system
-                from ..routers.telegram import approval_responses
-
-                if trade_id in approval_responses:
-                    response = approval_responses.pop(trade_id)
-                    approved = response.get("approved", False)
-                    username = response.get("username", "Unknown")
-
-                    if approved:
-                        logger.info(f"✅ Trade {trade_id} approved by {username}")
-                        return True
-                    else:
-                        logger.info(f"❌ Trade {trade_id} rejected by {username}")
-                        return False
-
-                # Check every 1 second
-                await asyncio.sleep(1.0)
-
-            # Timeout reached
-            logger.warning(f"⏰ Trade {trade_id} approval timeout after {timeout}s")
-            return False
-
-        except Exception as e:
-            logger.error(f"Error waiting for approval: {e}")
-            return False
+        """Manual approval disabled - always returns False"""
+        logger.info(f"⚠️ Manual approval disabled for trade {trade_id}")
+        return False
 
 # Global trading engine instance
 trading_engine = TradingEngine()
