@@ -119,44 +119,23 @@ export default function DashboardPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+              className="flex items-center justify-center min-h-[400px]"
             >
-              <Card className="bg-gray-900/50 border-gray-800">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5 text-green-400" />
-                    Total Profit
+              <Card className="bg-gray-900/50 border-gray-800 max-w-md">
+                <CardHeader className="text-center">
+                  <CardTitle className="flex items-center justify-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-blue-400" />
+                    Analytics
                   </CardTitle>
+                  <CardDescription>
+                    Real-time analytics will appear here when backend is connected
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-green-400">$47,892.34</div>
-                  <p className="text-sm text-gray-400">+12.5% from last week</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-900/50 border-gray-800">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-blue-400" />
-                    Success Rate
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-blue-400">94.7%</div>
-                  <p className="text-sm text-gray-400">847 wins / 894 trades</p>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-900/50 border-gray-800">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Crown className="h-5 w-5 text-yellow-400" />
-                    Top Agent
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-yellow-400">ADOM</div>
-                  <p className="text-sm text-gray-400">Level 52 • 456 wins</p>
+                <CardContent className="text-center">
+                  <div className="text-gray-400">
+                    <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Waiting for backend connection...</p>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
