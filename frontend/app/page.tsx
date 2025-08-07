@@ -47,7 +47,7 @@ export default function Home() {
           </h2>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
             Zero-capital DeFi arbitrage with flash loans + AI agents.
-            Maximize yield through intelligent cross-DEX execution on Base L2.
+            Maximize yield through intelligent cross-DEX execution on Base L2. Dashboard Live!
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
