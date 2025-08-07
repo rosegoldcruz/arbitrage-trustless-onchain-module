@@ -1,55 +1,19 @@
 {
-  "dex_endpoints": [
-    "https://base-sepolia.1inch.io/v5.2/swap",
-    "https://api.0x.org/swap/v1/quote",
-    "https://api-v3.balancer.fi/graphql",
-    "https://api.curve.fi/api/getPools/base",
-    "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3",
-    "https://api.curve.fi/api",
-    "https://api.balancer.fi",
-    "https://api.1inch.io/v5.0/8453"
-  ],
-  "token_list": ["WETH", "USDC", "GHO", "DAI"],
-  "trade_interval": 5,
   "bot_paths": {
-    "atom": "backend/bots/working/ATOM.py",
-    "adom": "backend/bots/working/ADOM.js",
-    "hybrid": "backend/bots/working/atom_hybrid_bot.py"
+    "atom": "backend/ATOM.py",
+    "adom": "backend/ADOM.js"
   },
-  "thresholds": {
-    "min_spread_bps": 23,
-    "min_profit_usd": 10.0,
-    "max_gas_price_gwei": 50,
-    "flash_loan_threshold": 100.0
+  "dex_endpoints": {
+    "uniswap_v3": "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3",
+    "curve": "https://api.curve.fi/api",
+    "balancer": "https://api.balancer.fi",
+    "1inch": "https://api.1inch.io/v5.0/8453"
   },
-  "risk_management": {
-    "max_restarts": 5,
-    "heartbeat_timeout": 120,
-    "circuit_breaker": {
-      "max_failures": 10,
-      "cooldown_minutes": 30
-    }
-  },
-  "execution_settings": {
-    "opportunity_scan_interval": 5,
-    "bot_monitor_interval": 10,
-    "performance_report_interval": 60
-  },
-  "base_sepolia_network": {
-    "chain_id": 84532,
-    "rpc_url": "https://sepolia.base.org",
-    "explorer": "https://sepolia.basescan.org"
-  },
-  "tokens": {
-    "WETH": "0x4200000000000000000000000000000000000006",
-    "USDC": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
-    "DAI": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
-    "GHO": "0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f"
-  },
-  "logging": {
-    "level": "INFO",
-    "file": "orchestrator.log",
-    "max_size_mb": 100,
-    "backup_count": 5
+  "min_spread_bps": 23,
+  "flash_loan_threshold": 100,
+  "max_restarts": 5,
+  "heartbeat_timeout": 120,
+  "circuit_breaker": {
+    "max_failures": 10
   }
 }
