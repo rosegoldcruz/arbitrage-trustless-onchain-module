@@ -15,14 +15,22 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from bots.working.config import get_atom_config
-from lib.dex_aggregator import DEXAggregator
+try:
+    from backend.bots.working.config import get_atom_config
+except ImportError:
+    from backend.bots.working_config import get_atom_config
+
+try:
+    from backend.integrations.dex_aggregator import DEXAggregator
+except ImportError:
+    # Fallback if DEXAggregator doesn't exist
+    DEXAggregator = None
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 logger = logging.getLogger(__name__)
 
 # Initialize services
-dex_aggregator = DEXAggregator()
+dex_aggregator = DEXAggregator() if DEXAggregator else None
 config = get_atom_config()
 
 # Mock data for now - replace with real data from your bots
