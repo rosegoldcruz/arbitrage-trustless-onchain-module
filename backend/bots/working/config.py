@@ -17,9 +17,9 @@ class ProductionConfig:
     wss_url: str = "wss://sepolia.base.org"
     chain_id: int = 84532  # Base Sepolia
     
-    # Smart Contract Addresses (Base Sepolia)
-    arbitrage_bot_address: str = "0x0000000000000000000000000000000000000000"  # Deploy first
-    flash_loan_address: str = "0x0000000000000000000000000000000000000000"     # Deploy first
+    # Smart Contract Addresses (Base Sepolia) - REAL ADDRESSES
+    arbitrage_bot_address: str = "0xb3800E6bC7847E5d5a71a03887EDc5829DF4133b"  # Deployed ATOM contract
+    flash_loan_address: str = "0x07eA79F68B2B3df564D0A34F8e19D9B1e339814b"     # AAVE V3 Pool on Base Sepolia
     triangular_arbitrage_address: str = "0x0000000000000000000000000000000000000000"  # Deploy first
     
     # Token Addresses (Base Sepolia)
@@ -66,6 +66,11 @@ class ProductionConfig:
         self.theatom_api_key = os.getenv('THEATOM_API_KEY', '7324a2b4-3b05-4288-b353-68322f49a283')
         self.alchemy_api_key = os.getenv('ALCHEMY_API_KEY', '')
 
+        # Override with environment variables if provided
+        self.arbitrage_bot_address = os.getenv('BASE_SEPOLIA_CONTRACT_ADDRESS', self.arbitrage_bot_address)
+        self.flash_loan_address = os.getenv('AAVE_POOL_ADDRESS', self.flash_loan_address)
+        self.triangular_arbitrage_address = os.getenv('ATOM_TRIANGULAR_ARBITRAGE_ADDRESS', self.triangular_arbitrage_address)
+
 def get_atom_config() -> ProductionConfig:
     """Get ATOM bot configuration"""
     return ProductionConfig()
@@ -110,26 +115,33 @@ def get_hybrid_config() -> dict:
 def validate_production_config():
     """Validate that all required configuration is present"""
     config = get_atom_config()
-    
+
     missing = []
-    
+
     if not config.private_key:
         missing.append("PRIVATE_KEY environment variable")
-    
+
     if config.arbitrage_bot_address == "0x0000000000000000000000000000000000000000":
-        missing.append("Arbitrage bot contract address")
-    
+        missing.append(f"contract_address (current: {config.arbitrage_bot_address})")
+
     if config.flash_loan_address == "0x0000000000000000000000000000000000000000":
-        missing.append("Flash loan contract address")
-    
+        missing.append(f"flash_loan_address (current: {config.flash_loan_address})")
+
     if missing:
         print("❌ PRODUCTION CONFIG MISSING:")
         for item in missing:
             print(f"   - {item}")
+        print("\n🔧 Current config status:")
+        print(f"   - Arbitrage Contract: {config.arbitrage_bot_address}")
+        print(f"   - Flash Loan Address: {config.flash_loan_address}")
+        print(f"   - Private Key: {'✅ SET' if config.private_key else '❌ MISSING'}")
         print("\n🔧 Deploy contracts and set environment variables first!")
         return False
-    
+
     print("✅ Production configuration validated")
+    print(f"   - Arbitrage Contract: {config.arbitrage_bot_address}")
+    print(f"   - Flash Loan Address: {config.flash_loan_address}")
+    print(f"   - Private Key: ✅ SET")
     return True
 
 if __name__ == "__main__":

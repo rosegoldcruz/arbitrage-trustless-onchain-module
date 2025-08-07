@@ -18,7 +18,7 @@ import random
 
 # 🚦 Internal Routers - DASHBOARD FOCUSED
 from backend.routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
-from backend.routers import analytics, risk, zeroex, parallel_dashboard, tokens
+from backend.routers import analytics, risk, zeroex, parallel_dashboard, tokens, dashboard_api
 
 # 🧠 Core bot integrations
 try:
@@ -152,6 +152,7 @@ app = FastAPI(title="ATOM API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "https://aeoninvestmentstechnologies.com",
         "https://dashboard.aeoninvestmentstechnologies.com",
         "https://api.aeoninvestmentstechnologies.com",
         "http://localhost:3000",
@@ -176,6 +177,7 @@ app.include_router(analytics.router)
 app.include_router(risk.router)
 app.include_router(zeroex.router)
 app.include_router(parallel_dashboard.router)
+app.include_router(dashboard_api.router)
 
 @app.get("/")
 async def root():

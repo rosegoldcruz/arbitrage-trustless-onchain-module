@@ -27,27 +27,32 @@ export function RealTimeDashboard() {
   const [opportunities, setOpportunities] = useState<ArbitrageOpportunity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch REAL dashboard data using API client
   const fetchDashboardData = async () => {
     try {
+      console.log('🔄 Fetching dashboard data from:', process.env.NEXT_PUBLIC_API_URL);
       const data = await realTimeApi.getDashboardStatus();
+      console.log('✅ Dashboard data received:', data);
       setDashboardData(data);
       setLastUpdate(new Date().toLocaleTimeString());
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      toast.error('Failed to fetch REAL dashboard data');
+      console.error('❌ Error fetching dashboard data:', error);
+      toast.error(`Failed to fetch dashboard data: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
   // Fetch REAL opportunities using API client
   const fetchOpportunities = async () => {
     try {
+      console.log('🔄 Fetching opportunities...');
       const data = await realTimeApi.getOpportunities();
+      console.log('✅ Opportunities received:', data);
       setOpportunities(data.opportunities);
     } catch (error) {
-      console.error('Error fetching opportunities:', error);
-      toast.error('Failed to fetch REAL opportunities');
+      console.error('❌ Error fetching opportunities:', error);
+      toast.error(`Failed to fetch opportunities: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -68,22 +73,63 @@ export function RealTimeDashboard() {
   // Auto-refresh data
   useEffect(() => {
     const fetchData = async () => {
-      await Promise.all([fetchDashboardData(), fetchOpportunities()]);
-      setIsLoading(false);
+      try {
+        setError(null);
+        await Promise.all([fetchDashboardData(), fetchOpportunities()]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchData();
-    
+
     // Refresh every 10 seconds
     const interval = setInterval(fetchData, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  if (isLoading || !dashboardData) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <RefreshCw className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Loading REAL data...</span>
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <RefreshCw className="h-8 w-8 animate-spin text-blue-400" />
+        <div className="text-center">
+          <p className="text-lg">Loading REAL data...</p>
+          <p className="text-sm text-gray-400">Connecting to {process.env.NEXT_PUBLIC_API_URL}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <AlertCircle className="h-8 w-8 text-red-400" />
+        <div className="text-center">
+          <p className="text-lg text-red-400">Connection Error</p>
+          <p className="text-sm text-gray-400">{error}</p>
+          <Button
+            onClick={() => window.location.reload()}
+            className="mt-4"
+            variant="outline"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry Connection
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <AlertCircle className="h-8 w-8 text-yellow-400" />
+        <div className="text-center">
+          <p className="text-lg text-yellow-400">No Data Available</p>
+          <p className="text-sm text-gray-400">Backend connected but no data received</p>
+        </div>
       </div>
     );
   }

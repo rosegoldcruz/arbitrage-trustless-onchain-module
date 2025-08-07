@@ -34,7 +34,7 @@ export default function SettingsPage() {
     defaultNetwork: "ethereum",
     
     // API Settings
-    backendUrl: "http://128.199.15.97:8000",
+    backendUrl: "https://api.aeoninvestmentstechnologies.com",
     apiKey: "",
     
     // Risk Management

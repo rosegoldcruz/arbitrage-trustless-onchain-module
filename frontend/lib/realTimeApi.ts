@@ -3,7 +3,7 @@
  * Connects frontend to REAL DEX data from backend
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://128.199.15.97:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.aeoninvestmentstechnologies.com';
 
 export interface DashboardStatus {
   system_status: string;
