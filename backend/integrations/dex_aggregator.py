@@ -32,6 +32,7 @@ class Chain(str, Enum):
     ARBITRUM = "arbitrum"
     OPTIMISM = "optimism"
     AVALANCHE = "avalanche"
+    BASE = "base"
 
 @dataclass
 class SwapQuote:
@@ -105,7 +106,7 @@ class DEXAggregator:
             DEXProvider.ZEROX: {
                 "name": "0x Protocol",
                 "base_url": "https://api.0x.org",
-                "supported_chains": [Chain.ETHEREUM, Chain.POLYGON, Chain.BSC, Chain.ARBITRUM],
+                "supported_chains": [Chain.ETHEREUM, Chain.POLYGON, Chain.BSC, Chain.ARBITRUM, Chain.BASE],
                 "fee_percentage": 0.0015,  # 0.15%
                 "gas_multiplier": 1.1,
                 "success_rate": 0.98,
@@ -114,7 +115,7 @@ class DEXAggregator:
             DEXProvider.ONEINCH: {
                 "name": "1inch",
                 "base_url": "https://api.1inch.io/v5.0",
-                "supported_chains": [Chain.ETHEREUM, Chain.POLYGON, Chain.BSC, Chain.ARBITRUM, Chain.OPTIMISM],
+                "supported_chains": [Chain.ETHEREUM, Chain.POLYGON, Chain.BSC, Chain.ARBITRUM, Chain.OPTIMISM, Chain.BASE],
                 "fee_percentage": 0.003,  # 0.3%
                 "gas_multiplier": 1.05,
                 "success_rate": 0.96,
@@ -291,33 +292,76 @@ class DEXAggregator:
                 Chain.ETHEREUM: "1",
                 Chain.POLYGON: "137",
                 Chain.BSC: "56",
-                Chain.ARBITRUM: "42161"
+                Chain.ARBITRUM: "42161",
+                Chain.BASE: "8453"
             }
 
             chain_id = chain_ids.get(chain, "1")
 
-            # Common token addresses (you'd want a more comprehensive mapping)
+            # Common token addresses (Base + Mainnet examples; callers can pass raw addresses to override)
             token_addresses = {
+                # Mainnet
                 "ETH": "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
                 "WETH": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-                "USDC": "0xA0b86a33E6441E868B578C17EFA2F5C0C8F8C0E0",  # Example
-                "USDT": "0xdAC17F958D2ee523a2206206994597C13D831ec7",  # Example
-                "DAI": "0x6B175474E89094C44Da98b954EedeAC495271d0F"   # Example
+                "USDC": "0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                "USDT": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                "DAI": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+                # Base
+                "BASE_WETH": "0x4200000000000000000000000000000000000006",
+                "BASE_USDC": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "BASE_DAI": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
+                "BASE_GHO": "0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f"
             }
 
             sell_token = token_addresses.get(token_in.upper(), token_in)
             buy_token = token_addresses.get(token_out.upper(), token_out)
 
-            # Convert amount to wei (assuming 18 decimals)
-            sell_amount = str(int(amount_in * 1e18))
+            # Precise decimals per token (symbol and address)
+            decimals_by_symbol = {
+                # Mainnet
+                "ETH": 18, "WETH": 18, "USDC": 6, "USDT": 6, "DAI": 18,
+                # Base
+                "BASE_WETH": 18, "BASE_USDC": 6, "BASE_DAI": 18, "BASE_GHO": 18,
+            }
+            decimals_by_address = {
+                # Mainnet
+                "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee": 18,
+                "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2": 18,  # WETH
+                "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": 6,   # USDC
+                "0xdac17f958d2ee523a2206206994597c13d831ec7": 6,   # USDT
+                "0x6b175474e89094c44da98b954eedeac495271d0f": 18,  # DAI
+                # Base
+                "0x4200000000000000000000000000000000000006": 18,   # BASE WETH
+                "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913": 6,   # BASE USDC
+                "0x50c5725949a6f0c72e6c4a641f24049a917db0cb": 18,  # BASE DAI
+                "0x40d16fc0246ad3160ccc09b8d0d3a2cd28ae6c2f": 18,  # BASE GHO
+            }
+            def _decimals_for(token_symbol_or_address: str, resolved_address: str) -> int:
+                if token_symbol_or_address.startswith("0x"):
+                    return decimals_by_address.get(token_symbol_or_address.lower(), 18)
+                # symbol path
+                dec = decimals_by_symbol.get(token_symbol_or_address.upper())
+                if dec is not None:
+                    return dec
+                return decimals_by_address.get(resolved_address.lower(), 18)
 
-            # 0x API parameters
+            decimals_in = _decimals_for(token_in, sell_token)
+            decimals_out = _decimals_for(token_out, buy_token)
+
+            # Convert amount to base units using precise decimals
+            sell_amount = str(int(amount_in * (10 ** decimals_in)))
+
+            # 0x API parameters (include chainId and optional sources)
             params = {
                 "sellToken": sell_token,
                 "buyToken": buy_token,
                 "sellAmount": sell_amount,
-                "slippagePercentage": str(slippage_tolerance)
+                "slippagePercentage": str(slippage_tolerance),
+                "chainId": chain_ids.get(chain, "1")
             }
+
+            # Optional: restrict to Uniswap v3 only
+            # params["includedSources"] = "Uniswap_V3"
 
             # Get 0x API key from environment
             api_key = os.getenv("THEATOM_API_KEY", "7324a2b4-3b05-4288-b353-68322f49a283")
@@ -327,15 +371,16 @@ class DEXAggregator:
                 "User-Agent": "ATOM-Backend/1.0"
             }
 
-            # Make REAL API call to 0x
+            # Make REAL API call to 0x (Base supported via chainId)
             url = f"https://api.0x.org/swap/v1/quote"
 
             async with self.session.get(url, params=params, headers=headers) as response:
                 if response.status == 200:
                     data = await response.json()
 
-                    # Parse 0x response
-                    buy_amount = float(data.get("buyAmount", 0)) / 1e18
+                    # Parse 0x response using precise decimals for buy token
+                    raw_buy_amount = float(data.get("buyAmount", 0))
+                    buy_amount = raw_buy_amount / float(10 ** decimals_out)
                     gas_estimate = int(data.get("gas", 150000))
                     gas_price = float(data.get("gasPrice", 25000000000)) / 1e9  # Convert to gwei
 
@@ -356,7 +401,7 @@ class DEXAggregator:
                         gas_estimate=gas_estimate,
                         gas_price=gas_price,
                         route=route if route else ["0x"],
-                        fee_percentage=0.0015,  # 0x fee
+                        fee_percentage=0.0015,
                         slippage_tolerance=slippage_tolerance,
                         quote_expires_at=datetime.now(timezone.utc) + timedelta(minutes=2),
                         quote_id=quote_id

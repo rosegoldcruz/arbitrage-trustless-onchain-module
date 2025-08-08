@@ -132,7 +132,12 @@ async def initialize_atom_platform():
             try:
                 print(f"  {name}...", end=" ", flush=True)
                 t0 = time.time()
-                await fn()
+                result = fn()
+                if asyncio.iscoroutine(result):
+                    await result
+                else:
+                    if isinstance(result, bool) and not result:
+                        raise Exception(f"{name} failed")
                 print(f"✅ ({time.time()-t0:.2f}s)")
             except Exception as e:
                 print("❌ FAILED")

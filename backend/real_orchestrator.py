@@ -161,7 +161,7 @@ class RealOrchestrator:
     - Tracks real performance metrics
     """
 
-    def __init__(self, config_path: str = "orchestrator_config.json"):
+    def __init__(self, config_path: str = "backend/config/orchestrator_config.json"):
         self.config = self._load_config(config_path)
         self.bots: Dict[str, BotStatus] = {}
         self.opportunities: List[ArbitrageOpportunity] = []
@@ -179,6 +179,8 @@ class RealOrchestrator:
         logger.info("🚀 Real Orchestrator initialized")
         logger.info(f"Config loaded: {len(self.config['dex_endpoints'])} DEX endpoints")
         logger.info(f"Bot paths: ATOM={self.config['bot_paths']['atom']}, ADOM={self.config['bot_paths']['adom']}")
+        logger.info(f"Monitor interval: {self.config.get('monitor_interval', 10)}s")
+        logger.info(f"Max gas: {self.config.get('max_gas', 10000000)}")
 
     def _load_config(self, config_path: str) -> Dict:
         """Load configuration from JSON file"""
@@ -311,8 +313,8 @@ class RealOrchestrator:
             try:
                 current_time = time.time()
 
-                # Rate limit: scan every 5 seconds
-                if current_time - self.last_opportunity_check < 5:
+                # Rate limit: scan every 1 second
+                if current_time - self.last_opportunity_check < 1:
                     time.sleep(1)
                     continue
 
@@ -331,7 +333,7 @@ class RealOrchestrator:
                 # Filter opportunities by minimum spread
                 valid_opportunities = [
                     opp for opp in new_opportunities
-                    if opp.spread_bps >= self.config['min_spread_bps']
+                    if opp.spread_bps >= self.config.get('min_spread_bps', 23)
                 ]
 
                 if valid_opportunities:
@@ -341,10 +343,12 @@ class RealOrchestrator:
                     # Store in database
                     self._store_opportunities(valid_opportunities)
 
+                # Throttle scanner pace to 1s for max responsiveness
                 time.sleep(1)
 
             except Exception as e:
                 logger.error(f"❌ Opportunity scanner error: {e}")
+                # Back off on errors to avoid overwhelming external services
                 time.sleep(5)
 
     def _scan_dex_for_opportunities(self, dex_name: str, endpoint: str) -> List[ArbitrageOpportunity]:
@@ -572,6 +576,31 @@ class RealOrchestrator:
         except Exception as e:
             logger.warning(f"⚠️ Failed to store opportunities in Postgres: {e}")
 
+    def _estimate_gas_for_opportunity(self, opportunity: ArbitrageOpportunity) -> int:
+        """Estimate gas for executing the opportunity route.
+        If the opportunity provides estimated_gas, use it; otherwise use a conservative heuristic.
+        """
+        try:
+            provided = getattr(opportunity, 'estimated_gas', None)
+            if isinstance(provided, (int, float)) and provided > 0:
+                return int(provided)
+        except Exception:
+            pass
+
+        # Heuristic: base cost + per-leg cost (triangular = ~3 legs)
+        legs = 3
+        base_cost = 150_000
+        per_leg_cost = 200_000
+        return base_cost + legs * per_leg_cost
+
+    def _validate_gas_limit(self, estimated_gas: int) -> bool:
+        """Validate estimated gas against configured max_gas threshold."""
+        max_gas = int(self.config.get('max_gas', 10_000_000))
+        if estimated_gas > max_gas:
+            logger.warning(f"⛽ Estimated gas {estimated_gas} exceeds max_gas {max_gas}")
+            return False
+        return True
+
     def _bot_monitor(self):
         """Monitor bot processes and restart if needed"""
         logger.info("🔍 Starting bot monitor...")
@@ -610,16 +639,16 @@ class RealOrchestrator:
                                 bot_status.status = "failed"
 
                     # Check heartbeat timeout
-                    if time.time() - bot_status.last_heartbeat > self.config['heartbeat_timeout']:
+                    if time.time() - bot_status.last_heartbeat > self.config.get('heartbeat_timeout', 120):
                         logger.warning(f"⚠️ {bot_name} heartbeat timeout")
                         if bot_status.status == "running":
                             bot_status.status = "unresponsive"
 
-                time.sleep(10)  # Check every 10 seconds
+                time.sleep(1)  # Fixed 1s bot health checks for max responsiveness
 
             except Exception as e:
                 logger.error(f"❌ Bot monitor error: {e}")
-                time.sleep(10)
+                time.sleep(5)
 
     def _restart_bot(self, bot_name: str):
         """Restart a bot process"""
@@ -685,9 +714,14 @@ class RealOrchestrator:
                     selected_bot = self._select_bot_for_opportunity(best_opp)
 
                 if selected_bot and selected_bot in self.bots and self.bots[selected_bot].status == "running":
-                    # Send command to bot
-                    self._send_command_to_bot(selected_bot, best_opp)
-                    logger.info(f"📤 Sent opportunity to {selected_bot}: {best_opp.net_profit_usd:.2f} USD profit")
+                    # Gas validation before sending to bot
+                    est_gas = self._estimate_gas_for_opportunity(best_opp)
+                    if not self._validate_gas_limit(est_gas):
+                        logger.warning(f"🚫 Skipping opportunity due to gas limit: est_gas={est_gas}")
+                    else:
+                        # Send command to bot
+                        self._send_command_to_bot(selected_bot, best_opp)
+                        logger.info(f"📤 Sent opportunity to {selected_bot}: {best_opp.net_profit_usd:.2f} USD profit (est_gas={est_gas})")
                 else:
                     logger.warning(f"⚠️ No available bot for opportunity: {best_opp.net_profit_usd:.2f} USD")
 
@@ -704,7 +738,7 @@ class RealOrchestrator:
         if opportunity.mev_risk == "high":
             # High MEV risk = use ADOM for protection
             return "ADOM"
-        elif opportunity.net_profit_usd > self.config['flash_loan_threshold']:
+        elif opportunity.net_profit_usd > self.config.get('flash_loan_threshold', 100):
             # Large profit = use ADOM for flash loan
             return "ADOM"
         elif opportunity.gas_cost_usd > opportunity.profit_usd * 0.5:
@@ -775,11 +809,11 @@ class RealOrchestrator:
                 # Write CSV report
                 self._write_csv_report()
 
-                time.sleep(60)  # Update every minute
+                time.sleep(5)  # Update frequently but not too noisy
 
             except Exception as e:
                 logger.error(f"❌ Performance tracker error: {e}")
-                time.sleep(60)
+                time.sleep(10)
 
     def _write_csv_report(self):
         """Write performance report to CSV"""
@@ -841,11 +875,11 @@ class RealOrchestrator:
                     logger.error("🚨 CIRCUIT BREAKER ACTIVATED - All bots down")
                     self.circuit_breaker_active = True
 
-                time.sleep(30)  # Check every 30 seconds
+                time.sleep(1)  # Check every second for rapid protection
 
             except Exception as e:
                 logger.error(f"❌ Circuit breaker monitor error: {e}")
-                time.sleep(30)
+                time.sleep(5)
 
     def _main_loop(self):
         """Main orchestrator loop"""
@@ -859,7 +893,7 @@ class RealOrchestrator:
             self._process_bot_results()
 
             # Log status
-            if int(time.time()) % 60 == 0:  # Every minute
+            if int(time.time()) % 5 == 0:  # Every 5 seconds for near-real-time status
                 self._log_status()
 
         except Exception as e:
