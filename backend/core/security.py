@@ -695,3 +695,15 @@ class SecurityManager:
 
 # Global security manager instance
 security_manager = SecurityManager()
+
+# Simple shared bearer token auth for sensitive routes
+from fastapi import Depends, HTTPException, Header
+
+def get_current_user(authorization: str = Header(...)):
+    import os
+    expected = os.getenv("ATOM_DASH_TOKEN")
+    if not expected:
+        raise HTTPException(status_code=500, detail="Server auth misconfigured")
+    if authorization != f"Bearer {expected}":
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return True

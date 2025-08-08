@@ -5,7 +5,7 @@ Real-time dashboard endpoints for ATOM frontend
 """
 
 from fastapi import APIRouter, HTTPException
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 import asyncio
 from typing import Dict, List, Any
@@ -70,7 +70,7 @@ async def get_dashboard_status():
                 "agents": app_state["agents"],
                 "total_profit": app_state["total_profit"],
                 "active_agents": app_state["active_agents"],
-                "last_update": datetime.utcnow().isoformat(),
+                "last_update": datetime.now(timezone.utc).isoformat(),
                 "dex_connections": app_state["dex_connections"],
                 "real_time_data": app_state["real_time_data"]
             }
@@ -95,7 +95,7 @@ async def get_opportunities():
                 "profit_usd": 12.50,
                 "dex_route": "Balancer → Curve → Uniswap",
                 "confidence": 0.85,
-                "detected_at": datetime.utcnow().isoformat()
+                "detected_at": datetime.now(timezone.utc).isoformat()
             },
             {
                 "id": "opp_002", 
@@ -104,7 +104,7 @@ async def get_opportunities():
                 "profit_usd": 8.75,
                 "dex_route": "0x → Curve → Balancer",
                 "confidence": 0.78,
-                "detected_at": datetime.utcnow().isoformat()
+                "detected_at": datetime.now(timezone.utc).isoformat()
             }
         ]
         
@@ -114,7 +114,7 @@ async def get_opportunities():
                 "opportunities": sample_opportunities,
                 "total_opportunities": len(sample_opportunities),
                 "profitable_count": len([o for o in sample_opportunities if o["profit_usd"] > 5]),
-                "last_update": datetime.utcnow().isoformat()
+                "last_update": datetime.now(timezone.utc).isoformat()
             }
         }
     except Exception as e:
@@ -131,7 +131,7 @@ async def get_dex_status():
                 "connections": app_state["dex_connections"],
                 "healthy_connections": len([c for c in app_state["dex_connections"].values() if c == "healthy"]),
                 "total_connections": len(app_state["dex_connections"]),
-                "last_check": datetime.utcnow().isoformat()
+                "last_check": datetime.now(timezone.utc).isoformat()
             }
         }
     except Exception as e:
@@ -153,7 +153,7 @@ async def execute_opportunity(request: Dict[str, Any]):
             "profit_realized": 12.50,
             "gas_used": 150000,
             "tx_hash": "0x1234567890abcdef1234567890abcdef12345678",
-            "executed_at": datetime.utcnow().isoformat()
+            "executed_at": datetime.now(timezone.utc).isoformat()
         }
         
         return {
@@ -171,7 +171,7 @@ async def get_bot_logs():
         # Mock logs - replace with real log data
         logs = [
             {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "bot": "ATOM",
                 "level": "INFO",
                 "message": "Scanning for arbitrage opportunities..."
@@ -221,10 +221,10 @@ async def get_system_health():
             "data": {
                 "overall_status": "healthy",
                 "components": {
-                    "api": {"status": "healthy", "last_check": datetime.utcnow().isoformat()},
-                    "bots": {"status": "healthy", "last_check": datetime.utcnow().isoformat()},
-                    "dex_connections": {"status": "healthy", "last_check": datetime.utcnow().isoformat()},
-                    "database": {"status": "healthy", "last_check": datetime.utcnow().isoformat()}
+                    "api": {"status": "healthy", "last_check": datetime.now(timezone.utc).isoformat()},
+                    "bots": {"status": "healthy", "last_check": datetime.now(timezone.utc).isoformat()},
+                    "dex_connections": {"status": "healthy", "last_check": datetime.now(timezone.utc).isoformat()},
+                    "database": {"status": "healthy", "last_check": datetime.now(timezone.utc).isoformat()}
                 },
                 "uptime": 3600  # seconds
             }
@@ -241,7 +241,7 @@ async def get_trading_history(limit: int = 50):
         trades = [
             {
                 "id": "trade_001",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "bot": "ATOM",
                 "type": "triangular_arbitrage",
                 "profit": 12.50,

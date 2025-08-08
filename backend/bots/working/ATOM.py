@@ -525,15 +525,22 @@ class ATOMBot:
 async def main():
     """Main entry point"""
     # Load configuration from environment
-    config = ATOMConfig(
-        rpc_url=os.getenv('BASE_SEPOLIA_RPC_URL', 'https://base-sepolia.g.alchemy.com/v2/ESBtk3UKjPt2rK2Yz0hnzUj0tIJGTe-d'),
-        wss_url=os.getenv('BASE_SEPOLIA_WSS_URL', 'wss://base-sepolia.g.alchemy.com/v2/ESBtk3UKjPt2rK2Yz0hnzUj0tIJGTe-d'),
-        chain_id=84532,
-        private_key=os.getenv('PRIVATE_KEY', ''),
-        contract_address=os.getenv('BASE_SEPOLIA_CONTRACT_ADDRESS', '0xb3800E6bC7847E5d5a71a03887EDc5829DF4133b'),
-        theatom_api_key=os.getenv('THEATOM_API_KEY', '7324a2b4-3b05-4288-b353-68322f49a283')
+    from backend.config.config import (
+        BASE_SEPOLIA_RPC_URL,
+        BASE_SEPOLIA_WSS_URL,
+        BASE_SEPOLIA_CONTRACT_ADDRESS,
+        PRIVATE_KEY,
+        THEATOM_API_KEY,
     )
-    
+    config = ATOMConfig(
+        rpc_url=BASE_SEPOLIA_RPC_URL or '',
+        wss_url=BASE_SEPOLIA_WSS_URL or '',
+        chain_id=84532,
+        private_key=PRIVATE_KEY or '',
+        contract_address=BASE_SEPOLIA_CONTRACT_ADDRESS or '',
+        theatom_api_key=THEATOM_API_KEY or ''
+    )
+
     if not config.private_key:
         logger.error("❌ PRIVATE_KEY environment variable not set")
         return

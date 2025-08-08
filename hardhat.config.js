@@ -6,11 +6,11 @@ require("solidity-coverage");
 require("dotenv").config();
 
 // Environment variables
-const PRIVATE_KEY = process.env.PRIVATE_KEY || "0x0000000000000000000000000000000000000000000000000000000000000000";
-const BASE_SEPOLIA_RPC_URL = process.env.BASE_SEPOLIA_RPC_URL || "https://base-sepolia.g.alchemy.com/v2/ESBtk3UKjPt2rK2Yz0hnzUj0tIJGTe-d";
-const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY || "ESBtk3UKjPt2rK2Yz0hnzUj0tIJGTe-d";
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
-const BASESCAN_API_KEY = process.env.BASESCAN_API_KEY || "";
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
+const BASE_SEPOLIA_RPC_URL = process.env.BASE_SEPOLIA_RPC_URL;
+const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
+const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
+const BASESCAN_API_KEY = process.env.BASESCAN_API_KEY;
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {

@@ -4,6 +4,7 @@ Provides actual swap quotes, price comparisons, and arbitrage detection for Base
 """
 
 from fastapi import APIRouter, HTTPException, Query, BackgroundTasks
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List, Dict, Any, Union
 import httpx
@@ -12,11 +13,11 @@ import logging
 import asyncio
 import json
 from decimal import Decimal
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import time
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(prefix="/zeroex")
 
 # Real Configuration for Base Network
 THEATOM_API_KEY = os.getenv("THEATOM_API_KEY")
@@ -106,7 +107,7 @@ async def health_check():
             "status": "unhealthy",
             "error": str(e),
             "api_key_configured": bool(THEATOM_API_KEY),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
 @router.get("/quote", response_model=RealSwapQuoteResponse)
@@ -269,7 +270,7 @@ async def get_liquidity_sources():
             "sources": sources,
             "chain_id": BASE_CHAIN_ID,
             "network": "Base Sepolia" if USE_TESTNET else "Base Mainnet",
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
     except ZeroXAPIError as e:
@@ -300,7 +301,7 @@ async def get_batch_prices(
             "results": batch_results,
             "total_pairs": len(parsed_pairs),
             "successful_pairs": len([r for r in batch_results.values() if r is not None]),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
     except ValueError as e:
@@ -320,7 +321,7 @@ async def validate_api_key():
             "api_key_configured": bool(THEATOM_API_KEY),
             "chain_id": BASE_CHAIN_ID,
             "network": "Base Sepolia" if USE_TESTNET else "Base Mainnet",
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
     except Exception as e:
@@ -329,7 +330,7 @@ async def validate_api_key():
             "api_key_valid": False,
             "api_key_configured": bool(THEATOM_API_KEY),
             "error": str(e),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
 

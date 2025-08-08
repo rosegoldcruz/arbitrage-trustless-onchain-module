@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 
 router = APIRouter()
 
@@ -82,7 +82,7 @@ async def get_faq():
     return {
         "faq": faq_items,
         "categories": ["basics", "getting_started", "earnings", "risks", "technical"],
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 @router.get("/support-hours")
@@ -117,7 +117,7 @@ async def get_support_hours():
                 "best_for": "Community support and quick questions"
             }
         ],
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 @router.post("/submit", response_model=ContactResponse)
@@ -245,5 +245,5 @@ async def get_contact_categories():
                 "priority": "normal"
             }
         ],
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }

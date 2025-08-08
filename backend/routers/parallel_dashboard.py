@@ -10,7 +10,7 @@ from typing import Dict, List, Optional, Any
 import asyncio
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 import traceback
 
 # 🔐 PERMANENT IMPORT FIX - Use relative imports since we're inside backend/
@@ -148,7 +148,7 @@ async def health_check():
 
         return {
             "status": "healthy" if all_healthy else "degraded",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "services": {
                 "balancer": balancer_status,
                 "zrx": zrx_status,
@@ -196,7 +196,7 @@ async def get_balancer_pools(
                     }
                     for token in pool.get("poolTokens", [])
                 ],
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             })
         
         logger.info(f"Successfully fetched {len(formatted_pools)} Balancer pools")
@@ -205,7 +205,7 @@ async def get_balancer_pools(
             "data": formatted_pools,
             "count": len(formatted_pools),
             "network": "Base Sepolia",
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
     except Exception as e:
@@ -251,7 +251,7 @@ async def get_zrx_prices(
                 "priceUsd": data["priceUsd"],
                 "volume24h": data.get("volume24h"),
                 "priceChange24h": data.get("priceChange24h"),
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             })
         
         logger.info(f"Successfully fetched {len(formatted_prices)} 0x prices")
@@ -261,7 +261,7 @@ async def get_zrx_prices(
             "count": len(formatted_prices),
             "network": "Base Sepolia",
             "chainId": 84532,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
     except Exception as e:

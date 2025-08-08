@@ -382,11 +382,18 @@ class TradingEngine:
                     # Success notification (Telegram disabled)
                     logger.info(f"✅ FLASHLOAN EXECUTED: Profit ${trade.actual_profit:.2f}, Gas: {trade.gas_used}")
 
-                    logger.info(
-                        f"🚀 FLASHLOAN SUCCESS: {trade_id} - "
-                        f"Profit: ${trade.actual_profit:.2f} - "
-                        f"Provider: {flashloan_quote.provider.value} - "
-                        f"Time: {execution_time:.3f}s"
+                    from .trade_logger import log_event
+                    log_event(
+                        "trade_executed",
+                        tx=trade.tx_hash,
+                        trade_id=trade_id,
+                        opportunity_id=opportunity.opportunity_id,
+                        route=f"{opportunity.dex_a}->{opportunity.dex_b} {opportunity.token_pair}",
+                        profit=trade.actual_profit,
+                        gas_used=trade.gas_used,
+                        execution_time=execution_time,
+                        provider=flashloan_quote.provider.value,
+                        status="completed",
                     )
 
                 else:

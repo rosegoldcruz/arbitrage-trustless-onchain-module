@@ -2,12 +2,13 @@
 Bot deployment router
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from backend.core.security import get_current_user
 from pydantic import BaseModel
 from typing import Optional, List
 import asyncio
 import random
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 router = APIRouter()
 
@@ -26,7 +27,7 @@ class BotDeployResponse(BaseModel):
     message: str
 
 @router.post("/", response_model=BotDeployResponse)
-async def deploy_bot(request: BotDeployRequest):
+async def deploy_bot(request: BotDeployRequest, auth=Depends(get_current_user)):
     """Deploy arbitrage bot"""
     try:
         # Simulate bot deployment
@@ -84,7 +85,7 @@ async def get_deployed_bots():
         "bots": bots,
         "total_count": len(bots),
         "active_count": len([b for b in bots if b["status"] == "active"]),
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 @router.post("/{bot_id}/start")
@@ -129,9 +130,9 @@ async def get_bot_stats(bot_id: str):
             "average_profit_per_trade": random.uniform(2, 15),
             "gas_spent": random.uniform(0.1, 1.0),
             "uptime_percentage": random.uniform(95, 99.9),
-            "last_trade": datetime.utcnow().isoformat()
+            "last_trade": datetime.now(timezone.utc).isoformat()
         },
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 @router.delete("/{bot_id}")

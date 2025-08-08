@@ -13,7 +13,7 @@ import uvicorn
 from contextlib import asynccontextmanager
 import logging
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 import random
 
 # 🚦 Internal Routers - DASHBOARD FOCUSED
@@ -54,7 +54,7 @@ app_state = {
     "opportunities": [],
     "trades": [],
     "system_status": "booting",
-    "last_update": datetime.utcnow(),
+    "last_update": datetime.now(timezone.utc),
     "total_profit": 0.0,
     "active_agents": 0,
     "dex_connections": {dex: "connecting" for dex in ["0x", "1inch", "paraswap", "balancer", "curve", "uniswap"]},
@@ -77,7 +77,7 @@ production_config = get_atom_config()
 async def update_real_time_data():
     while True:
         try:
-            app_state["last_update"] = datetime.utcnow()
+            app_state["last_update"] = datetime.now(timezone.utc)
             await test_dex_connections()
             await fetch_real_opportunities()
             await update_bot_statuses()
@@ -124,7 +124,7 @@ async def fetch_real_opportunities():
                     "profit_usd": round(spread_bps * 10, 2),
                     "dex_route": quote.aggregator,
                     "confidence": quote.confidence_score,
-                    "detected_at": datetime.utcnow().isoformat()
+                    "detected_at": datetime.now(timezone.utc).isoformat()
                 })
         app_state["opportunities"] = opps[-10:]
         app_state["real_time_data"]["spread_opportunities"] = len(opps)
@@ -223,7 +223,7 @@ async def trigger_bot(request: dict):
                 "message": f"ATOM bot triggered successfully in {mode} mode",
                 "strategy": strategy,
                 "mode": mode,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "status": "executed",
                 "bot_response": {
                     "opportunities_scanned": 15,

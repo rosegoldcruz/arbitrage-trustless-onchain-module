@@ -2,7 +2,7 @@
 Arbitrage operations router with Balancer/Curve math and triangular arbitrage
 """
 
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 import asyncio
@@ -10,7 +10,7 @@ import random
 import os
 import requests
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from web3 import Web3
 
@@ -21,14 +21,19 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 # Import the new Balancer client
 from backend.integrations.balancer_client import balancer_client, BalancerPool
+from backend.config.config import ZRX_API_URL
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 # Environment Configuration
-BASE_SEPOLIA_RPC = os.getenv("BASE_SEPOLIA_RPC_URL", "https://base-sepolia.g.alchemy.com/v2/ESBtk3UKjPt2rK2Yz0hnzUj0tIJGTe-d")
-THEATOM_API_KEY = os.getenv("THEATOM_API_KEY", "7324a2b4-3b05-4288-b353-68322f49a283")
-CONTRACT_ADDRESS = os.getenv("BASE_SEPOLIA_CONTRACT_ADDRESS", "0xb3800E6bC7847E5d5a71a03887EDc5829DF4133b")
+from backend.config.config import (
+    BASE_SEPOLIA_RPC_URL,
+    THEATOM_API_KEY,
+    BASE_SEPOLIA_CONTRACT_ADDRESS,
+)
+BASE_SEPOLIA_RPC = BASE_SEPOLIA_RPC_URL
+CONTRACT_ADDRESS = BASE_SEPOLIA_CONTRACT_ADDRESS
 
 # Web3 Setup
 w3 = Web3(Web3.HTTPProvider(BASE_SEPOLIA_RPC))
@@ -232,21 +237,23 @@ async def execute_arbitrage(request: ArbitrageRequest):
 
 # Helper Functions
 async def get_0x_price(token_address: str) -> Optional[float]:
-    """Fetch price from 0x API"""
+    """Fetch price from 0x API using shared aiohttp session"""
+    import aiohttp
     try:
-        url = "https://api.0x.org/swap/v1/price"
+        url = f"{ZRX_API_URL}/swap/v1/price"
         params = {
             "sellToken": token_address,
             "buyToken": TOKENS["USDC"],  # Use USDC as base
             "sellAmount": "1000000000000000000",  # 1 token
         }
-        headers = {"0x-api-key": THEATOM_API_KEY}
+        headers = {"0x-api-key": THEATOM_API_KEY} if THEATOM_API_KEY else {}
 
-        response = requests.get(url, params=params, headers=headers, timeout=5)
-
-        if response.status_code == 200:
-            data = response.json()
-            return float(data.get("price", 0))
+        from backend.core.http_client import get_session
+        session = await get_session()
+        async with session.get(url, params=params, headers=headers, timeout=5) as response:
+            if response.status == 200:
+                data = await response.json()
+                return float(data.get("price", 0))
     except Exception as e:
         logger.warning(f"0x API error for {token_address}: {e}")
 
@@ -472,7 +479,7 @@ async def get_arbitrage_opportunities(
 
     return {
         "opportunities": filtered_opportunities,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "total_count": len(filtered_opportunities),
         "triangular_count": len([o for o in filtered_opportunities if o.get("type") == "triangular"]),
         "min_spread_threshold_bps": MIN_SPREAD_BPS,
@@ -511,7 +518,7 @@ async def calculate_spread(token_a: str, token_b: str, dex_address: Optional[str
             "external_price": external_price,
             "is_profitable": spread_bps >= MIN_SPREAD_BPS,
             "min_threshold_bps": MIN_SPREAD_BPS,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
     except Exception as e:
@@ -538,7 +545,7 @@ async def get_balancer_implied_price(
             "weight_in": weight_in,
             "weight_out": weight_out,
             "pool_type": "balancer_weighted",
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
     except Exception as e:
@@ -563,7 +570,7 @@ async def get_curve_virtual_price(balances: List[float], total_supply: float, A:
             "max_deviation": max_deviation,
             "depeg_threshold": 0.02,  # 2%
             "pool_type": "curve_stableswap",
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
     except Exception as e:
@@ -605,24 +612,26 @@ async def get_arbitrage_stats():
 
 # Additional helper functions for 0x API integration
 async def get_0x_quote_async(sell_token: str, buy_token: str, sell_amount: str, slippage: float = 0.01) -> Optional[Dict]:
-    """Get quote from 0x API asynchronously"""
+    """Get quote from 0x API asynchronously using shared session"""
+    from backend.core.http_client import get_session
+    url = f"{ZRX_API_URL}/swap/v1/quote"
+    params = {
+        "sellToken": sell_token,
+        "buyToken": buy_token,
+        "sellAmount": sell_amount,
+        "slippagePercentage": slippage,
+    }
+    headers = {"0x-api-key": THEATOM_API_KEY} if THEATOM_API_KEY else {}
     try:
-        url = f"{ZRX_API_URL}/swap/v1/quote"
-        params = {
-            "sellToken": sell_token,
-            "buyToken": buy_token,
-            "sellAmount": sell_amount,
-            "slippagePercentage": slippage
-        }
-        headers = {"0x-api-key": THEATOM_API_KEY}
-
-        response = requests.get(url, params=params, headers=headers, timeout=10)
-
-        if response.status_code == 200:
-            return response.json()
+        session = await get_session()
+        async with session.get(url, params=params, headers=headers, timeout=10) as resp:
+            if resp.status == 200:
+                return await resp.json()
+            else:
+                text = await resp.text()
+                logger.error(f"0x quote error: status={resp.status} body={text}")
     except Exception as e:
-        logger.error(f"0x API quote error: {e}")
-
+        logger.error(f"0x API quote error via session: {e}")
     return None
 
 async def get_fallback_price(token_address: str, base_token: str, amount: str) -> Dict:
@@ -644,7 +653,7 @@ async def get_fallback_price(token_address: str, base_token: str, amount: str) -
         "sellAmount": amount,
         "buyAmount": str(int(amount) * price),
         "source": "fallback",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 @router.get("/balancer/pools")
@@ -688,7 +697,7 @@ async def get_balancer_pools():
                 "pools": formatted_pools,
                 "total_pools": len(formatted_pools),
                 "source": "balancer_graphql_api",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
     except Exception as e:
@@ -712,7 +721,7 @@ async def get_balancer_pools():
             ],
             "total_pools": 1,
             "source": "fallback",
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
 @router.get("/curve/pools")
@@ -746,11 +755,14 @@ async def get_curve_pools():
             }
         ],
         "total_pools": 2,
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 # ============================================================================
 # 🚀 AEON ARBITRAGE TRIGGER ENDPOINT - PHASE 3 IMPLEMENTATION
+# Background task starter for arbitrage loop
+# (deprecated stub removed)
+
 # ============================================================================
 
 class ArbitrageTriggerRequest(BaseModel):
@@ -765,10 +777,14 @@ class ArbitrageTriggerResponse(BaseModel):
     expected_profit: float
     gas_estimate: float
     execution_time: Optional[float] = None
+    action: str | None = Field(default=None, description="Optional manual action")
+
     transaction_hash: Optional[str] = None
 
+from backend.core.security import get_current_user
+
 @router.post("/trigger", response_model=ArbitrageTriggerResponse)
-async def trigger_arbitrage(request: ArbitrageTriggerRequest):
+async def trigger_arbitrage(request: ArbitrageTriggerRequest, auth=Depends(get_current_user)):
     """
     🎯 AEON Arbitrage Trigger - Smart execution with 23bps threshold
 
@@ -842,6 +858,22 @@ async def trigger_arbitrage(request: ArbitrageTriggerRequest):
         # Simulate execution delay
         await asyncio.sleep(2)
 
+        # Structured trade log
+        try:
+            from backend.core.trade_logger import log_event
+            log_event(
+                "arbitrage_executed",
+                tx=tx_hash,
+                route=f"{token_a}->{token_b}->{token_c}",
+                spread_bps=spread_data.spread_bps,
+                expected_profit=expected_profit_usd,
+                gas_estimate=gas_cost_usd,
+                execution_time=execution_time,
+                status="completed",
+            )
+        except Exception:
+            pass
+
         return ArbitrageTriggerResponse(
             triggered=True,
             reason=f"Arbitrage executed: {spread_data.spread_bps}bps spread",
@@ -895,7 +927,7 @@ async def get_arbitrage_status():
                 "spread_bps": 28,
                 "expected_profit": 15.50,
                 "confidence": 85,
-                "last_updated": datetime.utcnow().isoformat(),
+                "last_updated": datetime.now(timezone.utc).isoformat(),
                 "status": "monitoring"
             },
             {
@@ -903,7 +935,7 @@ async def get_arbitrage_status():
                 "spread_bps": 19,
                 "expected_profit": 8.20,
                 "confidence": 65,
-                "last_updated": datetime.utcnow().isoformat(),
+                "last_updated": datetime.now(timezone.utc).isoformat(),
                 "status": "below_threshold"
             },
             {
@@ -911,7 +943,7 @@ async def get_arbitrage_status():
                 "spread_bps": 31,
                 "expected_profit": 22.75,
                 "confidence": 92,
-                "last_updated": datetime.utcnow().isoformat(),
+                "last_updated": datetime.now(timezone.utc).isoformat(),
                 "status": "ready_to_execute"
             }
         ]
@@ -927,7 +959,7 @@ async def get_arbitrage_status():
             "profit_realized": 18.25,
             "gas_used": 245000,
             "execution_time": 23.5,
-            "timestamp": (datetime.utcnow() - timedelta(minutes=5)).isoformat(),
+            "timestamp": (datetime.now(timezone.utc) - timedelta(minutes=5)).isoformat(),
             "status": "completed"
         }
 
@@ -938,7 +970,7 @@ async def get_arbitrage_status():
             "flashloan_provider": "available",
             "gas_price_gwei": 25,
             "network_congestion": "low",
-            "last_health_check": datetime.utcnow().isoformat()
+            "last_health_check": datetime.now(timezone.utc).isoformat()
         }
 
         # Live metrics
@@ -974,7 +1006,7 @@ async def get_aeon_engine_logs(limit: int = 50):
     try:
         # Simulate recent logs
         logs = []
-        base_time = datetime.utcnow()
+        base_time = datetime.now(timezone.utc)
 
         log_entries = [
             ("INFO", "🔍 Scanning DAI → USDC → GHO triangle"),
@@ -1001,7 +1033,7 @@ async def get_aeon_engine_logs(limit: int = 50):
         return {
             "logs": logs,
             "total_count": len(logs),
-            "last_updated": datetime.utcnow().isoformat()
+            "last_updated": datetime.now(timezone.utc).isoformat()
         }
 
     except Exception as e:
@@ -1040,7 +1072,7 @@ async def get_arbitrage_history(
     try:
         # Generate realistic historical data
         history_items = []
-        base_time = datetime.utcnow()
+        base_time = datetime.now(timezone.utc)
 
         # Token combinations for realistic history
         token_combinations = [
@@ -1141,7 +1173,7 @@ async def get_arbitrage_history(
                 "min_profit": min_profit,
                 "days": days
             },
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
     except Exception as e:
@@ -1171,7 +1203,7 @@ async def get_balancer_arbitrage_opportunities(
                     "chains": chain_list
                 },
                 "source": "balancer_graphql_api",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
     except Exception as e:
@@ -1192,7 +1224,7 @@ async def get_high_volume_pools(chains: str = "BASE"):
                 "total_pools": len(high_volume_pools),
                 "chains": chain_list,
                 "source": "balancer_graphql_api",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
     except Exception as e:
@@ -1225,7 +1257,7 @@ async def get_balancer_pool_details(pool_id: str, chain: str = "BASE"):
                     "chain": pool.chain
                 },
                 "source": "balancer_graphql_api",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
     except HTTPException:
@@ -1262,7 +1294,7 @@ async def get_balancer_swap_quote(
                     "route": swap_path.route
                 },
                 "source": "balancer_sor_api",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
 
     except HTTPException:

@@ -17,7 +17,7 @@ import signal
 import psutil
 import sys
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 import threading
@@ -38,6 +38,76 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
+# Async Postgres setup
+try:
+    import asyncpg
+except ImportError:
+    asyncpg = None
+
+class AsyncDB:
+    def __init__(self, dsn: str | None):
+        self.dsn = dsn
+        self.pool = None
+
+    async def init(self):
+        if not self.dsn:
+            logger.warning("POSTGRES_URL not set; DB features disabled")
+            return
+        if not asyncpg:
+            logger.warning("asyncpg not installed; DB features disabled")
+            return
+        self.pool = await asyncpg.create_pool(dsn=self.dsn, min_size=1, max_size=5)
+        # Create tables if not exist
+        async with self.pool.acquire() as conn:
+            await conn.execute('''
+                CREATE TABLE IF NOT EXISTS opportunities (
+                    id SERIAL PRIMARY KEY,
+                    token_a TEXT,
+                    token_b TEXT,
+                    token_c TEXT,
+                    dex_a TEXT,
+                    dex_b TEXT,
+                    dex_c TEXT,
+                    spread_bps DOUBLE PRECISION,
+                    profit_usd DOUBLE PRECISION,
+                    gas_cost_usd DOUBLE PRECISION,
+                    net_profit_usd DOUBLE PRECISION,
+                    mev_risk TEXT,
+                    detected_at DOUBLE PRECISION,
+                    executed BOOLEAN DEFAULT FALSE,
+                    execution_result TEXT,
+                    chain TEXT
+                );
+            ''')
+            await conn.execute('''
+                CREATE TABLE IF NOT EXISTS bot_performance (
+                    id SERIAL PRIMARY KEY,
+                    bot_name TEXT,
+                    timestamp DOUBLE PRECISION,
+                    status TEXT,
+                    executions_count INTEGER,
+                    success_rate DOUBLE PRECISION,
+                    uptime_seconds DOUBLE PRECISION
+                );
+            ''')
+            await conn.execute('''
+                CREATE TABLE IF NOT EXISTS executions (
+                    id SERIAL PRIMARY KEY,
+                    opportunity_id INTEGER,
+                    bot_name TEXT,
+                    execution_time DOUBLE PRECISION,
+                    success BOOLEAN,
+                    actual_profit_usd DOUBLE PRECISION,
+                    gas_used INTEGER,
+                    tx_hash TEXT,
+                    error_message TEXT
+                );
+            ''')
+
+# Global DB instance
+from backend.config.config import POSTGRES_URL
+_async_db = AsyncDB(POSTGRES_URL)
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -90,7 +160,7 @@ class RealOrchestrator:
     - Routes strategies based on clear logic
     - Tracks real performance metrics
     """
-    
+
     def __init__(self, config_path: str = "orchestrator_config.json"):
         self.config = self._load_config(config_path)
         self.bots: Dict[str, BotStatus] = {}
@@ -99,13 +169,13 @@ class RealOrchestrator:
         self.circuit_breaker_active = False
         self.failure_count = 0
         self.last_opportunity_check = 0
-        
+
         # Initialize database
         self._init_database()
-        
+
         # Create communication directories
         self._setup_communication()
-        
+
         logger.info("🚀 Real Orchestrator initialized")
         logger.info(f"Config loaded: {len(self.config['dex_endpoints'])} DEX endpoints")
         logger.info(f"Bot paths: ATOM={self.config['bot_paths']['atom']}, ADOM={self.config['bot_paths']['adom']}")
@@ -125,66 +195,17 @@ class RealOrchestrator:
             raise
 
     def _init_database(self):
-        """Initialize SQLite database for performance tracking"""
-        self.db_path = "orchestrator_performance.db"
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        # Opportunities table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS opportunities (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                token_a TEXT,
-                token_b TEXT,
-                token_c TEXT,
-                dex_a TEXT,
-                dex_b TEXT,
-                dex_c TEXT,
-                spread_bps REAL,
-                profit_usd REAL,
-                gas_cost_usd REAL,
-                net_profit_usd REAL,
-                mev_risk TEXT,
-                detected_at REAL,
-                executed BOOLEAN DEFAULT FALSE,
-                execution_result TEXT,
-                chain TEXT
-            )
-        ''')
-        
-        # Bot performance table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS bot_performance (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                bot_name TEXT,
-                timestamp REAL,
-                status TEXT,
-                executions_count INTEGER,
-                success_rate REAL,
-                avg_profit_usd REAL,
-                uptime_seconds INTEGER
-            )
-        ''')
-        
-        # Execution results table
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS executions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                opportunity_id INTEGER,
-                bot_name TEXT,
-                execution_time REAL,
-                success BOOLEAN,
-                actual_profit_usd REAL,
-                gas_used INTEGER,
-                tx_hash TEXT,
-                error_message TEXT,
-                FOREIGN KEY (opportunity_id) REFERENCES opportunities (id)
-            )
-        ''')
-        
-        conn.commit()
-        conn.close()
-        logger.info("✅ Database initialized")
+        """Initialize Postgres database for performance tracking (async)"""
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(_async_db.init())
+            logger.info("✅ Database initialized (Postgres)")
+        except Exception as e:
+            logger.warning(f"⚠️ Postgres init failed, continuing without DB: {e}")
 
     def _setup_communication(self):
         """Setup file-based communication directories"""
@@ -197,11 +218,11 @@ class RealOrchestrator:
         """Start the orchestrator and all bots"""
         logger.info("🚀 Starting Real Orchestrator...")
         self.running = True
-        
+
         # Start bots
         self._start_bot("ATOM", self.config['bot_paths']['atom'])
         self._start_bot("ADOM", self.config['bot_paths']['adom'])
-        
+
         # Start orchestrator threads
         def run_async_strategy_router():
             """Run async strategy router in thread"""
@@ -216,12 +237,12 @@ class RealOrchestrator:
             threading.Thread(target=self._performance_tracker, daemon=True),
             threading.Thread(target=self._circuit_breaker_monitor, daemon=True)
         ]
-        
+
         for thread in threads:
             thread.start()
-        
+
         logger.info("✅ All systems started")
-        
+
         try:
             # Main loop
             while self.running:
@@ -253,7 +274,7 @@ class RealOrchestrator:
                     stderr=subprocess.PIPE,
                     text=True
                 )
-            
+
             self.bots[bot_name] = BotStatus(
                 name=bot_name,
                 pid=process.pid,
@@ -265,9 +286,9 @@ class RealOrchestrator:
                 successful_executions=0,
                 last_error=""
             )
-            
+
             logger.info(f"✅ {bot_name} started with PID {process.pid}")
-            
+
         except Exception as e:
             logger.error(f"❌ Failed to start {bot_name}: {e}")
             self.bots[bot_name] = BotStatus(
@@ -285,43 +306,43 @@ class RealOrchestrator:
     def _opportunity_scanner(self):
         """Scan DEX APIs for real arbitrage opportunities"""
         logger.info("👁️ Starting opportunity scanner...")
-        
+
         while self.running:
             try:
                 current_time = time.time()
-                
+
                 # Rate limit: scan every 5 seconds
                 if current_time - self.last_opportunity_check < 5:
                     time.sleep(1)
                     continue
-                
+
                 self.last_opportunity_check = current_time
-                
+
                 # Scan each DEX for opportunities
                 new_opportunities = []
-                
+
                 for dex_name, endpoint in self.config['dex_endpoints'].items():
                     try:
                         opportunities = self._scan_dex_for_opportunities(dex_name, endpoint)
                         new_opportunities.extend(opportunities)
                     except Exception as e:
                         logger.warning(f"⚠️ Failed to scan {dex_name}: {e}")
-                
+
                 # Filter opportunities by minimum spread
                 valid_opportunities = [
-                    opp for opp in new_opportunities 
+                    opp for opp in new_opportunities
                     if opp.spread_bps >= self.config['min_spread_bps']
                 ]
-                
+
                 if valid_opportunities:
                     logger.info(f"🎯 Found {len(valid_opportunities)} valid opportunities")
                     self.opportunities.extend(valid_opportunities)
-                    
+
                     # Store in database
                     self._store_opportunities(valid_opportunities)
-                
+
                 time.sleep(1)
-                
+
             except Exception as e:
                 logger.error(f"❌ Opportunity scanner error: {e}")
                 time.sleep(5)
@@ -329,7 +350,7 @@ class RealOrchestrator:
     def _scan_dex_for_opportunities(self, dex_name: str, endpoint: str) -> List[ArbitrageOpportunity]:
         """Scan a specific DEX for arbitrage opportunities using real API calls"""
         opportunities = []
-        
+
         try:
             # Get token pairs from DEX
             if dex_name == "uniswap_v3":
@@ -340,16 +361,16 @@ class RealOrchestrator:
                 opportunities.extend(self._scan_balancer(endpoint))
             elif dex_name == "1inch":
                 opportunities.extend(self._scan_1inch(endpoint))
-            
+
         except Exception as e:
             logger.error(f"❌ Error scanning {dex_name}: {e}")
-        
+
         return opportunities
 
     def _scan_uniswap_v3(self, endpoint: str) -> List[ArbitrageOpportunity]:
         """Scan Uniswap V3 for opportunities"""
         opportunities = []
-        
+
         try:
             # Get pool data from Uniswap V3 subgraph
             query = """
@@ -365,47 +386,47 @@ class RealOrchestrator:
               }
             }
             """
-            
+
             response = requests.post(
                 endpoint,
                 json={"query": query},
                 timeout=10
             )
-            
+
             if response.status_code == 200:
                 data = response.json()
                 pools = data.get('data', {}).get('pools', [])
-                
+
                 # Look for triangular arbitrage opportunities
                 for pool in pools:
                     # Simple triangular arb detection logic
                     token_a = pool['token0']['symbol']
                     token_b = pool['token1']['symbol']
                     price = float(pool['token0Price'])
-                    
+
                     # Check if we can form a triangle with other pools
                     opportunity = self._check_triangular_opportunity(
                         token_a, token_b, price, "uniswap_v3"
                     )
-                    
+
                     if opportunity:
                         opportunities.append(opportunity)
-            
+
         except Exception as e:
             logger.error(f"❌ Uniswap V3 scan error: {e}")
-        
+
         return opportunities
 
     def _check_triangular_opportunity(self, token_a: str, token_b: str, price_ab: float, dex: str) -> Optional[ArbitrageOpportunity]:
         """Check for triangular arbitrage opportunity"""
         # Simplified triangular arbitrage detection
         # In reality, you'd check multiple DEXs and calculate actual spreads
-        
+
         # Mock calculation for demonstration
         if token_a in ["WETH", "USDC", "DAI"] and token_b in ["WETH", "USDC", "DAI"]:
             # Simulate finding a profitable triangle
             spread_bps = 50 + (hash(f"{token_a}{token_b}") % 100)  # Mock spread
-            
+
             if spread_bps >= self.config['min_spread_bps']:
                 return ArbitrageOpportunity(
                     token_a=token_a,
@@ -421,7 +442,7 @@ class RealOrchestrator:
                     mev_risk="medium" if spread_bps > 100 else "low",
                     detected_at=time.time()
                 )
-        
+
         return None
 
     def _scan_curve(self, endpoint: str) -> List[ArbitrageOpportunity]:
@@ -522,26 +543,34 @@ class RealOrchestrator:
         return opportunities
 
     def _store_opportunities(self, opportunities: List[ArbitrageOpportunity]):
-        """Store opportunities in database"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-
-        for opp in opportunities:
-            cursor.execute('''
-                INSERT INTO opportunities (
-                    token_a, token_b, token_c, dex_a, dex_b, dex_c,
-                    spread_bps, profit_usd, gas_cost_usd, net_profit_usd,
-                    mev_risk, detected_at, chain
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                opp.token_a, opp.token_b, opp.token_c,
-                opp.dex_a, opp.dex_b, opp.dex_c,
-                opp.spread_bps, opp.profit_usd, opp.gas_cost_usd,
-                opp.net_profit_usd, opp.mev_risk, opp.detected_at, opp.chain
-            ))
-
-        conn.commit()
-        conn.close()
+        """Store opportunities in Postgres (async)"""
+        async def _insert_all():
+            if not _async_db.pool:
+                return
+            async with _async_db.pool.acquire() as conn:
+                await conn.executemany('''
+                    INSERT INTO opportunities (
+                        token_a, token_b, token_c, dex_a, dex_b, dex_c,
+                        spread_bps, profit_usd, gas_cost_usd, net_profit_usd,
+                        mev_risk, detected_at, chain
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+                ''', [
+                    (
+                        opp.token_a, opp.token_b, opp.token_c,
+                        opp.dex_a, opp.dex_b, opp.dex_c,
+                        opp.spread_bps, opp.profit_usd, opp.gas_cost_usd,
+                        opp.net_profit_usd, opp.mev_risk, opp.detected_at, opp.chain
+                    ) for opp in opportunities
+                ])
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        try:
+            loop.run_until_complete(_insert_all())
+        except Exception as e:
+            logger.warning(f"⚠️ Failed to store opportunities in Postgres: {e}")
 
     def _bot_monitor(self):
         """Monitor bot processes and restart if needed"""
@@ -662,11 +691,11 @@ class RealOrchestrator:
                 else:
                     logger.warning(f"⚠️ No available bot for opportunity: {best_opp.net_profit_usd:.2f} USD")
 
-                time.sleep(0.5)  # Process opportunities quickly
+                await asyncio.sleep(0.5)  # Process opportunities quickly
 
             except Exception as e:
                 logger.error(f"❌ Strategy router error: {e}")
-                time.sleep(1)
+                await asyncio.sleep(1)
 
     def _select_bot_for_opportunity(self, opportunity: ArbitrageOpportunity) -> Optional[str]:
         """Select appropriate bot based on opportunity characteristics"""
@@ -719,23 +748,29 @@ class RealOrchestrator:
                             bot_status.successful_executions / max(bot_status.total_executions, 1)
                         )
 
-                        # Store in database
-                        conn = sqlite3.connect(self.db_path)
-                        cursor = conn.cursor()
-
-                        cursor.execute('''
-                            INSERT INTO bot_performance (
-                                bot_name, timestamp, status, executions_count,
-                                success_rate, uptime_seconds
-                            ) VALUES (?, ?, ?, ?, ?, ?)
-                        ''', (
-                            bot_name, time.time(), bot_status.status,
-                            bot_status.total_executions, success_rate,
-                            time.time() - bot_status.last_heartbeat
-                        ))
-
-                        conn.commit()
-                        conn.close()
+                        # Store in database (Postgres)
+                        async def _insert_perf():
+                            if not _async_db.pool:
+                                return
+                            async with _async_db.pool.acquire() as conn:
+                                await conn.execute('''
+                                    INSERT INTO bot_performance (
+                                        bot_name, timestamp, status, executions_count,
+                                        success_rate, uptime_seconds
+                                    ) VALUES ($1, $2, $3, $4, $5, $6)
+                                ''',
+                                bot_name, time.time(), bot_status.status,
+                                bot_status.total_executions, success_rate,
+                                time.time() - bot_status.last_heartbeat)
+                        try:
+                            loop = asyncio.get_event_loop()
+                        except RuntimeError:
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
+                        try:
+                            loop.run_until_complete(_insert_perf())
+                        except Exception as e:
+                            logger.warning(f"⚠️ Failed to store performance in Postgres: {e}")
 
                 # Write CSV report
                 self._write_csv_report()
@@ -749,7 +784,8 @@ class RealOrchestrator:
     def _write_csv_report(self):
         """Write performance report to CSV"""
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            from datetime import timezone
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             csv_file = f"performance_report_{timestamp}.csv"
 
             with open(csv_file, 'w', newline='') as f:
@@ -899,8 +935,8 @@ class RealOrchestrator:
                     liquidity_b=1000000.0,
                     slippage_estimate=0.005,
                     execution_window=30.0,
-                    detected_at=datetime.now(),
-                    expires_at=datetime.now()
+                    detected_at=datetime.now(timezone.utc),
+                    expires_at=datetime.now(timezone.utc)
                 )
 
                 # Execute via real trading engine

@@ -2,12 +2,13 @@
 Flash loan operations router
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from backend.core.security import get_current_user
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 import asyncio
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 router = APIRouter()
 
@@ -26,7 +27,7 @@ class FlashLoanResponse(BaseModel):
     message: str
 
 @router.post("/", response_model=FlashLoanResponse)
-async def execute_flash_loan(request: FlashLoanRequest):
+async def execute_flash_loan(request: FlashLoanRequest, auth=Depends(get_current_user)):
     """Execute flash loan operation"""
     try:
         # Simulate flash loan execution
@@ -46,6 +47,17 @@ async def execute_flash_loan(request: FlashLoanRequest):
             profit = random.uniform(amount_float * 0.001, amount_float * 0.005)  # 0.1-0.5% profit
             tx_hash = f"0x{''.join(random.choices('0123456789abcdef', k=64))}"
             
+            from backend.core.trade_logger import log_event
+            log_event(
+                "flashloan_executed",
+                tx=tx_hash,
+                asset=request.asset,
+                amount=request.amount,
+                network=request.network,
+                fee=fee,
+                profit=profit,
+                status="completed",
+            )
             return FlashLoanResponse(
                 success=True,
                 transactionHash=tx_hash,
@@ -102,7 +114,7 @@ async def get_flash_loan_providers():
     
     return {
         "providers": providers,
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 @router.post("/simulate")
@@ -130,7 +142,7 @@ async def simulate_flash_loan(request: FlashLoanRequest):
                 "profitable": net_profit > 0,
                 "roi_percentage": (net_profit / amount_float) * 100 if amount_float > 0 else 0
             },
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
     except ValueError:
@@ -250,7 +262,7 @@ async def get_flash_loan_history(
     """Get flash loan execution history"""
     try:
         history_items = []
-        base_time = datetime.utcnow()
+        base_time = datetime.now(timezone.utc)
 
         assets = ["ETH", "USDC", "DAI", "WBTC"]
         strategies = ["triangular", "simple", "sandwich"]
@@ -292,7 +304,7 @@ async def get_flash_loan_history(
                 "offset": offset,
                 "has_more": offset + limit < len(history_items)
             },
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
     except Exception as e:

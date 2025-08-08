@@ -95,12 +95,11 @@ class DEXAggregator:
         """Initialize DEX aggregator configurations"""
         logger.info("🔗 Initializing DEX Aggregators")
 
-        # Initialize HTTP session with proper cleanup
-        if not self.session or self.session.closed:
-            self.session = aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(total=10)
-            )
-        
+        # Initialize HTTP session with proper cleanup (shared session)
+        if not self.session or getattr(self.session, "closed", True):
+            from backend.core.http_client import get_session
+            self.session = await get_session()
+
         # Configure aggregators
         self.aggregators = {
             DEXProvider.ZEROX: {
