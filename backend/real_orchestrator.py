@@ -43,6 +43,7 @@ logger = logging.getLogger(__name__)
 try:
     from backend.core.aeon_execution_mode import aeon_mode, AEONExecutionMode
     from backend.core.trading_engine import trading_engine
+    from backend.core.strategy_router import strategy_router, RoutingSignal
     from backend.integrations.flashloan_providers import flashloan_manager
     REAL_INTEGRATIONS_AVAILABLE = True
     logger.info("✅ REAL AEON INTEGRATIONS LOADED")
@@ -202,10 +203,16 @@ class RealOrchestrator:
         self._start_bot("ADOM", self.config['bot_paths']['adom'])
         
         # Start orchestrator threads
+        def run_async_strategy_router():
+            """Run async strategy router in thread"""
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(self._strategy_router())
+
         threads = [
             threading.Thread(target=self._opportunity_scanner, daemon=True),
             threading.Thread(target=self._bot_monitor, daemon=True),
-            threading.Thread(target=self._strategy_router, daemon=True),
+            threading.Thread(target=run_async_strategy_router, daemon=True),
             threading.Thread(target=self._performance_tracker, daemon=True),
             threading.Thread(target=self._circuit_breaker_monitor, daemon=True)
         ]
@@ -612,14 +619,14 @@ class RealOrchestrator:
         except Exception as e:
             logger.error(f"❌ Failed to restart {bot_name}: {e}")
 
-    def _strategy_router(self):
+    async def _strategy_router(self):
         """Route opportunities to appropriate bots based on clear logic"""
         logger.info("🎯 Starting strategy router...")
 
         while self.running:
             try:
                 if not self.opportunities:
-                    time.sleep(1)
+                    await asyncio.sleep(1)
                     continue
 
                 # Get best opportunity
@@ -628,10 +635,27 @@ class RealOrchestrator:
                 # Remove from queue
                 self.opportunities.remove(best_opp)
 
-                # Route based on clear logic
-                selected_bot = self._select_bot_for_opportunity(best_opp)
+                # Route using strategy router
+                if REAL_INTEGRATIONS_AVAILABLE:
+                    signal = RoutingSignal(
+                        profit_usd=best_opp.net_profit_usd,
+                        risk_score=0.5,  # Default risk score
+                        mev_vulnerability=0.7 if best_opp.mev_risk == "high" else 0.3,
+                        gas_cost_usd=best_opp.gas_cost_usd,
+                        trade_size_usd=best_opp.profit_usd,
+                        time_sensitivity=0.8,  # High time sensitivity for arbitrage
+                        complexity_score=0.6   # Medium complexity
+                    )
 
-                if selected_bot and self.bots[selected_bot].status == "running":
+                    routing_result = await strategy_router.run(signal)
+                    selected_bot = routing_result['bot']
+
+                    logger.info(f"🎯 Strategy router selected {selected_bot}: {routing_result['reasoning']}")
+                else:
+                    # Fallback to old logic
+                    selected_bot = self._select_bot_for_opportunity(best_opp)
+
+                if selected_bot and selected_bot in self.bots and self.bots[selected_bot].status == "running":
                     # Send command to bot
                     self._send_command_to_bot(selected_bot, best_opp)
                     logger.info(f"📤 Sent opportunity to {selected_bot}: {best_opp.net_profit_usd:.2f} USD profit")

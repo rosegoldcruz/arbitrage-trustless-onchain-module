@@ -3,12 +3,12 @@
     "atom": "backend/ATOM.py",
     "adom": "backend/ADOM.js"
   },
-  "dex_endpoints": {
-    "uniswap_v3": "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3",
-    "curve": "https://api.curve.fi/api",
-    "balancer": "https://api.balancer.fi",
-    "1inch": "https://api.1inch.io/v5.0/8453"
-  },
+  "dex_endpoints": [
+    "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3",
+    "https://api.curve.fi/api",
+    "https://api.balancer.fi",
+    "https://api.1inch.io/v5.0/8453"
+  ],
   "min_spread_bps": 23,
   "flash_loan_threshold": 100,
   "max_restarts": 5,

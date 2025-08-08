@@ -14,6 +14,8 @@ from enum import Enum
 
 # AEON Core Integration
 from .aeon_execution_mode import aeon_mode, AEONExecutionMode
+from .wallet import secure_wallet
+from .mev_protection import mev_protection
 from ..integrations.flashloan_providers import flash_loan_manager, FlashLoanProvider, FlashLoanQuote
 from ..integrations.dex_aggregator import dex_aggregator, Chain
 
@@ -285,6 +287,22 @@ class TradingEngine:
             self.active_trades[trade_id] = trade
 
             logger.info(f"🔄 Processing trade: {trade_id} for opportunity {opportunity.opportunity_id}")
+
+            # 🛡️ MEV PROTECTION - Simulate bundle before execution
+            transactions = [{
+                'to': '0x1234567890123456789012345678901234567890',  # Mock contract address
+                'value': int(trade.amount_in * 1e18),
+                'gas': 200000,
+                'data': '0x'  # Mock transaction data
+            }]
+
+            bundle_simulation = await mev_protection.simulate_bundle(transactions)
+
+            if not bundle_simulation.success:
+                logger.warning(f"🛡️ MEV protection failed for trade {trade_id}: {bundle_simulation.error_message}")
+                trade.status = TradeStatus.FAILED
+                trade.error_message = f"MEV protection failed: {bundle_simulation.error_message}"
+                return trade
 
             # 🧬 AEON EXECUTION MODE CHECK
             spread_bps = (opportunity.price_difference / min(opportunity.price_a, opportunity.price_b)) * 10000

@@ -63,6 +63,34 @@ async def initialize_atom_platform():
             logger.error(f"❌ Failed to import security_manager: {e}")
             raise
 
+        try:
+            from backend.core.wallet import secure_wallet
+            logger.info("✅ Secure wallet imported")
+        except Exception as e:
+            logger.error(f"❌ Failed to import secure_wallet: {e}")
+            raise
+
+        try:
+            from backend.core.mev_protection import mev_protection
+            logger.info("✅ MEV protection imported")
+        except Exception as e:
+            logger.error(f"❌ Failed to import mev_protection: {e}")
+            raise
+
+        try:
+            from backend.core.strategy_router import strategy_router
+            logger.info("✅ Strategy router imported")
+        except Exception as e:
+            logger.error(f"❌ Failed to import strategy_router: {e}")
+            raise
+
+        try:
+            from backend.core.aeon_config import aeon_config
+            logger.info("✅ AEON config imported")
+        except Exception as e:
+            logger.error(f"❌ Failed to import aeon_config: {e}")
+            raise
+
         # 🔗 Integrations - Import one by one to catch specific errors
         try:
             from backend.integrations.flashloan_providers import flash_loan_manager
@@ -88,6 +116,9 @@ async def initialize_atom_platform():
         print("✅ All modules loaded successfully\n")
 
         steps = [
+            ("🔍 Environment Validation", lambda: security_manager.validate_env()),
+            ("🔐 Secure Wallet", secure_wallet.initialize_wallet),
+            ("🛡️ MEV Protection", mev_protection.initialize_protection),
             ("🔒 Security & Compliance", security_manager.initialize_security),
             ("⚓️ Blockchain Networks", blockchain_manager.initialize_networks),
             ("🔗 DEX Aggregators", dex_aggregator.initialize_aggregators),
@@ -110,6 +141,8 @@ async def initialize_atom_platform():
 
         print("\n🔍 Verifying Health:\n" + "-" * 40)
         checks = [
+            ("Secure Wallet", lambda: secure_wallet.is_initialized),
+            ("MEV Protection", lambda: mev_protection.is_monitoring),
             ("Trading Engine", lambda: trading_engine.is_running),
             ("Orchestrator", lambda: orchestrator.isRunning),
             ("Flash Loans", lambda: len(flash_loan_manager.providers) > 0),

@@ -236,6 +236,7 @@ export default function SettingsPage() {
                       <Label htmlFor="network" className="text-white">Default Network</Label>
                       <select
                         id="network"
+                        aria-label="Default Network"
                         value={settings.defaultNetwork}
                         onChange={(e) => handleInputChange("defaultNetwork", e.target.value)}
                         className="w-full bg-gray-800 border border-gray-600 text-white rounded-md px-3 py-2 focus:border-blue-400"

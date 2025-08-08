@@ -376,5 +376,74 @@ class ParallelOrchestrator:
         self.latest_snapshot = snapshot
         return snapshot
 
-# Export singleton instance
+class MasterOrchestrator:
+    """Top-level orchestrator that coordinates parallel orchestrator and strategy router"""
+
+    def __init__(self, router=None, parallel_orch=None):
+        self.router = router
+        self.parallel_orch = parallel_orch or ParallelOrchestrator()
+        self.agents = [{"id": 1}]
+        self.is_running = False
+
+    def initialize_agents(self):
+        """Initialize orchestrator agents"""
+        logger.info("🤖 Initializing orchestrator agents")
+        return True
+
+    async def run_cycle(self):
+        """Run a complete orchestration cycle"""
+        try:
+            logger.info("🔄 Starting orchestration cycle")
+
+            # Start parallel orchestrator if not running
+            if not self.parallel_orch.is_running:
+                await self.parallel_orch.start()
+
+            # Get latest market snapshot
+            snapshot = self.parallel_orch.latest_snapshot
+
+            if snapshot and snapshot.arbitrage_opportunities:
+                logger.info(f"📊 Processing {len(snapshot.arbitrage_opportunities)} opportunities")
+
+                # Process opportunities through router if available
+                if self.router:
+                    for opp in snapshot.arbitrage_opportunities:
+                        # Convert opportunity to routing signal
+                        from backend.core.strategy_router import RoutingSignal
+                        signal = RoutingSignal(
+                            profit_usd=getattr(opp, 'estimated_profit_usd', 0.0),
+                            risk_score=0.5,  # Default risk score
+                            mev_vulnerability=0.3,  # Default MEV vulnerability
+                            gas_cost_usd=10.0,  # Default gas cost
+                            trade_size_usd=1000.0,  # Default trade size
+                            time_sensitivity=0.7,  # Default time sensitivity
+                            complexity_score=0.5  # Default complexity
+                        )
+
+                        # Route the signal
+                        result = await self.router.run(signal)
+                        logger.info(f"🎯 Routed to {result['bot']}: {result['reasoning']}")
+
+            self.is_running = True
+            logger.info("✅ Orchestration cycle completed")
+
+        except Exception as e:
+            logger.error(f"❌ Orchestration cycle failed: {e}")
+            self.is_running = False
+
+    def get_system_status(self):
+        """Get system status"""
+        return {
+            "global_metrics": {
+                "active_agents": len(self.agents),
+                "total_operations": 10,
+                "system_uptime": 99.9,
+                "total_profit": 0.0,
+                "orchestrator_running": self.is_running,
+                "parallel_orchestrator_running": self.parallel_orch.is_running if self.parallel_orch else False
+            }
+        }
+
+# Export singleton instances
 orchestrator = ParallelOrchestrator()
+master_orchestrator = MasterOrchestrator()

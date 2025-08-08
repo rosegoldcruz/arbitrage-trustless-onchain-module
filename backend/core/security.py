@@ -3,6 +3,7 @@
 Advanced security controls, audit logging, and regulatory compliance
 """
 
+import os
 import asyncio
 import logging
 from datetime import datetime, timezone, timedelta
@@ -110,6 +111,68 @@ class SecurityManager:
             "encryption_algorithm": "AES-256-GCM"
         }
         self.is_monitoring = False
+
+    def validate_env(self) -> bool:
+        """Validate required environment variables"""
+        try:
+            logger.info("🔍 Validating environment variables...")
+
+            required_vars = [
+                "PRIVATE_KEY",
+                "BASE_SEPOLIA_RPC_URL",
+                "ATOM_CONTRACT_ADDRESS",
+                "FLASH_LOAN_CONTRACT_ADDRESS"
+            ]
+
+            missing_vars = []
+            for var in required_vars:
+                if not os.getenv(var):
+                    missing_vars.append(var)
+
+            if missing_vars:
+                logger.error(f"❌ Missing required environment variables: {missing_vars}")
+                return False
+
+            logger.info("✅ Environment validation passed")
+            return True
+
+        except Exception as e:
+            logger.error(f"❌ Environment validation failed: {e}")
+            return False
+
+    def enforce_ip_whitelist(self, app) -> None:
+        """Enforce IP whitelist on FastAPI app"""
+        try:
+            from fastapi import Request, HTTPException
+            from fastapi.middleware.base import BaseHTTPMiddleware
+
+            class IPWhitelistMiddleware(BaseHTTPMiddleware):
+                def __init__(self, app, allowed_ips: set):
+                    super().__init__(app)
+                    self.allowed_ips = allowed_ips
+
+                async def dispatch(self, request: Request, call_next):
+                    client_ip = request.client.host
+
+                    # Allow localhost and private networks
+                    if client_ip in ["127.0.0.1", "::1"] or client_ip.startswith("192.168.") or client_ip.startswith("10."):
+                        response = await call_next(request)
+                        return response
+
+                    # Check whitelist
+                    if client_ip not in self.allowed_ips:
+                        logger.warning(f"🚫 Blocked request from unauthorized IP: {client_ip}")
+                        raise HTTPException(status_code=403, detail="IP not whitelisted")
+
+                    response = await call_next(request)
+                    return response
+
+            # Add middleware to app
+            app.add_middleware(IPWhitelistMiddleware, allowed_ips=self.allowed_ips)
+            logger.info("🛡️ IP whitelist middleware enabled")
+
+        except Exception as e:
+            logger.error(f"❌ Failed to enforce IP whitelist: {e}")
     
     async def initialize_security(self):
         """Initialize security system"""

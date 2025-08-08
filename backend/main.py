@@ -35,6 +35,14 @@ except ImportError:
     def validate_production_config():
         return True
 
+# 🔒 Security integration
+try:
+    from backend.core.security import security_manager
+    SECURITY_AVAILABLE = True
+except ImportError:
+    SECURITY_AVAILABLE = False
+    security_manager = None
+
 # 🫠 Shared state
 app_state = {
     "agents": {
@@ -147,6 +155,11 @@ async def lifespan(app: FastAPI):
 
 # 🚀 FastAPI App
 app = FastAPI(title="ATOM API", lifespan=lifespan)
+
+# 🔒 Enforce security
+if SECURITY_AVAILABLE and security_manager:
+    security_manager.enforce_ip_whitelist(app)
+    logger.info("🛡️ IP whitelist enforced")
 
 # 🌐 CORS Middleware - DASHBOARD FOCUSED
 app.add_middleware(

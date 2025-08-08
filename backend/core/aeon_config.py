@@ -89,6 +89,12 @@ class AEONConfigManager:
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
         self._config: Optional[AEONConfig] = None
         self._load_config()
+
+    @classmethod
+    def parse_file(cls, config_path: str) -> AEONConfig:
+        """Parse AEON config from file"""
+        manager = cls(config_path)
+        return manager.get_config()
     
     def _load_config(self) -> None:
         """Load configuration from file or create default"""
