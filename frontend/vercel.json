@@ -1,52 +1,8 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "installCommand": "npm install",
-  "devCommand": "npm run dev",
-  "env": {
-    "NEXT_PUBLIC_APP_NAME": "ATOM",
-    "NEXT_PUBLIC_APP_URL": "https://atom-arbitrage.vercel.app",
-    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_aW5mb3JtZWQtcGVhY29jay0yNS5jbGVyay5hY2NvdW50cy5kZXYk",
-    "NEXT_PUBLIC_SUPABASE_URL": "https://nmjvebcauoyqzjlnluos.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tanZlYmNhdW95cXpqbG5sdW9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY5NzI4MDAsImV4cCI6MjA1MjU0ODgwMH0.example",
-    "NEXT_PUBLIC_CHAIN_ID": "84532",
-    "NEXT_PUBLIC_RPC_URL": "https://sepolia.base.org"
-  },
-  "build": {
-    "env": {
-      "NEXT_PUBLIC_BACKEND_URL": "https://api.aeoninvestmentstechnologies.com",
-      "NEXT_PUBLIC_API_URL": "https://api.aeoninvestmentstechnologies.com"
-    }
-  },
-  "functions": {
-    "app/**/*.tsx": {
-      "maxDuration": 30
-    }
-  },
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        }
-      ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://api.aeoninvestmentstechnologies.com/:path*"
-    }
-  ]
+  "installCommand": "pnpm install",
+  "buildCommand": "pnpm build",
+  "outputDirectory": ".next"
 }
+

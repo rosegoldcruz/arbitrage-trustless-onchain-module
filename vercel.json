@@ -13,8 +13,8 @@
       "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5tanZlYmNhdW95cXpqbG5sdW9zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY5NzI4MDAsImV4cCI6MjA1MjU0ODgwMH0.example",
       "NEXT_PUBLIC_CHAIN_ID": "84532",
       "NEXT_PUBLIC_RPC_URL": "https://sepolia.base.org",
-      "NEXT_PUBLIC_BACKEND_URL": "http://128.199.15.97:8000",
-      "NEXT_PUBLIC_API_URL": "http://128.199.15.97:8000"
+      "NEXT_PUBLIC_BACKEND_URL": "https://api.aeoninvestmentstechnologies.com",
+      "NEXT_PUBLIC_API_URL": "https://api.aeoninvestmentstechnologies.com"
     }
   },
   "functions": {
@@ -44,7 +44,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "http://128.199.15.97:8000/:path*"
+      "destination": "https://api.aeoninvestmentstechnologies.com/:path*"
     }
   ]
 }

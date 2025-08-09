@@ -51,7 +51,7 @@ function FoxImagePlane({ src='/33f.png' }:{src?:string}){
   });
   return (
     <mesh ref={mesh} position={[0,0,0.2]} renderOrder={2}>
-      <planeGeometry args={[1.9,1.9,1,1]} />
+      <planeGeometry args={[3.4,3.4,1,1]} />
       <primitive object={mat} attach="material" />
     </mesh>
   );

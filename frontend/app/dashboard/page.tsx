@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Bot,
   Zap,
   TrendingUp,
   Activity,
@@ -36,10 +35,11 @@ export default function DashboardPage() {
             <div className="flex items-center gap-3">
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg"
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                className="w-10 h-10 rounded-full overflow-hidden ring-1 ring-white/10"
               >
-                <Bot className="h-6 w-6" />
+                {/* ATOM logo image */}
+                <img src="/1.png" alt="ATOM" className="w-full h-full object-contain" />
               </motion.div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
