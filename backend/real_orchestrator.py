@@ -114,7 +114,7 @@ try:
     from backend.core.aeon_execution_mode import aeon_mode, AEONExecutionMode
     from backend.core.trading_engine import trading_engine
     from backend.core.strategy_router import strategy_router, RoutingSignal
-    from backend.integrations.flashloan_providers import flashloan_manager
+    from backend.integrations.flashloan_providers import flash_loan_manager as flashloan_manager
     REAL_INTEGRATIONS_AVAILABLE = True
     logger.info("✅ REAL AEON INTEGRATIONS LOADED")
 except ImportError as e:

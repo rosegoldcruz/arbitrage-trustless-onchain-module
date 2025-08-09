@@ -314,9 +314,9 @@ async def resolve_alert(alert_id: str, current_user = Depends(get_current_user))
 
 if __name__ == "__main__":
     uvicorn.run(
-        "backend.main:app",
+        "main:app",  # Fixed: removed "backend." prefix
         host="0.0.0.0",
         port=8000,
-        reload=True,
-        factory=True
+        reload=False  # Fixed: disabled auto-reload for production
+        # Removed factory=True - this was the main ASGI error!
     )

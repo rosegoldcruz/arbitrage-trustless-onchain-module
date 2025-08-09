@@ -12,7 +12,11 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from web3 import Web3
-from web3.middleware import geth_poa_middleware
+try:
+    from web3.middleware import geth_poa_middleware
+except ImportError:
+    # For newer web3.py versions
+    geth_poa_middleware = None
 from eth_account import Account
 from eth_typing import ChecksumAddress
 

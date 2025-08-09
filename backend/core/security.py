@@ -144,7 +144,7 @@ class SecurityManager:
         """Enforce IP whitelist on FastAPI app"""
         try:
             from fastapi import Request, HTTPException
-            from fastapi.middleware.base import BaseHTTPMiddleware
+            from starlette.middleware.base import BaseHTTPMiddleware
 
             class IPWhitelistMiddleware(BaseHTTPMiddleware):
                 def __init__(self, app, allowed_ips: set):
