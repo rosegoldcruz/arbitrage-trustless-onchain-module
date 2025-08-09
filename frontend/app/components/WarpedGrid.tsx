@@ -14,15 +14,15 @@ export function RadialWaveGridMaterial() {
 
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
-    uSpeed: { value: 1.35 },   // wave travel speed
-    uWaveAmp: { value: 0.42 }, // vertical displacement strength
-    uFreq: { value: 14.0 },    // ring count
-    uTilt: { value: 0.9 },     // perspective squish
+    uSpeed: { value: 1.25 },
+    uWaveAmp: { value: 0.42 },
+    uFreq: { value: 14.0 },
+    uTilt: { value: 0.9 },
     uLineDensity: { value: 26.0 },
     uBaseA: { value: new THREE.Color('#000000') },
-    uBaseB: { value: new THREE.Color('#07070a') },
-    uLineColor: { value: new THREE.Color('#2a2a2f') }, // dim graphite lines
-    uSparkColor: { value: new THREE.Color('#ffffff') }, // micro highlights
+    uBaseB: { value: new THREE.Color('#0a0b0f') },
+    uLineColor: { value: new THREE.Color('#2a2d34') },
+    uSparkColor: { value: new THREE.Color('#ffffff') },
   }), [])
 
   const vertex = /* glsl */`
@@ -54,8 +54,8 @@ export function RadialWaveGridMaterial() {
       float gy = gridLine(st.y * (uLineDensity*0.85));
       float grid = clamp(gx+gy, 0.0, 1.0);
       vec3 base = mix(uBaseA, uBaseB, vUv.y);
-      float sparkle = smoothstep(0.0, 0.9, abs(vWave)) * 0.25; // subtle glow on peaks
-      vec3 color = base + grid * (uLineColor + uSparkColor * sparkle*0.6);
+      float sparkle = smoothstep(0.0, 0.9, abs(vWave)) * 0.22;
+      vec3 color = base + grid * (uLineColor + uSparkColor * sparkle*0.55);
       gl_FragColor = vec4(color, 1.0);
     }
   `

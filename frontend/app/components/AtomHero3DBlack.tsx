@@ -11,7 +11,7 @@ import * as THREE from 'three'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import WarpedGridPlane from './WarpedGrid'
 
-function useMouseParallax(strength=0.3){
+function useMouseParallax(strength=0.28){
   const { camera, size } = useThree()
   const target = useRef(new THREE.Vector3())
   useEffect(() => {
@@ -46,40 +46,47 @@ function useScrollDolly(baseZ=4.2, range=0.8){
 
 function FoxImagePlane({ src='/33f.png' }:{src?:string}){
   const tex = useTexture(src)
-  const mat = useMemo(()=> new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite:false, color: 0xffffff }),[tex])
+  const mat = useMemo(()=> new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite:false, toneMapped:false, color: 0xffffff }),[tex])
   const mesh = useRef<THREE.Mesh>(null!)
-  useFrame((_, t)=>{
-    if(!mesh.current) return
-    mesh.current.rotation.y = Math.sin(t*0.32)*0.12
-    mesh.current.position.y = Math.sin(t*0.85)*0.05
-  })
+  useFrame((_, t)=>{ if(!mesh.current) return; mesh.current.rotation.y = Math.sin(t*0.32)*0.12; mesh.current.position.y = Math.sin(t*0.85)*0.05 })
   return (
-    <mesh ref={mesh} position={[0,0,0.22]} renderOrder={3}>
+    <mesh ref={mesh} position={[0,0,0.22]} renderOrder={5}>
       <planeGeometry args={[2.1,2.1,1,1]} />
-      {/* @ts-ignore */}
-      <primitive object={mat} attach="material" />
+      {/* @ts-ignore */}<primitive object={mat} attach="material" />
     </mesh>
   )
 }
 
-// Radial gradient glow planes for eyes, additive + bloom
-function EyeBeacon({ position=[0,0,0.24] as [number,number,number], radius=0.18 }){
+// Warm white EYE glow (no streaks). Premultiplied, additive, bloom-friendly.
+function EyeGlow({ position=[0,0,0.25] as [number,number,number], radius=0.26, warm=0.22 }){
   const mat = useMemo(()=>{
-    const uniforms = { uR: { value: radius } }
     const vs = /* glsl */`varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`
     const fs = /* glsl */`
-      varying vec2 vUv; uniform float uR;
-      void main(){ vec2 p=vUv*2.0-1.0; float d=length(p); float a=smoothstep(uR, uR*0.2, d); float core=smoothstep(0.25,0.0,d); vec3 col=vec3(1.0)*(0.6*core+0.6*(1.0-a)); gl_FragColor=vec4(col,1.0-a); }
+      varying vec2 vUv; uniform float uR; uniform float uWarm; uniform float uTime;
+      void main(){
+        vec2 p = vUv*2.0-1.0; float d = length(p);
+        float edge = smoothstep(uR, uR*0.25, d);     // soft circular glow
+        float core = smoothstep(0.28, 0.0, d);       // bright center
+        float flick = 1.0 + 0.05*sin(uTime*40.0) + 0.02*sin(uTime*87.0);
+        float a = (0.55*(1.0-edge) + 0.9*core) * flick; // alpha
+        vec3 white = vec3(1.0);
+        vec3 warmTint = vec3(1.0, 0.78, 0.45);       // light orange
+        vec3 col = mix(white, warmTint, uWarm) * a;  // premultiplied color
+        gl_FragColor = vec4(col, a);
+      }
     `
-    return new THREE.ShaderMaterial({ vertexShader: vs, fragmentShader: fs, transparent:true, blending: THREE.AdditiveBlending, depthWrite:false })
-  },[radius])
+    return new THREE.ShaderMaterial({
+      vertexShader: vs, fragmentShader: fs, transparent:true,
+      blending: THREE.AdditiveBlending, depthWrite:false, toneMapped:false,
+      uniforms: { uR:{ value: radius }, uWarm:{ value: warm }, uTime:{ value: 0 } }
+    })
+  },[radius, warm])
   const mesh = useRef<THREE.Mesh>(null!)
-  useFrame((_, t)=>{ if(mesh.current){ const s=1.0+Math.sin(t*2.2)*0.08; mesh.current.scale.setScalar(s) } })
+  useFrame((_, t)=>{ if(mesh.current){ (mesh.current.material as any).uniforms.uTime.value = t } })
   return (
-    <mesh ref={mesh} position={position} renderOrder={4}>
-      <planeGeometry args={[0.55,0.55]} />
-      {/* @ts-ignore */}
-      <primitive object={mat} attach="material" />
+    <mesh ref={mesh} position={position} renderOrder={6}>
+      <planeGeometry args={[0.9,0.9]} />
+      {/* @ts-ignore */}<primitive object={mat} attach="material" />
     </mesh>
   )
 }
@@ -96,18 +103,19 @@ export default function AtomHero3DBlack(){
         <Environment preset="city" />
         <WarpedGridPlane />
         <FoxImagePlane src="/33f.png" />
-        <EyeBeacon position={[-0.42,0.15,0.26]} radius={0.22} />
-        <EyeBeacon position={[ 0.42,0.15,0.26]} radius={0.22} />
-        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.18} />
+        {/* Adjust eye positions to your PNG */}
+        <EyeGlow position={[-0.18, 0.15, 0.27]} radius={0.26} warm={0.22} />
+        <EyeGlow position={[ 0.18, 0.15, 0.27]} radius={0.26} warm={0.22} />
+        <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.16} />
         <EffectComposer>
-          <Bloom luminanceThreshold={0.15} luminanceSmoothing={0.85} intensity={1.1} />
+          <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} intensity={1.25} />
         </EffectComposer>
         <ParallaxAndScroll />
       </Canvas>
 
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white">The Arbitrage Trustless On-Chain Module</h1>
-        <p className="mt-4 max-w-2xl text-white/60 md:text-xl">Powered by the Advanced Efficient Optimized Network</p>
+        <p className="mt-4 max-w-2xl text-white/70 md:text-xl">Powered by the Advanced Efficient Optimized Network</p>
       </div>
 
       <div className="pointer-events-auto absolute bottom-8 left-1/2 -translate-x-1/2">
