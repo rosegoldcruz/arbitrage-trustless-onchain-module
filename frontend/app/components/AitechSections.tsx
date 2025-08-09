@@ -87,9 +87,9 @@ export default function AitechSections() {
       <section className="mx-auto max-w-7xl px-6 py-12">
         <SectionTitle label="Capabilities" title="Concrete Results, Not Hype" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card title="Live Spread Scanner" desc="0x, Uniswap v3, 1inch — consolidated quotes and spreads." img="/5.png" />
-          <Card title="Virtual Price Sim" desc="Curve virtual price + Balancer invariants before every route." img="/6.png" />
-          <Card title="Gas Simulator" desc="Per-route gas estimates to ensure ROI-after-gas clarity." img="/3.png" />
+          <Card title="Live Spread Scanner" desc="0x, Uniswap v3, 1inch — consolidated quotes and spreads." img="/live-spread-scanner.png" />
+          <Card title="Virtual Price Sim" desc="Curve virtual price + Balancer invariants before every route." img="/virtual-price-sim.png" />
+          <Card title="Gas Simulator" desc="Per-route gas estimates to ensure ROI-after-gas clarity." img="/gas-simulator.png" />
         </div>
       </section>
     </div>
