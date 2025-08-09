@@ -3,7 +3,7 @@ import WarpedGrid from './WarpedGrid';
 
 export default function AtomHero3DBlack() {
   return (
-    <section className="relative w-full h-[600px] overflow-hidden bg-black">
+    <section className="relative w-full h-screen overflow-hidden bg-black">
       <WarpedGrid />
       <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
         <Image
