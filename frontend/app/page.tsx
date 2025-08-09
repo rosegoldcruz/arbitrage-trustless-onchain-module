@@ -78,43 +78,14 @@ export default function Home() {
             </Button>
           </div>
 
-          {/* Feature Cards */}
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="bg-gray-900 p-6 rounded-lg border border-gray-800"
-            >
-              <Zap className="h-12 w-12 text-blue-400 mb-4 mx-auto" />
-              <h3 className="text-xl font-semibold mb-2">Flash Loans</h3>
-              <p className="text-gray-400">Zero-capital arbitrage using AAVE flash loans for maximum efficiency</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="bg-gray-900 p-6 rounded-lg border border-gray-800"
-            >
-              <Shield className="h-12 w-12 text-green-400 mb-4 mx-auto" />
-              <h3 className="text-xl font-semibold mb-2">AI Agents</h3>
-              <p className="text-gray-400">Intelligent bots that monitor and execute profitable opportunities 24/7</p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="bg-gray-900 p-6 rounded-lg border border-gray-800"
-            >
-              <TrendingUp className="h-12 w-12 text-purple-400 mb-4 mx-auto" />
-              <h3 className="text-xl font-semibold mb-2">Base L2</h3>
-              <p className="text-gray-400">Optimized for Base network with low fees and fast execution</p>
-            </motion.div>
-          </div>
         </motion.div>
       </main>
+
+      {/* AITECH-style sections */}
+      {(() => {
+        const AitechSections = require('./components/AitechSections').default;
+        return <AitechSections />;
+      })()}
     </div>
   );
 }
