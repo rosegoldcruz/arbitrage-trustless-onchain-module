@@ -1,3 +1,5 @@
+'use client'
+
 import FoxHero from './components/FoxHero';
 
 export default function Page() {

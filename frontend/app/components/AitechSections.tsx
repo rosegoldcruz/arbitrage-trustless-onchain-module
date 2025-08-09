@@ -30,7 +30,7 @@ function Card({
       className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-transparent p-5 hover:border-white/20"
     >
       {img && (
-        <div className="mb-4 overflow-hidden rounded-xl bg-black/40">
+        <div className="mb-4 overflow-hidden rounded-xl bg-black">
           <img src={img} alt={title} className="h-40 w-full object-contain opacity-90 transition group-hover:opacity-100" />
         </div>
       )}
