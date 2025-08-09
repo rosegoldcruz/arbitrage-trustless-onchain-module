@@ -31,7 +31,7 @@ function Card({
     >
       {img && (
         <div className="mb-4 overflow-hidden rounded-xl bg-black/40">
-          <img src={img} alt={title} className="h-40 w-full object-cover opacity-90 transition group-hover:opacity-100" />
+          <img src={img} alt={title} className="h-40 w-full object-contain opacity-90 transition group-hover:opacity-100" />
         </div>
       )}
       <h3 className="text-lg font-semibold text-white">{title}</h3>
