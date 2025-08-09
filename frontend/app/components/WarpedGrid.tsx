@@ -1,75 +1,58 @@
-// ================================================
-// FILE: frontend/app/components/WarpedGrid.tsx
-// Black, radial wave grid (center-out), subtle wireframe lines
-// ================================================
-'use client'
+import * as THREE from 'three';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { useRef } from 'react';
 
-import { useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
-import * as THREE from 'three'
+function RadialWave() {
+  const mesh = useRef<THREE.Mesh>(null!);
+  const shaderData = useRef({ time: 0 });
 
-export function RadialWaveGridMaterial() {
-  const mat = useRef<THREE.ShaderMaterial>(null!)
-  useFrame((_, t) => { if (mat.current) mat.current.uniforms.uTime.value = t })
+  const uniforms = {
+    u_time: { value: 0 },
+    u_color: { value: new THREE.Color(0x000000) },
+  };
 
-  const uniforms = useMemo(() => ({
-    uTime: { value: 0 },
-    uSpeed: { value: 1.25 },
-    uWaveAmp: { value: 0.42 },
-    uFreq: { value: 14.0 },
-    uTilt: { value: 0.9 },
-    uLineDensity: { value: 26.0 },
-    uBaseA: { value: new THREE.Color('#000000') },
-    uBaseB: { value: new THREE.Color('#0a0b0f') },
-    uLineColor: { value: new THREE.Color('#2a2d34') },
-    uSparkColor: { value: new THREE.Color('#ffffff') },
-  }), [])
+  const material = new THREE.ShaderMaterial({
+    uniforms,
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform float u_time;
+      varying vec2 vUv;
+      void main() {
+        vec2 uv = vUv - 0.5;
+        float dist = length(uv);
+        float wave = 0.5 + 0.5 * sin(10.0 * dist - u_time * 3.0);
+        float alpha = smoothstep(0.5, 0.0, dist);
+        vec3 color = vec3(wave * 0.1);
+        gl_FragColor = vec4(color, alpha);
+      }
+    `,
+    transparent: true,
+  });
 
-  const vertex = /* glsl */`
-    varying vec2 vUv;
-    varying float vWave;
-    uniform float uTime, uSpeed, uWaveAmp, uFreq, uTilt;
-    void main(){
-      vUv = uv;
-      vec2 g = (uv - 0.5) * vec2(1.0, uTilt);
-      float r = length(g);
-      float t = uTime * uSpeed;
-      float w1 = sin(r * uFreq - t);
-      float w2 = sin(r * (uFreq*1.27) + t*0.8);
-      float wave = (w1 + 0.7*w2) * (1.0 - smoothstep(0.55, 1.05, r));
-      float falloff = 1.0/(1.0 + r*2.2);
-      vWave = wave * falloff;
-      vec3 pos = position; pos.z += vWave * uWaveAmp;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos,1.0);
-    }
-  `
+  useFrame((_, delta) => {
+    shaderData.current.time += delta;
+    material.uniforms.u_time.value = shaderData.current.time;
+  });
 
-  const fragment = /* glsl */`
-    varying vec2 vUv; varying float vWave;
-    uniform float uLineDensity; uniform vec3 uBaseA,uBaseB,uLineColor,uSparkColor;
-    float gridLine(float x){ float d=abs(fract(x)-0.5); return smoothstep(0.495,0.5,0.5-d); }
-    void main(){
-      vec2 st = vUv * vec2(1.7,1.05);
-      float gx = gridLine(st.x * uLineDensity);
-      float gy = gridLine(st.y * (uLineDensity*0.85));
-      float grid = clamp(gx+gy, 0.0, 1.0);
-      vec3 base = mix(uBaseA, uBaseB, vUv.y);
-      float sparkle = smoothstep(0.0, 0.9, abs(vWave)) * 0.22;
-      vec3 color = base + grid * (uLineColor + uSparkColor * sparkle*0.55);
-      gl_FragColor = vec4(color, 1.0);
-    }
-  `
-
-  // @ts-ignore
-  return <shaderMaterial ref={mat} uniforms={uniforms} vertexShader={vertex} fragmentShader={fragment} />
+  return (
+    <mesh ref={mesh}>
+      <planeGeometry args={[5, 5, 32, 32]} />
+      <primitive object={material} attach="material" />
+    </mesh>
+  );
 }
 
-export default function WarpedGridPlane() {
+export default function WarpedGrid() {
   return (
-    <mesh rotation={[-Math.PI/3.1, 0, 0]} position={[0, -1.25, -1.8]}>
-      <planeGeometry args={[16, 10, 360, 260]} />
-      <RadialWaveGridMaterial />
-    </mesh>
-  )
+    <Canvas camera={{ position: [0, 0, 1] }}>
+      <RadialWave />
+    </Canvas>
+  );
 }
 
