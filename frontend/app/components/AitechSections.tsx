@@ -43,13 +43,32 @@ function Card({
 export default function AitechSections() {
   return (
     <div className="relative">
-      {/* Partners / Integrations */}
+      {/* Partners / Integrations - Infinite Scroll */}
       <section className="mx-auto max-w-7xl px-6 py-12">
         <div className="mb-6 text-center text-xs uppercase tracking-[0.2em] text-white/50">Trusted Integrations</div>
-        <div className="grid grid-cols-3 md:grid-cols-6 items-center gap-6 opacity-70">
-          {["/1.png","/2.png","/3.png","/4.png","/5.png","/6.png"].map((src, i) => (
-            <img key={i} src={src} alt="logo" className="mx-auto h-8 w-auto grayscale opacity-70 hover:opacity-100 transition" />
-          ))}
+        <div className="relative overflow-hidden">
+          <div className="flex animate-scroll-left space-x-8">
+            {/* First set of logos */}
+            {[
+              "/partners/0x.png", "/partners/aave.png", "/partners/alchemy.png", "/partners/balancer.png",
+              "/partners/base.png", "/partners/bitquery.jpg", "/partners/chainlink.png", "/partners/clerk.jpg",
+              "/partners/cowdao.png", "/partners/curve.png", "/partners/dune.png", "/partners/ethereum.png",
+              "/partners/metamask.png", "/partners/postgre.png", "/partners/quicknode.png", "/partners/replicate.png",
+              "/partners/supabase.png", "/partners/sushi.png", "/partners/uniswap.png", "/partners/vercel.png"
+            ].map((src, i) => (
+              <img key={i} src={src} alt="partner logo" className="h-12 w-20 object-contain grayscale opacity-70 hover:opacity-100 transition flex-shrink-0" />
+            ))}
+            {/* Duplicate set for seamless loop */}
+            {[
+              "/partners/0x.png", "/partners/aave.png", "/partners/alchemy.png", "/partners/balancer.png",
+              "/partners/base.png", "/partners/bitquery.jpg", "/partners/chainlink.png", "/partners/clerk.jpg",
+              "/partners/cowdao.png", "/partners/curve.png", "/partners/dune.png", "/partners/ethereum.png",
+              "/partners/metamask.png", "/partners/postgre.png", "/partners/quicknode.png", "/partners/replicate.png",
+              "/partners/supabase.png", "/partners/sushi.png", "/partners/uniswap.png", "/partners/vercel.png"
+            ].map((src, i) => (
+              <img key={`dup-${i}`} src={src} alt="partner logo" className="h-12 w-20 object-contain grayscale opacity-70 hover:opacity-100 transition flex-shrink-0" />
+            ))}
+          </div>
         </div>
       </section>
 
