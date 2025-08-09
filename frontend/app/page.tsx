@@ -6,6 +6,8 @@ import { ArrowRight, Zap, Shield, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 
+import AtomHero3D from "./components/AtomHero3D";
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-black text-white">
@@ -31,8 +33,14 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <main className="flex flex-col items-center justify-center min-h-[80vh] text-center px-6">
+      {/* Hero Section (3D) */}
+      <div className="relative">
+        {/* 3D Cinematic Hero */}
+        <AtomHero3D />
+      </div>
+
+      {/* Existing Hero Content Below 3D */}
+      <main className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
