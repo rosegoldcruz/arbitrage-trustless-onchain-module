@@ -1,0 +1,10 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "SafeMath",
+  "sourceName": "@openzeppelin/contracts/utils/math/SafeMath.sol",
+  "abi": [],
+  "bytecode": "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea2646970667358221220e504a01b00c105367761a3fc33e54ccf9a6b218b654bf5c5b3f96dca58a315c364736f6c63430008140033",
+  "deployedBytecode": "0x600080fdfea2646970667358221220e504a01b00c105367761a3fc33e54ccf9a6b218b654bf5c5b3f96dca58a315c364736f6c63430008140033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

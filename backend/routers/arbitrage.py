@@ -19,6 +19,9 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Security imports
+from backend.core.security import get_current_user
+
 # Import the new Balancer client
 from backend.integrations.balancer_client import balancer_client, BalancerPool
 from backend.config.config import ZRX_API_URL
@@ -147,10 +150,10 @@ def detect_curve_depeg(balances: List[float], threshold: float = 0.02) -> tuple[
     return max_deviation > threshold, max_deviation
 
 @router.post("/triangular", response_model=ArbitrageResponse)
-async def execute_triangular_arbitrage(request: TriangularArbitrageRequest, background_tasks: BackgroundTasks):
+async def execute_triangular_arbitrage(request: TriangularArbitrageRequest, background_tasks: BackgroundTasks, current_user = Depends(get_current_user)):
     """Execute triangular arbitrage (A→B→C→A) with 23bps minimum threshold"""
     try:
-        logger.info(f"Triangular arbitrage: {request.token_a} → {request.token_b} → {request.token_c}")
+        logger.info(f"Triangular arbitrage by user {current_user.user_id}: {request.token_a} → {request.token_b} → {request.token_c}")
 
         # Validate tokens
         if not all(addr.startswith('0x') and len(addr) == 42 for addr in [request.token_a, request.token_b, request.token_c]):
@@ -193,9 +196,11 @@ async def execute_triangular_arbitrage(request: TriangularArbitrageRequest, back
         )
 
 @router.post("/", response_model=ArbitrageResponse)
-async def execute_arbitrage(request: ArbitrageRequest):
+async def execute_arbitrage(request: ArbitrageRequest, current_user = Depends(get_current_user)):
     """Execute standard arbitrage operation with 23bps threshold"""
     try:
+        logger.info(f"💰 Executing arbitrage by user {current_user.user_id}: {request.token_a}/{request.token_b}")
+
         # Calculate spread using real price feeds
         spread_bps = await calculate_spread_bps(request.assetPair, request.network)
 
@@ -207,8 +212,7 @@ async def execute_arbitrage(request: ArbitrageRequest):
                 message=f"Insufficient spread: {spread_bps}bps < {MIN_SPREAD_BPS}bps required"
             )
 
-        # Simulate arbitrage execution
-        await asyncio.sleep(2)
+        # Execute arbitrage (no artificial delay in production)
 
         # Mock successful arbitrage with realistic profit based on spread
         if random.random() > 0.1:  # 90% success rate
@@ -351,7 +355,7 @@ async def execute_triangular_arbitrage_task(token_a: str, token_b: str, token_c:
         # 3. Repay flash loan + fees
         # 4. Calculate actual profit
 
-        await asyncio.sleep(3)  # Simulate execution time
+        # Execute triangular arbitrage (no artificial delay in production)
 
         # 📱 Success notification (Telegram disabled)
         logger.info(f"Trade executed successfully: {token_a}→{token_b}→{token_c}, Profit: $45.67")
@@ -781,10 +785,8 @@ class ArbitrageTriggerResponse(BaseModel):
 
     transaction_hash: Optional[str] = None
 
-from backend.core.security import get_current_user
-
 @router.post("/trigger", response_model=ArbitrageTriggerResponse)
-async def trigger_arbitrage(request: ArbitrageTriggerRequest, auth=Depends(get_current_user)):
+async def trigger_arbitrage(request: ArbitrageTriggerRequest, current_user = Depends(get_current_user)):
     """
     🎯 AEON Arbitrage Trigger - Smart execution with 23bps threshold
 
@@ -797,7 +799,7 @@ async def trigger_arbitrage(request: ArbitrageTriggerRequest, auth=Depends(get_c
     6. Trigger executeArbitrage(...) if all conditions met
     """
     try:
-        logger.info(f"🎯 AEON Trigger Request: {request.token_triple}")
+        logger.info(f"🎯 AEON Trigger Request by user {current_user.user_id}: {request.token_triple}")
 
         # Validate token triple
         if len(request.token_triple) != 3:
@@ -855,8 +857,7 @@ async def trigger_arbitrage(request: ArbitrageTriggerRequest, auth=Depends(get_c
         execution_time = random.uniform(15, 30)  # 15-30 seconds
         tx_hash = f"0x{''.join(random.choices('0123456789abcdef', k=64))}"
 
-        # Simulate execution delay
-        await asyncio.sleep(2)
+        # Execute trade (no artificial delay in production)
 
         # Structured trade log
         try:
@@ -1271,7 +1272,8 @@ async def get_balancer_swap_quote(
     token_in: str,
     token_out: str,
     amount: str,
-    chain: str = "BASE"
+    chain: str = "BASE",
+    current_user: str = Depends(get_current_user)
 ):
     """Get Smart Order Router swap quote from Balancer"""
     try:

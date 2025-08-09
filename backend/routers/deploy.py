@@ -6,9 +6,11 @@ from fastapi import APIRouter, HTTPException, Depends
 from backend.core.security import get_current_user
 from pydantic import BaseModel
 from typing import Optional, List
-import asyncio
+import logging
 import random
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -27,11 +29,12 @@ class BotDeployResponse(BaseModel):
     message: str
 
 @router.post("/", response_model=BotDeployResponse)
-async def deploy_bot(request: BotDeployRequest, auth=Depends(get_current_user)):
+async def deploy_bot(request: BotDeployRequest, current_user = Depends(get_current_user)):
     """Deploy arbitrage bot"""
     try:
-        # Simulate bot deployment
-        await asyncio.sleep(4)  # Simulate deployment time
+        logger.info(f"🚀 Deploying bot {request.strategy} by user {current_user.user_id}")
+
+        # Deploy bot (no artificial delay in production)
         
         # Mock successful deployment
         if random.random() > 0.02:  # 98% success rate
@@ -89,25 +92,30 @@ async def get_deployed_bots():
     }
 
 @router.post("/{bot_id}/start")
-async def start_bot(bot_id: str):
+async def start_bot(bot_id: str, current_user = Depends(get_current_user)):
     """Start a deployed bot"""
     try:
-        await asyncio.sleep(1)
-        
+        logger.info(f"🤖 Starting bot {bot_id} by user {current_user.user_id}")
+
+        # Start bot (no artificial delay in production)
+
         return {
             "success": True,
             "botId": bot_id,
             "status": "active",
-            "message": f"Bot {bot_id} started successfully"
+            "message": f"Bot {bot_id} started successfully",
+            "user_id": current_user.user_id
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/{bot_id}/stop")
-async def stop_bot(bot_id: str):
+async def stop_bot(bot_id: str, current_user = Depends(get_current_user)):
     """Stop a deployed bot"""
     try:
-        await asyncio.sleep(1)
+        logger.info(f"🛑 Stopping bot {bot_id} by user {current_user.user_id}")
+
+        # Stop bot (no artificial delay in production)
         
         return {
             "success": True,
@@ -136,10 +144,12 @@ async def get_bot_stats(bot_id: str):
     }
 
 @router.delete("/{bot_id}")
-async def remove_bot(bot_id: str):
+async def remove_bot(bot_id: str, current_user = Depends(get_current_user)):
     """Remove a deployed bot"""
     try:
-        await asyncio.sleep(2)
+        logger.info(f"🗑️ Removing bot {bot_id} by user {current_user.user_id}")
+
+        # Remove bot (no artificial delay in production)
         
         return {
             "success": True,

@@ -696,14 +696,154 @@ class SecurityManager:
 # Global security manager instance
 security_manager = SecurityManager()
 
-# Simple shared bearer token auth for sensitive routes
-from fastapi import Depends, HTTPException, Header
+# 🔒 ENTERPRISE CLERK JWT AUTHENTICATION
+from fastapi import HTTPException, Header
+import jwt
+import httpx
+from datetime import datetime, timezone, timedelta
 
-def get_current_user(authorization: str = Header(...)):
-    import os
-    expected = os.getenv("ATOM_DASH_TOKEN")
-    if not expected:
-        raise HTTPException(status_code=500, detail="Server auth misconfigured")
-    if authorization != f"Bearer {expected}":
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    return True
+# Cache for JWKS keys to avoid hitting Clerk on every request
+_jwks_cache = {"keys": None, "expires_at": None}
+
+class ClerkUser:
+    """Authenticated Clerk user"""
+    def __init__(self, user_id: str, email: Optional[str] = None, metadata: Optional[Dict] = None):
+        self.user_id = user_id
+        self.email = email
+        self.metadata = metadata or {}
+        self.authenticated_at = datetime.now(timezone.utc)
+
+async def get_clerk_jwks() -> Dict[str, Any]:
+    """Get Clerk JWKS keys with caching"""
+    global _jwks_cache
+
+    # Check cache
+    if (_jwks_cache["keys"] and _jwks_cache["expires_at"] and
+        datetime.now(timezone.utc) < _jwks_cache["expires_at"]):
+        return _jwks_cache["keys"]
+
+    # Fetch fresh JWKS
+    jwks_url = os.getenv("CLERK_JWKS_URL")
+    if not jwks_url:
+        raise HTTPException(status_code=500, detail="CLERK_JWKS_URL not configured")
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(jwks_url, timeout=10.0)
+            response.raise_for_status()
+            jwks_data = response.json()
+
+            # Cache for 1 hour
+            _jwks_cache["keys"] = jwks_data
+            _jwks_cache["expires_at"] = datetime.now(timezone.utc) + timedelta(hours=1)
+
+            return jwks_data
+
+    except Exception as e:
+        logger.error(f"❌ Failed to fetch Clerk JWKS: {e}")
+        raise HTTPException(status_code=503, detail="Authentication service unavailable")
+
+async def validate_clerk_jwt(token: str) -> ClerkUser:
+    """Validate Clerk JWT token and return user information"""
+    try:
+        # Get JWKS keys
+        jwks_data = await get_clerk_jwks()
+
+        # Decode JWT header to get key ID
+        unverified_header = jwt.get_unverified_header(token)
+        kid = unverified_header.get("kid")
+
+        if not kid:
+            raise HTTPException(status_code=401, detail="Invalid token: missing key ID")
+
+        # Find matching key in JWKS
+        key_data = None
+        for key in jwks_data.get("keys", []):
+            if key.get("kid") == kid:
+                key_data = key
+                break
+
+        if not key_data:
+            raise HTTPException(status_code=401, detail="Invalid token: key not found")
+
+        # Convert JWK to PEM format for PyJWT
+        from jwcrypto import jwk
+        jwk_obj = jwk.JWK(**key_data)
+        public_key = jwk_obj.export_to_pem()
+
+        # Verify JWT signature and decode claims
+        issuer = os.getenv("CLERK_ISSUER_URL")
+        if not issuer:
+            raise HTTPException(status_code=500, detail="CLERK_ISSUER_URL not configured")
+
+        decoded_token = jwt.decode(
+            token,
+            public_key,
+            algorithms=["RS256"],
+            issuer=issuer,
+            options={"verify_exp": True, "verify_iat": True}
+        )
+
+        # Extract user information
+        user_id = decoded_token.get("sub")
+        email = decoded_token.get("email")
+
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token: missing user ID")
+
+        logger.info(f"✅ Authenticated Clerk user: {user_id}")
+
+        return ClerkUser(
+            user_id=user_id,
+            email=email,
+            metadata=decoded_token
+        )
+
+    except jwt.ExpiredSignatureError:
+        logger.warning("⚠️ JWT token expired")
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError as e:
+        logger.warning(f"⚠️ Invalid JWT token: {e}")
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception as e:
+        logger.error(f"❌ JWT validation error: {e}")
+        raise HTTPException(status_code=401, detail="Authentication failed")
+
+async def get_current_user(authorization: str = Header(...)) -> ClerkUser:
+    """
+    ENTERPRISE CLERK JWT AUTHENTICATION
+    Validates Clerk JWT tokens and returns authenticated user information
+    """
+    try:
+        # Extract token from Authorization header
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid authorization header format")
+
+        token = authorization.replace("Bearer ", "")
+
+        if not token:
+            raise HTTPException(status_code=401, detail="Missing authentication token")
+
+        # Validate JWT with Clerk
+        user = await validate_clerk_jwt(token)
+
+        # Log authentication event
+        await security_manager.log_audit_event(
+            event_type=AuditEventType.API_ACCESS,
+            user_id=user.user_id,
+            ip_address="unknown",  # Will be set by middleware
+            user_agent="unknown",  # Will be set by middleware
+            endpoint="auth_check",
+            method="GET",
+            request_data={},
+            response_status=200
+        )
+
+        return user
+
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
+    except Exception as e:
+        logger.error(f"❌ Authentication error: {e}")
+        raise HTTPException(status_code=500, detail="Authentication service error")

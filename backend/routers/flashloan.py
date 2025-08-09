@@ -8,7 +8,10 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict
 import asyncio
 import random
+import logging
 from datetime import datetime, timedelta, timezone
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -27,11 +30,12 @@ class FlashLoanResponse(BaseModel):
     message: str
 
 @router.post("/", response_model=FlashLoanResponse)
-async def execute_flash_loan(request: FlashLoanRequest, auth=Depends(get_current_user)):
+async def execute_flash_loan(request: FlashLoanRequest, current_user = Depends(get_current_user)):
     """Execute flash loan operation"""
     try:
-        # Simulate flash loan execution
-        await asyncio.sleep(3)  # Simulate processing time
+        logger.info(f"🔥 Flash loan operation by user {current_user.user_id}: {request.token} amount {request.amount}")
+
+        # Execute flash loan (no artificial delay in production)
         
         # Validate amount
         try:
@@ -118,9 +122,11 @@ async def get_flash_loan_providers():
     }
 
 @router.post("/simulate")
-async def simulate_flash_loan(request: FlashLoanRequest):
+async def simulate_flash_loan(request: FlashLoanRequest, current_user = Depends(get_current_user)):
     """Simulate flash loan without execution"""
     try:
+        logger.info(f"🧪 Flash loan simulation by user {current_user.user_id}: {request.token} amount {request.amount}")
+
         amount_float = float(request.amount)
 
         # Calculate estimated costs and profits
@@ -168,7 +174,7 @@ class FlashLoanExecuteResponse(BaseModel):
     message: str
 
 @router.post("/execute", response_model=FlashLoanExecuteResponse)
-async def execute_flash_loan(request: FlashLoanExecuteRequest):
+async def execute_flash_loan_arbitrage(request: FlashLoanExecuteRequest, current_user = Depends(get_current_user)):
     """Execute flash loan arbitrage strategy"""
     try:
         # Validate inputs
@@ -178,8 +184,9 @@ async def execute_flash_loan(request: FlashLoanExecuteRequest):
         if request.token not in ["ETH", "WETH", "USDC", "DAI", "USDT"]:
             raise HTTPException(status_code=400, detail="Unsupported token")
 
-        # Simulate flash loan execution
-        await asyncio.sleep(random.uniform(2, 5))  # Realistic execution time
+        logger.info(f"🔥 Flash loan execution by user {current_user.user_id}: {request.token} amount {request.amount} strategy {request.strategy}")
+
+        # Execute flash loan arbitrage (no artificial delay in production)
 
         # Calculate fees and profits
         flash_loan_fee = request.amount * 0.0009  # 0.09% AAVE fee

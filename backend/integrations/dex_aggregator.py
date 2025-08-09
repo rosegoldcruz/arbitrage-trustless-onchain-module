@@ -162,25 +162,41 @@ class DEXAggregator:
         chain: Chain = Chain.ETHEREUM,
         slippage_tolerance: float = 0.01  # 1%
     ) -> Optional[SwapQuote]:
-        """Get best swap quote across all aggregators"""
+        """Get best swap quote across all aggregators (parallelized)"""
         try:
-            quotes = []
-            
-            # Get quotes from all compatible aggregators
+            # Create tasks for all compatible aggregators
+            tasks = []
+            compatible_aggregators = []
+
             for aggregator, config in self.aggregators.items():
                 if chain not in config["supported_chains"]:
                     continue
-                
-                try:
-                    quote = await self.get_aggregator_quote(
-                        aggregator, token_in, token_out, amount_in, chain, slippage_tolerance
-                    )
-                    if quote:
-                        quotes.append(quote)
-                        
-                except Exception as e:
-                    logger.warning(f"Failed to get quote from {aggregator.value}: {e}")
+
+                compatible_aggregators.append(aggregator)
+                task = self.get_aggregator_quote(
+                    aggregator, token_in, token_out, amount_in, chain, slippage_tolerance
+                )
+                tasks.append(task)
+
+            if not tasks:
+                logger.warning(f"No compatible aggregators for {chain.value}")
+                return None
+
+            # Execute all quote requests in parallel
+            logger.info(f"🚀 Fetching quotes from {len(tasks)} aggregators in parallel...")
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+
+            # Process results
+            quotes = []
+            for i, result in enumerate(results):
+                aggregator = compatible_aggregators[i]
+
+                if isinstance(result, Exception):
+                    logger.warning(f"Failed to get quote from {aggregator.value}: {result}")
                     continue
+
+                if result:
+                    quotes.append(result)
             
             if not quotes:
                 logger.warning(f"No quotes available for {token_in} -> {token_out}")
@@ -363,8 +379,10 @@ class DEXAggregator:
             # Optional: restrict to Uniswap v3 only
             # params["includedSources"] = "Uniswap_V3"
 
-            # Get 0x API key from environment
-            api_key = os.getenv("THEATOM_API_KEY", "7324a2b4-3b05-4288-b353-68322f49a283")
+            # Get 0x API key from environment - REQUIRED
+            api_key = os.getenv("THEATOM_API_KEY")
+            if not api_key:
+                raise ValueError("THEATOM_API_KEY environment variable is required for 0x API access")
 
             headers = {
                 "0x-api-key": api_key,

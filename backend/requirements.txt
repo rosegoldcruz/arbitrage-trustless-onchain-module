@@ -14,6 +14,11 @@ email-validator>=2.0.0
 # Environment and configuration
 python-dotenv>=1.0.0
 
+# JWT Authentication - REQUIRED FOR CLERK
+PyJWT[crypto]>=2.8.0
+cryptography>=41.0.7
+jwcrypto>=1.5.0
+
 # Web3 and blockchain - ENABLED FOR ATOM
 web3==7.12.1
 eth-account==0.13.6

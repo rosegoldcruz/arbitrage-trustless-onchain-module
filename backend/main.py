@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "lib")))
 
 # ⚙️ FastAPI + Core imports
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
@@ -37,11 +37,13 @@ except ImportError:
 
 # 🔒 Security integration
 try:
-    from backend.core.security import security_manager
+    from backend.core.security import security_manager, get_current_user
     SECURITY_AVAILABLE = True
 except ImportError:
     SECURITY_AVAILABLE = False
     security_manager = None
+    def get_current_user():
+        return "anonymous"
 
 # 🫠 Shared state
 app_state = {
@@ -73,17 +75,27 @@ logger = logging.getLogger(__name__)
 dex_aggregator = DEXAggregator()
 production_config = get_atom_config()
 
+# Import monitoring system
+from backend.core.monitoring import monitoring_system
+
+# Import security system
+from backend.core.security import security_manager, AuditEventType
+
 # 🔁 Async data loop
 async def update_real_time_data():
     while True:
         try:
             app_state["last_update"] = datetime.now(timezone.utc)
-            await test_dex_connections()
-            await fetch_real_opportunities()
-            await update_bot_statuses()
+            # Run all background tasks in parallel for better performance
+            await asyncio.gather(
+                test_dex_connections(),
+                fetch_real_opportunities(),
+                update_bot_statuses(),
+                return_exceptions=True
+            )
         except Exception as e:
             logger.error(f"[update_real_time_data] {e}")
-        await asyncio.sleep(30)
+        await asyncio.sleep(5)  # Reduced from 30s to 5s for faster updates
 
 async def test_dex_connections():
     try:
@@ -203,7 +215,7 @@ async def root():
 
 # 🎯 DASHBOARD TRIGGER ENDPOINT
 @app.post("/trigger")
-async def trigger_bot(request: dict):
+async def trigger_bot(request: dict, current_user = Depends(get_current_user)):
     """
     Dashboard trigger endpoint for manual bot execution
     Accepts: {mode: "manual", strategy: "atom"}
@@ -212,7 +224,19 @@ async def trigger_bot(request: dict):
         mode = request.get("mode", "manual")
         strategy = request.get("strategy", "atom")
 
-        logger.info(f"🎯 Dashboard trigger: mode={mode}, strategy={strategy}")
+        logger.info(f"🎯 Dashboard trigger from user {current_user.user_id}: mode={mode}, strategy={strategy}")
+
+        # Log critical trading action with user ID
+        await security_manager.log_audit_event(
+            event_type=AuditEventType.TRADE_EXECUTION,
+            user_id=current_user.user_id,
+            ip_address="unknown",  # Will be enhanced with middleware
+            user_agent="unknown",
+            endpoint="/trigger",
+            method="POST",
+            request_data={"mode": mode, "strategy": strategy},
+            response_status=200
+        )
 
         # Simulate bot execution
         if strategy.lower() == "atom":
@@ -246,6 +270,47 @@ async def trigger_bot(request: dict):
             "message": f"Error triggering bot: {str(e)}",
             "error": str(e)
         }
+
+# 📊 MONITORING ENDPOINTS
+@app.get("/health")
+async def health_check():
+    """Health check endpoint with monitoring integration"""
+    system_health = monitoring_system.get_system_health()
+
+    return {
+        "status": system_health["status"],
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "version": "2.0.0",
+        "environment": "production",
+        "uptime_seconds": system_health["uptime_seconds"],
+        "recent_failures": system_health["recent_failures"],
+        "active_alerts": system_health["active_alerts"],
+        "last_trade": system_health["last_trade"]
+    }
+
+@app.get("/monitoring/performance")
+async def get_performance_metrics():
+    """Get system performance metrics"""
+    return monitoring_system.get_performance_summary()
+
+@app.get("/monitoring/trades")
+async def get_trade_history(limit: int = 100):
+    """Get recent trade history"""
+    return {
+        "trades": monitoring_system.get_trade_history(limit),
+        "total_count": len(monitoring_system.trade_history)
+    }
+
+@app.post("/monitoring/alerts/{alert_id}/resolve")
+async def resolve_alert(alert_id: str, current_user = Depends(get_current_user)):
+    """Resolve a system alert"""
+    logger.info(f"🔐 User {current_user.user_id} resolving alert {alert_id}")
+
+    success = await monitoring_system.resolve_alert(alert_id)
+    if success:
+        return {"success": True, "message": f"Alert {alert_id} resolved", "user_id": current_user.user_id}
+    else:
+        return {"success": False, "message": f"Alert {alert_id} not found"}
 
 if __name__ == "__main__":
     uvicorn.run(
