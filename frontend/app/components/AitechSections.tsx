@@ -76,9 +76,9 @@ export default function AitechSections() {
       <section className="mx-auto max-w-7xl px-6 py-12">
         <SectionTitle label="Products" title="Empowering Investors with Cutting-Edge Modules" subtitle="High-performance arbitrage execution with on-chain validation, gas-optimized routing, and risk controls." />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card title="Execution Guard" desc="MEV-aware protection and fail-safe routing with slippage locks and spread thresholds." img="/1.png" />
-          <Card title="Path Finder" desc="Multi-DEX quotes with Curve/Balancer math validation and per-hop slippage controls." img="/2.png" />
-          <Card title="Profit Engine" desc="ROI gating after gas, dynamic cooldowns, and Supabase audit trails for every trade." img="/3.png" />
+          <Card title="Execution Guard" desc="MEV-aware protection and fail-safe routing with slippage locks and spread thresholds." img="/execution-guard.png" />
+          <Card title="Path Finder" desc="Multi-DEX quotes with Curve/Balancer math validation and per-hop slippage controls." img="/pathfinder.png" />
+          <Card title="Profit Engine" desc="ROI gating after gas, dynamic cooldowns, and Supabase audit trails for every trade." img="/profit-engine.png" />
         </div>
       </section>
 
