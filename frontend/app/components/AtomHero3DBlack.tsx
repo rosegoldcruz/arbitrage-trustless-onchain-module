@@ -9,8 +9,8 @@ export default function AtomHero3DBlack() {
         <Image
           src="/33f.png"
           alt="Fox"
-          width={400}
-          height={400}
+          width={600}
+          height={600}
           className="object-contain"
         />
         <p className="mt-4 text-white text-lg font-semibold">
