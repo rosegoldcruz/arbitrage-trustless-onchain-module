@@ -92,14 +92,34 @@ export default function AitechSections() {
         </div>
       </section>
 
-      {/* Showcase Banner — Spinning Coin */}
+      {/* Showcase Banner — 3D Coin Flip (front ↔ back) */}
       <section className="relative mx-auto max-w-7xl px-6 py-16">
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/5 to-transparent h-[380px] md:h-[480px] flex items-center justify-center">
-          {/* Spinning coin image (full coin inside the expanded box) */}
-          <img src="/5.png" alt="gold coin" className="h-full w-full object-contain motion-safe:animate-[spin_10s_linear_infinite] will-change-transform" />
+        <div
+          className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/5 to-transparent h-[420px] md:h-[520px] flex items-center justify-center perspective-1200"
+        >
+          {/* 3D stage */}
+          <div className="relative h-full w-full max-w-4xl preserve-3d">
+            {/* Rotating core */}
+            <div
+              className="absolute inset-0 motion-safe:animate-[spinY_8s_linear_infinite] will-change-transform preserve-3d"
+            >
+              {/* Front face */}
+              <img
+                src="/5.png"
+                alt="gold coin front"
+                className="absolute inset-0 h-full w-full object-contain backface-hidden"
+              />
+              {/* Back face (same asset; rotated so it isn't mirrored) */}
+              <img
+                src="/5.png"
+                alt="gold coin back"
+                className="absolute inset-0 h-full w-full object-contain backface-hidden rotate-y-180"
+              />
+            </div>
+          </div>
 
           {/* Label moved to bottom-left */}
-          <div className="absolute bottom-4 left-4 flex items-end justify-start">
+          <div className="absolute bottom-4 left-4">
             <div className="rounded-full border border-white/20 bg-black/40 px-6 py-3 text-sm uppercase tracking-[0.25em] text-white/80">ATOM • Base L2</div>
           </div>
         </div>
