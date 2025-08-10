@@ -40,19 +40,29 @@ function useScrollDolly(baseZ=4.2, range=0.9){
   });
 }
 
-function FoxImagePlane({ src='/33f.png' }:{src?:string}){
-  const tex = useTexture(src);
-  const mat = useMemo(() => new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }), [tex]);
+function FoxCoin({ front='/33f.png', back='/back.png' }:{front?:string; back?:string}){
+  const [texFront, texBack] = useTexture([front, back]);
+  const matFront = useMemo(() => new THREE.MeshBasicMaterial({ map: texFront, transparent: true, depthWrite: false, side: THREE.FrontSide }), [texFront]);
+  const matBack = useMemo(() => new THREE.MeshBasicMaterial({ map: texBack, transparent: true, depthWrite: false, side: THREE.BackSide }), [texBack]);
   const mesh = useRef<THREE.Mesh>(null!);
   useFrame((_, t) => {
     if (!mesh.current) return;
-    mesh.current.rotation.y = Math.sin(t*0.35)*0.15;
+    mesh.current.rotation.y = t*0.9;
     mesh.current.position.y = Math.sin(t*0.9)*0.06;
   });
   return (
     <mesh ref={mesh} position={[0,0,0.2]} renderOrder={2}>
-      <planeGeometry args={[3.4,3.4,1,1]} />
-      <primitive object={mat} attach="material" />
+      {/* Back and front planes to show both coin sides while spinning */}
+      <group>
+        <mesh rotation={[0, Math.PI, 0]}>
+          <planeGeometry args={[3.4,3.4,1,1]} />
+          <primitive object={matBack} attach="material" />
+        </mesh>
+        <mesh>
+          <planeGeometry args={[3.4,3.4,1,1]} />
+          <primitive object={matFront} attach="material" />
+        </mesh>
+      </group>
     </mesh>
   );
 }
@@ -72,7 +82,7 @@ export default function AtomHero3D() {
         <directionalLight position={[3,4,2]} intensity={1.2} />
         <Environment preset="studio" />
         <WarpedGridPlane />
-        <FoxImagePlane src="/33f.png" />
+        <FoxCoin front="/33f.png" back="/back.png" />
         <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.25} />
         <EffectComposer>
           <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.7} intensity={0.7} />
