@@ -16,10 +16,14 @@ function Card({
   title,
   desc,
   img,
+  className,
+  imgClassName,
 }: {
   title: string;
   desc: string;
   img?: string;
+  className?: string;
+  imgClassName?: string;
 }) {
   return (
     <motion.div
@@ -27,11 +31,11 @@ function Card({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.6 }}
-      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-transparent p-5 hover:border-white/20"
+      className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-transparent p-5 hover:border-white/20 ${className ?? ''}`}
     >
       {img && (
         <div className="mb-4 overflow-hidden rounded-xl bg-black">
-          <img src={img} alt={title} className="h-40 w-full object-contain opacity-90 transition group-hover:opacity-100" />
+          <img src={img} alt={title} className={`h-40 w-full object-contain opacity-90 transition group-hover:opacity-100 ${imgClassName ?? ''}`} />
         </div>
       )}
       <h3 className="text-lg font-semibold text-white">{title}</h3>
@@ -77,7 +81,7 @@ export default function AitechSections() {
         <SectionTitle label="Products" title="Empowering Investors with Cutting-Edge Modules" subtitle="High-performance arbitrage execution with on-chain validation, gas-optimized routing, and risk controls." />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card title="Execution Guard" desc="MEV-aware protection and fail-safe routing with slippage locks and spread thresholds." img="/execution-guard.png" />
-          <Card title="Path Finder" desc="Multi-DEX quotes with Curve/Balancer math validation and per-hop slippage controls." img="/pathfinder.png" />
+          <Card title="Path Finder" desc="Multi-DEX quotes with Curve/Balancer math validation and per-hop slippage controls." img="/pathfinder.png" imgClassName="h-44 contrast-125" />
           <Card title="Profit Engine" desc="ROI gating after gas, dynamic cooldowns, and Supabase audit trails for every trade." img="/profit-engine.png" />
         </div>
       </section>
