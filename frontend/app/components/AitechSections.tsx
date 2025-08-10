@@ -92,11 +92,14 @@ export default function AitechSections() {
         </div>
       </section>
 
-      {/* Showcase Banner */}
+      {/* Showcase Banner — Spinning Coin */}
       <section className="relative mx-auto max-w-7xl px-6 py-16">
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/5 to-transparent">
-          <img src="/4.png" alt="stage" className="h-64 w-full object-cover opacity-70" />
-          <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/5 to-transparent h-[380px] md:h-[480px] flex items-center justify-center">
+          {/* Spinning coin image (full coin inside the expanded box) */}
+          <img src="/5.png" alt="gold coin" className="h-full w-full object-contain motion-safe:animate-[spin_10s_linear_infinite] will-change-transform" />
+
+          {/* Label moved to bottom-left */}
+          <div className="absolute bottom-4 left-4 flex items-end justify-start">
             <div className="rounded-full border border-white/20 bg-black/40 px-6 py-3 text-sm uppercase tracking-[0.25em] text-white/80">ATOM • Base L2</div>
           </div>
         </div>
