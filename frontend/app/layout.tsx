@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 import { ClerkProvider, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
@@ -39,13 +40,13 @@ export default function RootLayout({
           {/* Global top nav with Clerk auth */}
           <header className="sticky top-0 z-50 border-b border-white/10 bg-black/60 backdrop-blur">
             <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
-              <a href="/" className="flex items-center">
+              <Link href="/" className="flex items-center">
                 <img src="/1.png" alt="ATOM Home" className="h-9 w-9 object-contain hover:opacity-90 transition-opacity" />
                 <span className="sr-only">Home</span>
-              </a>
+              </Link>
               <nav className="flex items-center gap-4">
                 <SignedOut>
-                  <a href="/sign-in" className="rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm hover:bg-white/20">Sign in</a>
+                  <Link href="/sign-in" className="rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm hover:bg-white/20">Sign in</Link>
                 </SignedOut>
                 <SignedIn>
                   <UserButton afterSignOutUrl="/" />
