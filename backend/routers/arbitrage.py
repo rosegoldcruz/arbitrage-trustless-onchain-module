@@ -214,27 +214,101 @@ async def execute_arbitrage(request: ArbitrageRequest, current_user = Depends(ge
 
         # Execute arbitrage (no artificial delay in production)
 
-        # Mock successful arbitrage with realistic profit based on spread
-        if random.random() > 0.1:  # 90% success rate
-            profit = (spread_bps / BASIS_POINTS) * (request.amount or 1000)
-            gas_used = random.uniform(0.005, 0.02)
-            tx_hash = f"0x{''.join(random.choices('0123456789abcdef', k=64))}"
+        # Execute real trade via 0x (Uniswap v3 path allowed) on Base Sepolia
+        # Build a simple single-leg simulation for validator (refine per-hop when multiple legs used)
+        from backend.core.trade_validator import TradeValidator, TradeSimulation, RouteLeg
+        from backend.integrations.dex_aggregator import dex_aggregator, DEXProvider, Chain
 
+        # Compose a conservative simulation
+        legs = [RouteLeg(dex="0x", token_in=request.assetPair.split("/")[0], token_out=request.assetPair.split("/")[1], amount_in=float(request.amount or 100.0), amount_out=0.0, slippage=0.005)]
+        sim = TradeSimulation(
+            amount_in=float(request.amount or 100.0),
+            amount_out=0.0,
+            gas_cost_usd=0.0,  # refined after gas estimation
+            spread_bps=spread_bps,
+            legs=legs
+        )
+        result = TradeValidator.validate(sim)
+        if not result.ok:
+            return ArbitrageResponse(success=False, spread_bps=spread_bps, message=result.reason or "Validation failed")
+
+        # Get quote and execute
+        amount_in = float(request.amount or 100.0)
+        quote = await dex_aggregator.get_best_swap_quote(
+            token_in=request.assetPair.split("/")[0],
+            token_out=request.assetPair.split("/")[1],
+            amount_in=amount_in,
+            chain=Chain.BASE,
+            slippage_tolerance=0.005,
+            included_sources=request.executionPreferences.includedSources if getattr(request, 'executionPreferences', None) else None
+        )
+
+        if not quote:
+            return ArbitrageResponse(success=False, spread_bps=spread_bps, message="No quote available")
+
+        exec_result = await dex_aggregator.execute_swap(quote)
+
+        # Post-trade logging to Supabase (only if tx exists)
+        if exec_result and exec_result.tx_hash:
+            try:
+                from backend.core.supabase_client import Supabase
+                from backend.core.trade_logger import log_event
+                sb = Supabase()
+
+                # Calculate ROI after gas
+                roi_pct = None
+                if exec_result.gas_used and exec_result.gas_price:
+                    gas_cost_eth = (exec_result.gas_used * exec_result.gas_price * 1e9) / 1e18  # Convert gwei to ETH
+                    # For now, approximate gas cost in input token units (needs price conversion for precision)
+                    gas_cost_input_units = gas_cost_eth * 0.001  # Rough approximation, needs real ETH price
+                    if exec_result.amount_out_actual > 0:
+                        roi_pct = ((exec_result.amount_out_actual - amount_in - gas_cost_input_units) / amount_in) * 100
+
+                # Extract per-leg slippage from quote
+                leg_slippage = []
+                if quote.aggregator == DEXProvider.ZEROX:
+                    # For 0x, use route information and price impact
+                    for i, route_name in enumerate(quote.route):
+                        leg_slippage.append({
+                            "leg": i,
+                            "route": route_name,
+                            "slippage_pct": quote.price_impact / max(1, len(quote.route))  # Distribute evenly
+                        })
+                elif quote.aggregator == DEXProvider.BALANCER:
+                    # For Balancer, use SOR route details
+                    leg_slippage.append({
+                        "leg": 0,
+                        "route": "Balancer",
+                        "slippage_pct": quote.price_impact
+                    })
+
+                await sb.insert_trade({
+                    "user_id": (current_user.get("sub") if isinstance(current_user, dict) else None),
+                    "tx_hash": exec_result.tx_hash,
+                    "route": {"route": quote.route, "aggregator": quote.aggregator.value},
+                    "roi_pct": roi_pct,
+                    "leg_slippage": leg_slippage,
+                    "gas_used": exec_result.gas_used,
+                    "amount_in": amount_in,
+                    "amount_out": exec_result.amount_out_actual,
+                    "chain_id": 84532
+                })
+                log_event("trade_logged", tx_hash=exec_result.tx_hash)
+            except Exception as _e:
+                logger.error(f"Supabase logging failed: {_e}")
+
+        if exec_result and exec_result.tx_hash:
             return ArbitrageResponse(
                 success=True,
-                transactionHash=tx_hash,
-                profit=profit,
-                gasUsed=gas_used,
-                executionTime=2.1,
+                transactionHash=exec_result.tx_hash,
+                profit=None,
+                gasUsed=exec_result.gas_used,
+                executionTime=None,
                 spread_bps=spread_bps,
-                message=f"Arbitrage executed: {spread_bps}bps spread, ${profit:.2f} profit"
+                message="Trade submitted to Base Sepolia"
             )
         else:
-            return ArbitrageResponse(
-                success=False,
-                spread_bps=spread_bps,
-                message="Execution failed due to slippage or gas price spike"
-            )
+            return ArbitrageResponse(success=False, spread_bps=spread_bps, message=exec_result.error_message if exec_result else "Execution failed")
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -347,26 +421,11 @@ async def get_token_price_by_address(token_address: str) -> float:
 async def execute_triangular_arbitrage_task(token_a: str, token_b: str, token_c: str, amount_in: str, max_gas_price: str):
     """Background task to execute triangular arbitrage"""
     try:
-        logger.info(f"Executing triangular arbitrage: {token_a} → {token_b} → {token_c}")
-
-        # In production, this would:
-        # 1. Create flash loan transaction
-        # 2. Execute swaps: A→B (Curve), B→C (Balancer), C→A (Curve)
-        # 3. Repay flash loan + fees
-        # 4. Calculate actual profit
-
-        # Execute triangular arbitrage (no artificial delay in production)
-
-        # 📱 Success notification (Telegram disabled)
-        logger.info(f"Trade executed successfully: {token_a}→{token_b}→{token_c}, Profit: $45.67")
-
-        logger.info("Triangular arbitrage execution completed")
-
+        logger.info(f"Executing triangular arbitrage (PRODUCTION-ONLY): {token_a} → {token_b} → {token_c}")
+        # Hard abort until real on-chain execution is wired to prevent simulated trades
+        logger.error("Triangular arbitrage execution is not yet wired to contracts; aborting.")
     except Exception as e:
         logger.error(f"Triangular arbitrage task failed: {e}")
-
-        # 📱 Failure notification (Telegram disabled)
-        logger.error(f"Trade failed: {token_a}→{token_b}→{token_c}, Error: {str(e)}")
 
 @router.get("/opportunities")
 async def get_arbitrage_opportunities(
@@ -582,37 +641,8 @@ async def get_curve_virtual_price(balances: List[float], total_supply: float, A:
 
 @router.get("/stats")
 async def get_arbitrage_stats():
-    """Get arbitrage statistics with 23bps threshold metrics"""
-    return {
-        "total_trades": 847,
-        "successful_trades": 823,
-        "total_profit": 12456.78,
-        "average_profit": 15.12,
-        "success_rate": 97.2,
-        "min_spread_threshold_bps": MIN_SPREAD_BPS,
-        "triangular_arbitrage": {
-            "total_executions": 156,
-            "successful_executions": 149,
-            "average_spread_bps": 67,
-            "total_profit": 3456.78
-        },
-        "balancer_trades": {
-            "weighted_pools": 234,
-            "stable_pools": 89,
-            "average_spread_bps": 45
-        },
-        "curve_trades": {
-            "stableswap_pools": 345,
-            "depeg_opportunities": 12,
-            "average_spread_bps": 38
-        },
-        "last_24h": {
-            "trades": 23,
-            "profit": 456.78,
-            "gas_spent": 0.234,
-            "avg_spread_bps": 52
-        }
-    }
+    """Disabled in production: no mock stats."""
+    raise HTTPException(status_code=503, detail="Endpoint disabled: mock data not allowed in production")
 
 # Additional helper functions for 0x API integration
 async def get_0x_quote_async(sell_token: str, buy_token: str, sell_amount: str, slippage: float = 0.01) -> Optional[Dict]:
@@ -706,61 +736,13 @@ async def get_balancer_pools():
 
     except Exception as e:
         logger.error(f"Failed to fetch Balancer pools: {e}")
-        # Fallback to basic mock data if API fails
-        return {
-            "pools": [
-                {
-                    "id": "fallback_pool_1",
-                    "address": "0x0000000000000000000000000000000000000000",
-                    "name": "Fallback Pool",
-                    "tokens": [{"address": TOKENS["WETH"], "symbol": "WETH"}, {"address": TOKENS["USDC"], "symbol": "USDC"}],
-                    "weights": [0.8, 0.2],
-                    "type": "weighted",
-                    "swap_fee": 0.003,
-                    "balances": ["0", "0"],
-                    "tvl": 0,
-                    "network": "base",
-                    "error": str(e)
-                }
-            ],
-            "total_pools": 1,
-            "source": "fallback",
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
+        # Disable fallback in production to avoid mock data
+        raise HTTPException(status_code=503, detail="Balancer pools unavailable: upstream error")
 
 @router.get("/curve/pools")
 async def get_curve_pools():
-    """Get Curve pool information for arbitrage"""
-    return {
-        "pools": [
-            {
-                "address": "0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E",
-                "name": "DAI/USDC",
-                "tokens": [TOKENS["DAI"], TOKENS["USDC"]],
-                "type": "stableswap",
-                "A": 100,  # Amplification coefficient
-                "fee": 0.0004,  # 0.04%
-                "balances": ["1000000000000000000000000", "1000000000000"],  # Mock balances
-                "virtual_price": 1.001,
-                "is_depegged": False,
-                "network": "base_sepolia"
-            },
-            {
-                "address": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0",
-                "name": "USDC/GHO",
-                "tokens": [TOKENS["USDC"], TOKENS["GHO"]],
-                "type": "stableswap",
-                "A": 200,
-                "fee": 0.0004,
-                "balances": ["1000000000000", "1000000000000000000000000"],
-                "virtual_price": 0.999,
-                "is_depegged": False,
-                "network": "base_sepolia"
-            }
-        ],
-        "total_pools": 2,
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
+    """Disabled in production: no mock pool data."""
+    raise HTTPException(status_code=503, detail="Endpoint disabled: mock data not allowed in production")
 
 # ============================================================================
 # 🚀 AEON ARBITRAGE TRIGGER ENDPOINT - PHASE 3 IMPLEMENTATION
@@ -1001,45 +983,8 @@ async def get_arbitrage_status():
 
 @router.get("/logs")
 async def get_aeon_engine_logs(limit: int = 50):
-    """
-    📋 Get AEON Engine logs for terminal display
-    """
-    try:
-        # Simulate recent logs
-        logs = []
-        base_time = datetime.now(timezone.utc)
-
-        log_entries = [
-            ("INFO", "🔍 Scanning DAI → USDC → GHO triangle"),
-            ("SUCCESS", "🚀 Arbitrage executed: 28bps spread, $15.50 profit"),
-            ("INFO", "📊 Gas price: 25 gwei, Network: healthy"),
-            ("WARNING", "⚠️  WETH → DAI → USDC below 23bps threshold"),
-            ("INFO", "🔄 ATOM bot scan completed: 3 opportunities found"),
-            ("SUCCESS", "💰 Profit realized: $18.25 (TX: 0x1234...)"),
-            ("INFO", "🐍 ADOM signal processed: 92% confidence"),
-            ("INFO", "📡 Chainlink feed updated: ETH/USD $2,045.50"),
-            ("WARNING", "⚠️  High network congestion detected"),
-            ("SUCCESS", "✅ Flashloan executed successfully"),
-        ]
-
-        for i, (level, message) in enumerate(log_entries[:limit]):
-            timestamp = base_time - timedelta(minutes=i*2)
-            logs.append({
-                "timestamp": timestamp.isoformat(),
-                "level": level,
-                "message": message,
-                "source": "aeon_engine"
-            })
-
-        return {
-            "logs": logs,
-            "total_count": len(logs),
-            "last_updated": datetime.now(timezone.utc).isoformat()
-        }
-
-    except Exception as e:
-        logger.error(f"❌ Logs endpoint error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    """Disabled in production: no mock logs."""
+    raise HTTPException(status_code=503, detail="Endpoint disabled: mock data not allowed in production")
 
 class ArbitrageHistoryItem(BaseModel):
     id: str
@@ -1067,119 +1012,8 @@ async def get_arbitrage_history(
     min_profit: Optional[float] = None,
     days: int = 30
 ):
-    """
-    📊 Get arbitrage trading history with filtering options
-    """
-    try:
-        # Generate realistic historical data
-        history_items = []
-        base_time = datetime.now(timezone.utc)
-
-        # Token combinations for realistic history
-        token_combinations = [
-            (["DAI", "USDC", "GHO"], ["Curve", "Balancer", "Curve"]),
-            (["WETH", "USDC", "DAI"], ["Balancer", "Curve", "Balancer"]),
-            (["USDC", "DAI", "GHO"], ["Curve", "Curve", "Balancer"]),
-            (["WETH", "DAI", "GHO"], ["Balancer", "Curve", "Curve"]),
-        ]
-
-        statuses = ["completed", "completed", "completed", "failed", "completed"]
-
-        for i in range(min(limit + offset, 200)):  # Generate up to 200 items
-            tokens, dexes = random.choice(token_combinations)
-            status_choice = random.choice(statuses)
-
-            # Calculate realistic amounts and profits
-            if tokens[0] == "WETH":
-                amount_in = random.uniform(0.5, 10.0)
-                base_value = amount_in * 2000  # ETH price
-            else:
-                amount_in = random.uniform(100, 50000)
-                base_value = amount_in
-
-            spread_bps = random.randint(25, 150)
-            profit_percentage = spread_bps / 10000
-            gross_profit = base_value * profit_percentage
-
-            gas_used = random.randint(180000, 350000)
-            gas_cost_usd = gas_used * 25e-9 * 2000  # 25 gwei * ETH price
-
-            net_profit = gross_profit - gas_cost_usd if status_choice == "completed" else -gas_cost_usd
-
-            # Generate token addresses
-            token_addresses = []
-            for symbol in tokens:
-                if symbol in TOKENS:
-                    token_addresses.append(TOKENS[symbol])  # TOKENS[symbol] is already the address
-                else:
-                    token_addresses.append("0x0000000000000000000000000000000000000000")
-
-            history_item = ArbitrageHistoryItem(
-                id=f"arb_{int((base_time - timedelta(hours=i*2)).timestamp())}_{i}",
-                timestamp=base_time - timedelta(hours=i*2, minutes=random.randint(0, 119)),
-                token_path=token_addresses,
-                token_symbols=tokens,
-                amount_in=round(amount_in, 6),
-                amount_out=round(amount_in * (1 + profit_percentage), 6) if status_choice == "completed" else 0,
-                profit_usd=round(gross_profit, 2),
-                profit_percentage=round(profit_percentage * 100, 4),
-                gas_used=gas_used,
-                gas_cost_usd=round(gas_cost_usd, 4),
-                net_profit=round(net_profit, 2),
-                transaction_hash=f"0x{''.join(random.choices('0123456789abcdef', k=64))}",
-                status=status_choice,
-                execution_time=round(random.uniform(15.0, 45.0), 1),
-                dex_path=" → ".join(dexes),
-                spread_bps=spread_bps
-            )
-
-            history_items.append(history_item)
-
-        # Apply filters
-        filtered_items = history_items
-
-        if status:
-            filtered_items = [item for item in filtered_items if item.status == status]
-
-        if min_profit:
-            filtered_items = [item for item in filtered_items if item.net_profit >= min_profit]
-
-        # Apply pagination
-        paginated_items = filtered_items[offset:offset + limit]
-
-        # Calculate summary statistics
-        total_trades = len(filtered_items)
-        successful_trades = len([item for item in filtered_items if item.status == "completed"])
-        total_profit = sum(item.net_profit for item in filtered_items if item.status == "completed")
-        total_volume = sum(item.amount_in * (2000 if item.token_symbols[0] == "WETH" else 1) for item in filtered_items)
-
-        return {
-            "history": [item.dict() for item in paginated_items],
-            "pagination": {
-                "total": total_trades,
-                "limit": limit,
-                "offset": offset,
-                "has_more": offset + limit < total_trades
-            },
-            "summary": {
-                "total_trades": total_trades,
-                "successful_trades": successful_trades,
-                "success_rate": round((successful_trades / total_trades * 100) if total_trades > 0 else 0, 2),
-                "total_profit": round(total_profit, 2),
-                "total_volume": round(total_volume, 2),
-                "avg_profit_per_trade": round(total_profit / successful_trades if successful_trades > 0 else 0, 2)
-            },
-            "filters_applied": {
-                "status": status,
-                "min_profit": min_profit,
-                "days": days
-            },
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }
-
-    except Exception as e:
-        logger.error(f"❌ History endpoint error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    """Disabled in production: no mock history."""
+    raise HTTPException(status_code=503, detail="Endpoint disabled: mock data not allowed in production")
 
 @router.get("/balancer/opportunities")
 async def get_balancer_arbitrage_opportunities(

@@ -1,0 +1,19 @@
+[Unit]
+Description=ATOM Trading Bot (Python)
+After=network.target atom-backend.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/atom
+EnvironmentFile=/etc/atom/backend.env
+ExecStart=/usr/bin/python3 backend/bots/working/ATOM.py
+Restart=always
+RestartSec=5
+StandardOutput=append:/var/log/atom/atom-bot.log
+StandardError=append:/var/log/atom/atom-bot.err.log
+
+[Install]
+WantedBy=multi-user.target
+

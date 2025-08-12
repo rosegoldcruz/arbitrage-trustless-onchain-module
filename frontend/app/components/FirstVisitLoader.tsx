@@ -29,21 +29,21 @@ export default function FirstVisitLoader({ children }: FirstVisitLoaderProps) {
       setIsFirstVisit(true)
       localStorage.setItem('atom-visited', 'true')
       
-      // Simulate loading steps
+      // Simulate loading steps (faster for better UX)
       const stepInterval = setInterval(() => {
         setCurrentStep(prev => {
           if (prev < loadingSteps.length - 1) {
             return prev + 1
           } else {
             clearInterval(stepInterval)
-            // Complete loading after final step
+            // Complete loading after final step (shorter delay)
             setTimeout(() => {
               setIsLoading(false)
-            }, 1000)
+            }, 600)
             return prev
           }
         })
-      }, 800)
+      }, 500)
 
       return () => clearInterval(stepInterval)
     } else {

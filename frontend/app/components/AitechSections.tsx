@@ -4,10 +4,20 @@ import { motion } from 'framer-motion';
 
 function SectionTitle({ label, title, subtitle }: { label: string; title: string; subtitle?: string }) {
   return (
-    <div className="mb-8 text-center">
-      <div className="text-xs uppercase tracking-[0.2em] text-white/50">{label}</div>
-      <h2 className="mt-2 text-2xl md:text-4xl font-extrabold text-white">{title}</h2>
-      {subtitle && <p className="mt-3 text-white/60 max-w-3xl mx-auto">{subtitle}</p>}
+    <div className="mb-12 text-center">
+      <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-amber-400/80 font-semibold mb-4">
+        <div className="w-8 h-px bg-gradient-to-r from-transparent to-amber-400/50"></div>
+        {label}
+        <div className="w-8 h-px bg-gradient-to-l from-transparent to-amber-400/50"></div>
+      </div>
+      <h2 className="text-3xl md:text-5xl font-bold text-white bg-gradient-to-r from-white via-white to-zinc-300 bg-clip-text text-transparent leading-tight">
+        {title}
+      </h2>
+      {subtitle && (
+        <p className="mt-4 text-lg text-zinc-400 max-w-4xl mx-auto leading-relaxed">
+          {subtitle}
+        </p>
+      )}
     </div>
   );
 }
@@ -31,15 +41,34 @@ function Card({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.6 }}
-      className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-white/5 to-transparent p-5 hover:border-white/20 ${className ?? ''}`}
+      whileHover={{ y: -5, scale: 1.02 }}
+      className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/8 via-white/4 to-transparent p-6 backdrop-blur-sm transition-all duration-300 hover:border-amber-400/30 hover:shadow-2xl hover:shadow-amber-400/10 ${className ?? ''}`}
     >
+      {/* Subtle glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-amber-400/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 rounded-2xl"></div>
+
       {img && (
-        <div className="mb-4 overflow-hidden rounded-xl bg-black">
-          <img src={img} alt={title} className={`h-40 w-full object-contain opacity-90 transition group-hover:opacity-100 ${imgClassName ?? ''}`} />
+        <div className="relative mb-6 overflow-hidden rounded-xl bg-gradient-to-br from-zinc-900 to-black ring-1 ring-white/10">
+          <img
+            src={img}
+            alt={title}
+            className={`h-44 w-full object-contain opacity-90 transition-all duration-300 group-hover:opacity-100 group-hover:scale-105 ${imgClassName ?? ''}`}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
         </div>
       )}
-      <h3 className="text-lg font-semibold text-white">{title}</h3>
-      <p className="mt-2 text-sm text-white/60">{desc}</p>
+
+      <div className="relative z-10">
+        <h3 className="text-xl font-bold text-white mb-3 group-hover:text-amber-100 transition-colors duration-300">
+          {title}
+        </h3>
+        <p className="text-zinc-400 leading-relaxed group-hover:text-zinc-300 transition-colors duration-300">
+          {desc}
+        </p>
+      </div>
+
+      {/* Corner accent */}
+      <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-amber-400/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
     </motion.div>
   );
 }
@@ -48,10 +77,22 @@ export default function AitechSections() {
   return (
     <div className="relative">
       {/* Partners / Integrations - Infinite Scroll */}
-      <section className="mx-auto max-w-7xl px-6 py-12">
-        <div className="mb-6 text-center text-xs uppercase tracking-[0.2em] text-white/50">Trusted Integrations</div>
-        <div className="relative overflow-hidden">
-          <div className="flex animate-scroll-left space-x-8">
+      <section className="mx-auto max-w-7xl px-6 py-16">
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-amber-400/60 font-medium mb-2">
+            <div className="w-6 h-px bg-gradient-to-r from-transparent to-amber-400/30"></div>
+            Trusted Integrations
+            <div className="w-6 h-px bg-gradient-to-l from-transparent to-amber-400/30"></div>
+          </div>
+          <p className="text-zinc-500 text-sm">Powered by industry-leading protocols and infrastructure</p>
+        </div>
+
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-white/5 via-transparent to-white/5 py-8">
+          {/* Gradient overlays for smooth fade */}
+          <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-black to-transparent z-10"></div>
+          <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black to-transparent z-10"></div>
+
+          <div className="flex animate-scroll-left space-x-12">
             {/* First set of logos */}
             {[
               "/partners/0x.png", "/partners/aave.png", "/partners/alchemy.png", "/partners/balancer.png",
@@ -60,7 +101,12 @@ export default function AitechSections() {
               "/partners/metamask.png", "/partners/postgre.png", "/partners/quicknode.png", "/partners/replicate.png",
               "/partners/supabase.png", "/partners/sushi.png", "/partners/uniswap.png", "/partners/vercel.png"
             ].map((src, i) => (
-              <img key={i} src={src} alt="partner logo" className="h-12 w-20 object-contain grayscale opacity-70 hover:opacity-100 transition flex-shrink-0" />
+              <img
+                key={i}
+                src={src}
+                alt="partner logo"
+                className="h-14 w-24 object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all duration-300 flex-shrink-0 filter brightness-110"
+              />
             ))}
             {/* Duplicate set for seamless loop */}
             {[
@@ -70,7 +116,12 @@ export default function AitechSections() {
               "/partners/metamask.png", "/partners/postgre.png", "/partners/quicknode.png", "/partners/replicate.png",
               "/partners/supabase.png", "/partners/sushi.png", "/partners/uniswap.png", "/partners/vercel.png"
             ].map((src, i) => (
-              <img key={`dup-${i}`} src={src} alt="partner logo" className="h-12 w-20 object-contain grayscale opacity-70 hover:opacity-100 transition flex-shrink-0" />
+              <img
+                key={`dup-${i}`}
+                src={src}
+                alt="partner logo"
+                className="h-14 w-24 object-contain grayscale opacity-60 hover:opacity-100 hover:grayscale-0 transition-all duration-300 flex-shrink-0 filter brightness-110"
+              />
             ))}
           </div>
         </div>

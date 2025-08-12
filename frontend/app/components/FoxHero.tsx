@@ -174,21 +174,29 @@ export default function FoxHero({
 
       {/* Copy */}
       <div className="absolute bottom-10 w-full px-6 text-center">
-        <p className="text-sm text-zinc-300">
+        <p className="text-lg text-zinc-200 font-medium">
           Powered by the{" "}
-          <span className="font-semibold text-amber-400">
+          <span className="font-bold text-amber-400 bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
             Advanced Efficient Optimized Network
           </span>
         </p>
         {subtitle && (
-          <p className="mt-2 text-xs text-zinc-400">{subtitle}</p>
+          <p className="mt-3 text-sm text-zinc-400">{subtitle}</p>
         )}
+
+        {/* Additional tagline */}
+        <div className="mt-4 flex items-center justify-center gap-2 text-xs text-zinc-500">
+          <div className="w-8 h-px bg-gradient-to-r from-transparent to-zinc-600"></div>
+          <span className="uppercase tracking-wider">Zero-Capital DeFi Arbitrage</span>
+          <div className="w-8 h-px bg-gradient-to-l from-transparent to-zinc-600"></div>
+        </div>
       </div>
 
-      {/* Sign-in button slot (placeholder) */}
+      {/* Enhanced Sign-in button */}
       <div className="absolute right-6 top-6">
-        <button className="rounded-xl bg-zinc-900/60 px-4 py-2 text-sm text-zinc-200 ring-1 ring-white/10 hover:bg-zinc-800/60 transition">
-          Sign in
+        <button className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-zinc-900/80 to-zinc-800/80 px-6 py-2.5 text-sm font-medium text-zinc-200 ring-1 ring-white/20 backdrop-blur-sm transition-all duration-300 hover:from-zinc-800/90 hover:to-zinc-700/90 hover:ring-white/30 hover:scale-105">
+          <span className="relative z-10">Sign in</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
         </button>
       </div>
     </section>

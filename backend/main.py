@@ -165,8 +165,43 @@ async def lifespan(app: FastAPI):
     yield
     logger.info("🚯 Shutting down...")
 
+# 🚦 Rate limiting middleware (per IP and per Authorization header)
+from starlette.middleware.base import BaseHTTPMiddleware
+import time as _time
+import hashlib as _hashlib
+
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app, ip_limit_per_minute: int = 120, user_limit_per_minute: int = 60):
+        super().__init__(app)
+        self.ip_limit = ip_limit_per_minute
+        self.user_limit = user_limit_per_minute
+        self.ip_counters = {}
+        self.user_counters = {}
+
+    async def dispatch(self, request, call_next):
+        now_minute = int(_time.time() // 60)
+        client_ip = (request.client.host if request.client else "unknown")
+        # IP throttle
+        ip_key = (client_ip, now_minute)
+        self.ip_counters[ip_key] = self.ip_counters.get(ip_key, 0) + 1
+        if self.ip_counters[ip_key] > self.ip_limit:
+            return JSONResponse({"detail": "Rate limit exceeded (IP)"}, status_code=429)
+        # User throttle (Authorization header hashed)
+        auth = request.headers.get("authorization", "")
+        if auth:
+            user_key = (_hashlib.sha256(auth.encode()).hexdigest(), now_minute)
+            self.user_counters[user_key] = self.user_counters.get(user_key, 0) + 1
+            if self.user_counters[user_key] > self.user_limit:
+                return JSONResponse({"detail": "Rate limit exceeded (user)"}, status_code=429)
+        response = await call_next(request)
+        return response
+
+
+
 # 🚀 FastAPI App
 app = FastAPI(title="ATOM API", lifespan=lifespan)
+# Add rate limiting middleware (production defaults)
+app.add_middleware(RateLimitMiddleware, ip_limit_per_minute=120, user_limit_per_minute=60)
 
 # 🔒 Enforce security
 if SECURITY_AVAILABLE and security_manager:
@@ -180,8 +215,7 @@ app.add_middleware(
         "https://aeoninvestmentstechnologies.com",
         "https://dashboard.aeoninvestmentstechnologies.com",
         "https://api.aeoninvestmentstechnologies.com",
-        "http://localhost:3000",
-        "https://atom-arbitrage.vercel.app"
+        "http://localhost:3000"
     ],
     allow_credentials=True,
     allow_methods=["*"],
