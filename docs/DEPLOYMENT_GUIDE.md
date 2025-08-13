@@ -16,7 +16,7 @@ pip install -r backend/requirements.txt  # Backend
 ### 2. Environment Configuration
 ```bash
 # Copy environment template
-cp .env.example .env.local
+cp docs/ENV_BASE_SEPOLIA_TEMPLATE.md .env.local # then edit and fill values
 
 # Required environment variables:
 PRIVATE_KEY=your_wallet_private_key_here
@@ -136,7 +136,7 @@ Frontend will be live at: https://aeoninvestmentstechnologies.com
 ### 1. Update Frontend API URL
 In `frontend/.env.local`:
 ```
-NEXT_PUBLIC_API_URL=http://137.184.184.67:8000
+NEXT_PUBLIC_API_URL=https://api.aeoninvestmentstechnologies.com
 ```
 
 ### 2. Configure CORS

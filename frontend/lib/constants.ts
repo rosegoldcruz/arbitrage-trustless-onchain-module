@@ -37,7 +37,7 @@ export type TradingMode = typeof TRADING_MODES[keyof typeof TRADING_MODES];
 
 // Default values
 export const DEFAULTS = {
-  NETWORK: NETWORKS.ETHEREUM,
+  NETWORK: NETWORKS.BASE,
   TRADING_MODE: TRADING_MODES.TEST,
   MIN_PROFIT_THRESHOLD: 0.01, // 1%
   MAX_GAS_PRICE: 50, // gwei

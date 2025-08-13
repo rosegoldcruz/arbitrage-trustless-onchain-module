@@ -31,10 +31,10 @@ export default function SettingsPage() {
     minProfitThreshold: "0.01",
     maxGasPrice: "50",
     slippageTolerance: "0.5",
-    defaultNetwork: "ethereum",
-    
+    defaultNetwork: "base",
+
     // API Settings
-    backendUrl: "http://138.68.61.66:8000",
+    backendUrl: "https://api.aeoninvestmentstechnologies.com",
     apiKey: "",
     
     // Risk Management

@@ -106,6 +106,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_key
 
 # 🎯 PRODUCTION ENDPOINTS
 NEXT_PUBLIC_API_URL=https://api.aeoninvestmentstechnologies.com
+NEXT_PUBLIC_BACKEND_URL=https://api.aeoninvestmentstechnologies.com
 API_URL=https://api.aeoninvestmentstechnologies.com
 
 # 📱 FRONTEND

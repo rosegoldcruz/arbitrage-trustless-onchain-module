@@ -205,6 +205,14 @@ class DEXAggregator:
                 if chain_key not in config["supported_chains"]:
                     continue
 
+                # Environment guard: skip 0x on Base Sepolia unless explicitly enabled
+                if aggregator == DEXProvider.ZEROX:
+                    chain_id_env = os.getenv("CHAIN_ID", "")
+                    enable_zerox_testnet = os.getenv("ENABLE_ZEROX_ON_TESTNET", "false").lower() in ("1", "true", "yes")
+                    if chain_id_env == "84532" and not enable_zerox_testnet:
+                        logger.info("Skipping 0x aggregator on Base Sepolia (CHAIN_ID=84532). Set ENABLE_ZEROX_ON_TESTNET=true to enable.")
+                        continue
+
                 compatible_aggregators.append(aggregator)
                 if aggregator == DEXProvider.ZEROX:
                     task = self.get_0x_quote(token_in, token_out, amount_in, chain, slippage_tolerance, included_sources)
@@ -353,6 +361,13 @@ class DEXAggregator:
     ) -> Optional[SwapQuote]:
         """Get REAL quote from 0x Protocol API"""
         try:
+            # Environment guard: 0x is not supported on Base Sepolia (84532)
+            chain_id_env = os.getenv("CHAIN_ID", "")
+            enable_zerox_testnet = os.getenv("ENABLE_ZEROX_ON_TESTNET", "false").lower() in ("1", "true", "yes")
+            if chain_id_env == "84532" and not enable_zerox_testnet:
+                logger.info("0x API disabled on Base Sepolia. Set ENABLE_ZEROX_ON_TESTNET=true to override.")
+                return None
+
             # Map chain to 0x chain ID (include Base Sepolia)
             chain_ids = {
                 Chain.ETHEREUM: "1",
@@ -372,9 +387,9 @@ class DEXAggregator:
                 "USDC": "0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
                 "USDT": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
                 "DAI": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-                # Base
+                # Base Sepolia
                 "BASE_WETH": "0x4200000000000000000000000000000000000006",
-                "BASE_USDC": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "BASE_USDC": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
                 "BASE_DAI": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
                 "BASE_GHO": "0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f"
             }
@@ -396,9 +411,9 @@ class DEXAggregator:
                 "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": 6,   # USDC
                 "0xdac17f958d2ee523a2206206994597c13d831ec7": 6,   # USDT
                 "0x6b175474e89094c44da98b954eedeac495271d0f": 18,  # DAI
-                # Base
+                # Base Sepolia
                 "0x4200000000000000000000000000000000000006": 18,   # BASE WETH
-                "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913": 6,   # BASE USDC
+                "0x036cbd53842c5426634e7929541ec2318f3dcf7e": 6,   # BASE USDC
                 "0x50c5725949a6f0c72e6c4a641f24049a917db0cb": 18,  # BASE DAI
                 "0x40d16fc0246ad3160ccc09b8d0d3a2cd28ae6c2f": 18,  # BASE GHO
             }
@@ -566,9 +581,9 @@ class DEXAggregator:
                 "USDC": "0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
                 "USDT": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
                 "DAI": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-                # Base
+                # Base Sepolia
                 "BASE_WETH": "0x4200000000000000000000000000000000000006",
-                "BASE_USDC": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "BASE_USDC": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
                 "BASE_DAI": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
                 "BASE_GHO": "0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f"
             }
@@ -590,9 +605,9 @@ class DEXAggregator:
                 "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": 6,   # USDC
                 "0xdac17f958d2ee523a2206206994597c13d831ec7": 6,   # USDT
                 "0x6b175474e89094c44da98b954eedeac495271d0f": 18,  # DAI
-                # Base
+                # Base Sepolia
                 "0x4200000000000000000000000000000000000006": 18,   # BASE WETH
-                "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913": 6,   # BASE USDC
+                "0x036cbd53842c5426634e7929541ec2318f3dcf7e": 6,   # BASE USDC
                 "0x50c5725949a6f0c72e6c4a641f24049a917db0cb": 18,  # BASE DAI
                 "0x40d16fc0246ad3160ccc09b8d0d3a2cd28ae6c2f": 18,  # BASE GHO
             }
@@ -1204,7 +1219,7 @@ class DEXAggregator:
     async def get_multiple_quotes(
         self,
         swaps: List[Dict[str, Any]],
-        chain: Chain = Chain.ETHEREUM
+        chain: Chain = Chain.BASE
     ) -> List[SwapQuote]:
         """Get quotes for multiple swaps simultaneously"""
         try:
