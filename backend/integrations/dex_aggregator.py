@@ -187,7 +187,7 @@ class DEXAggregator:
         token_in: str,
         token_out: str,
         amount_in: float,
-        chain: Chain = Chain.ETHEREUM,
+        chain: Chain = Chain.BASE,
         slippage_tolerance: float = 0.01,  # 1%
         included_sources: Optional[List[str]] = None
     ) -> Optional[SwapQuote]:

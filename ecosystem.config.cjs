@@ -10,7 +10,10 @@ module.exports = {
       watch: false,
       max_memory_restart: '512M',
       env: {
-        PYTHONUNBUFFERED: '1'
+        PYTHONUNBUFFERED: '1',
+        NETWORK: 'base_sepolia',
+        CHAIN_ID: '84532',
+        BASE_SEPOLIA_RPC_URL: process.env.BASE_SEPOLIA_RPC_URL || 'https://sepolia.base.org'
       }
     },
     {
