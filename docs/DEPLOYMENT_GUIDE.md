@@ -136,7 +136,7 @@ Frontend will be live at: https://aeoninvestmentstechnologies.com
 ### 1. Update Frontend API URL
 In `frontend/.env.local`:
 ```
-NEXT_PUBLIC_API_URL=https://api.aeoninvestmentstechnologies.com
+NEXT_PUBLIC_API_URL=http://137.184.184.67:8000
 ```
 
 ### 2. Configure CORS

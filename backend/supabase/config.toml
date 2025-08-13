@@ -21,7 +21,7 @@ major_version = 15
 [studio]
 enabled = true
 port = 54323
-api_url = "https://api.aeoninvestmentstechnologies.com"
+api_url = "http://137.184.184.67:8000"
 
 [inbucket]
 enabled = true

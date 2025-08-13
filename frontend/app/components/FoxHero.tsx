@@ -192,13 +192,7 @@ export default function FoxHero({
         </div>
       </div>
 
-      {/* Enhanced Sign-in button */}
-      <div className="absolute right-6 top-6">
-        <button className="group relative overflow-hidden rounded-xl bg-gradient-to-r from-zinc-900/80 to-zinc-800/80 px-6 py-2.5 text-sm font-medium text-zinc-200 ring-1 ring-white/20 backdrop-blur-sm transition-all duration-300 hover:from-zinc-800/90 hover:to-zinc-700/90 hover:ring-white/30 hover:scale-105">
-          <span className="relative z-10">Sign in</span>
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-        </button>
-      </div>
+
     </section>
   );
 }

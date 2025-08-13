@@ -100,12 +100,6 @@ export default function AtomHero3D() {
         </p>
       </div>
 
-      <div className="pointer-events-auto absolute bottom-8 left-1/2 -translate-x-1/2">
-        <Link href="/sign-in" className="px-8 py-3 rounded-2xl font-bold text-black bg-gradient-to-r from-[#FFD700] via-[#8E44AD] to-[#4361EE] hover:scale-105 transition">
-          Log In with Clerk
-        </Link>
-      </div>
-
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,transparent_60%,#000_100%)] pointer-events-none" />
     </section>
   );

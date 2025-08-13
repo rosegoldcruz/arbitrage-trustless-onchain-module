@@ -12,11 +12,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from web3 import Web3
-try:
-    from web3.middleware import geth_poa_middleware
-except ImportError:
-    # For newer web3.py versions
-    geth_poa_middleware = None
+
 from eth_account import Account
 from eth_typing import ChecksumAddress
 
@@ -56,9 +52,6 @@ class Web3Executor:
             raise ValueError("BASE_SEPOLIA_RPC_URL environment variable required")
         
         self.w3 = Web3(Web3.HTTPProvider(rpc_url))
-        
-        # Add PoA middleware for Base Sepolia
-        self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
         
         if not self.w3.is_connected():
             raise ConnectionError(f"Failed to connect to Base Sepolia: {rpc_url}")
