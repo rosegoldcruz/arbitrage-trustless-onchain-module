@@ -1,7 +1,7 @@
 ---
-type: "always_apply"
+type: "agent_requested"
+description: "Example description"
 ---
-
 📊 DASHBOARD RULES (ATOM UI v2)
 
 - Display real-time bot status:

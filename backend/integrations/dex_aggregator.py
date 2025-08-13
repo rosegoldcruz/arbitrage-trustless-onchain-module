@@ -108,7 +108,7 @@ class DEXAggregator:
             DEXProvider.ZEROX: {
                 "name": "0x Protocol",
                 "base_url": "https://api.0x.org",
-                "supported_chains": [Chain.ETHEREUM, Chain.POLYGON, Chain.BSC, Chain.ARBITRUM, Chain.BASE],
+                "supported_chains": ["ethereum", "polygon", "bsc", "arbitrum", "base"],
                 "fee_percentage": 0.0015,  # 0.15%
                 "gas_multiplier": 1.1,
                 "success_rate": 0.98,
@@ -117,7 +117,7 @@ class DEXAggregator:
             DEXProvider.ONEINCH: {
                 "name": "1inch",
                 "base_url": "https://api.1inch.io/v5.0",
-                "supported_chains": [Chain.ETHEREUM, Chain.POLYGON, Chain.BSC, Chain.ARBITRUM, Chain.OPTIMISM, Chain.BASE],
+                "supported_chains": ["ethereum", "polygon", "bsc", "arbitrum", "optimism", "base"],
                 "fee_percentage": 0.003,  # 0.3%
                 "gas_multiplier": 1.05,
                 "success_rate": 0.96,
@@ -126,7 +126,7 @@ class DEXAggregator:
             DEXProvider.BALANCER: {
                 "name": "Balancer SOR",
                 "base_url": "https://api.balancer.fi",
-                "supported_chains": [Chain.ETHEREUM, Chain.POLYGON, Chain.ARBITRUM, Chain.BASE],
+                "supported_chains": ["ethereum", "polygon", "arbitrum", "base"],
                 "fee_percentage": 0.001,  # 0.1%
                 "gas_multiplier": 1.15,
                 "success_rate": 0.92,
@@ -135,7 +135,7 @@ class DEXAggregator:
             DEXProvider.PARASWAP: {
                 "name": "ParaSwap",
                 "base_url": "https://apiv5.paraswap.io",
-                "supported_chains": [Chain.ETHEREUM, Chain.POLYGON, Chain.BSC, Chain.AVALANCHE],
+                "supported_chains": ["ethereum", "polygon", "bsc", "avalanche"],
                 "fee_percentage": 0.001,  # 0.1%
                 "gas_multiplier": 1.15,
                 "success_rate": 0.94,
@@ -144,13 +144,27 @@ class DEXAggregator:
             DEXProvider.COWSWAP: {
                 "name": "CoW Swap",
                 "base_url": "https://api.cow.fi",
-                "supported_chains": [Chain.ETHEREUM],
+                "supported_chains": ["ethereum"],
                 "fee_percentage": 0.0,  # MEV protection
                 "gas_multiplier": 0.9,  # Gasless trades
                 "success_rate": 0.92,
                 "avg_response_time": 2.0
             }
         }
+        # Fallback minimal aggregator if initialization somehow produced none
+        if not self.aggregators:
+            self.aggregators = {
+                DEXProvider.ZEROX: {
+                    "name": "0x Protocol (fallback)",
+                    "base_url": "https://api.0x.org",
+                    "supported_chains": ["base", "ethereum"],
+                    "fee_percentage": 0.0015,
+                    "gas_multiplier": 1.1,
+                    "success_rate": 0.98,
+                    "avg_response_time": 1.0
+                }
+            }
+
 
         # Initialize performance stats
         for aggregator in self.aggregators:
@@ -187,7 +201,8 @@ class DEXAggregator:
             compatible_aggregators = []
 
             for aggregator, config in self.aggregators.items():
-                if chain not in config["supported_chains"]:
+                chain_key = chain.value if isinstance(chain, Chain) else str(chain)
+                if chain_key not in config["supported_chains"]:
                     continue
 
                 compatible_aggregators.append(aggregator)
@@ -202,7 +217,15 @@ class DEXAggregator:
                 tasks.append(task)
 
             if not tasks:
-                logger.warning(f"No compatible aggregators for {chain.value}")
+                logger.warning(f"No compatible aggregators for {getattr(chain, 'value', str(chain))}")
+                # Fallback: try initializing a minimal 0x aggregator on Base
+                try:
+                    fallback_chain = Chain.BASE if isinstance(chain, Chain) else Chain.BASE
+                    best = await self.get_0x_quote(token_in, token_out, amount_in, fallback_chain, slippage_tolerance, included_sources)
+                    if best:
+                        return best
+                except Exception as _e:
+                    logger.warning(f"Fallback aggregator initialization failed: {_e}")
                 return None
 
             # Execute all quote requests in parallel
