@@ -108,7 +108,7 @@ async def test_dex_connections():
             token_in=production_config["tokens"]["WETH"],
             token_out=production_config["tokens"]["USDC"],
             amount_in=1.0,
-            chain=Chain.ETHEREUM,
+            chain=Chain.BASE,
             slippage_tolerance=0.005
         )
         for dex in app_state["dex_connections"]:
@@ -129,7 +129,7 @@ async def fetch_real_opportunities():
                 token_in=production_config["tokens"][a],
                 token_out=production_config["tokens"][b],
                 amount_in=1000.0,
-                chain=Chain.ETHEREUM,
+                chain=Chain.BASE,
                 slippage_tolerance=0.005
             )
             if quote and quote.amount_out > 0:
@@ -166,6 +166,11 @@ async def update_bot_statuses():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("🔌 Starting up...")
+    try:
+        await dex_aggregator.initialize_aggregators()
+        logger.info("✅ DEX Aggregators initialized")
+    except Exception as e:
+        logger.error(f"DEX aggregator init failed: {e}")
     asyncio.create_task(update_real_time_data())
     yield
     logger.info("🚯 Shutting down...")
