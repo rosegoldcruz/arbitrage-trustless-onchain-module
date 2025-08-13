@@ -108,7 +108,7 @@ class DEXAggregator:
             DEXProvider.ZEROX: {
                 "name": "0x Protocol",
                 "base_url": "https://api.0x.org",
-                "supported_chains": ["ethereum", "polygon", "bsc", "arbitrum", "base"],
+                "supported_chains": ["base", "ethereum", "polygon", "bsc", "arbitrum"],
                 "fee_percentage": 0.0015,  # 0.15%
                 "gas_multiplier": 1.1,
                 "success_rate": 0.98,
@@ -117,7 +117,7 @@ class DEXAggregator:
             DEXProvider.ONEINCH: {
                 "name": "1inch",
                 "base_url": "https://api.1inch.io/v5.0",
-                "supported_chains": ["ethereum", "polygon", "bsc", "arbitrum", "optimism", "base"],
+                "supported_chains": ["base", "ethereum", "polygon", "bsc", "arbitrum", "optimism"],
                 "fee_percentage": 0.003,  # 0.3%
                 "gas_multiplier": 1.05,
                 "success_rate": 0.96,
@@ -126,7 +126,7 @@ class DEXAggregator:
             DEXProvider.BALANCER: {
                 "name": "Balancer SOR",
                 "base_url": "https://api.balancer.fi",
-                "supported_chains": ["ethereum", "polygon", "arbitrum", "base"],
+                "supported_chains": ["base", "ethereum", "polygon", "arbitrum"],
                 "fee_percentage": 0.001,  # 0.1%
                 "gas_multiplier": 1.15,
                 "success_rate": 0.92,
@@ -363,9 +363,10 @@ class DEXAggregator:
         try:
             # Environment guard: 0x is not supported on Base Sepolia (84532)
             chain_id_env = os.getenv("CHAIN_ID", "")
+            network_env = os.getenv("NETWORK", "")
             enable_zerox_testnet = os.getenv("ENABLE_ZEROX_ON_TESTNET", "false").lower() in ("1", "true", "yes")
-            if chain_id_env == "84532" and not enable_zerox_testnet:
-                logger.info("0x API disabled on Base Sepolia. Set ENABLE_ZEROX_ON_TESTNET=true to override.")
+            if (chain_id_env == "84532" or network_env == "base_sepolia") and not enable_zerox_testnet:
+                logger.info("Skipping 0x aggregator on Base Sepolia (testnet). Set ENABLE_ZEROX_ON_TESTNET=true to enable.")
                 return None
 
             # Map chain to 0x chain ID (include Base Sepolia)

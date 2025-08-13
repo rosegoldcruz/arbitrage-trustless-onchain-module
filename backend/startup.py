@@ -6,9 +6,6 @@ Complete system initialization and health verification
 
 import sys
 import os
-from dotenv import load_dotenv
-load_dotenv()
-
 # 🔧 Patch sys.path for full repo + lib access
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "lib")))

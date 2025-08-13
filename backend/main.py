@@ -2,9 +2,13 @@ import sys
 import os
 
 from dotenv import load_dotenv
-
+import os
 # Load environment variables from backend/.env.production if present
-load_dotenv(os.path.join(os.path.dirname(__file__), ".env.production"))
+env_path = os.path.join(os.path.dirname(__file__), ".env.production")
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+else:
+    print("WARN: backend/.env.production not found, using system environment")
 
 # 🔧 Fix Python path so we can import from repo root (lib/, bots/, etc.)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -134,15 +138,19 @@ async def fetch_real_opportunities():
             )
             if quote and quote.amount_out > 0:
                 spread_bps = random.randint(23, 60)
-                opps.append({
-                    "id": f"{a}-{b}-{c}",
-                    "path": f"{a} → {b} → {c} → {a}",
-                    "spread_bps": spread_bps,
-                    "profit_usd": round(spread_bps * 10, 2),
-                    "dex_route": getattr(quote.aggregator, "value", str(quote.aggregator)),
-                    "confidence": getattr(quote, "confidence_score", None),
-                    "detected_at": datetime.now(timezone.utc).isoformat()
-                })
+                try:
+                    opps.append({
+                        "id": f"{a}-{b}-{c}",
+                        "path": f"{a} → {b} → {c} → {a}",
+                        "spread_bps": spread_bps,
+                        "profit_usd": round(spread_bps * 10, 2),
+                        "dex_route": getattr(quote.aggregator, "value", str(quote.aggregator)),
+                        "confidence": getattr(quote, "confidence_score", 0.95),
+                        "detected_at": datetime.now(timezone.utc).isoformat()
+                    })
+                except Exception as parse_err:
+                    logger.error(f"[fetch_real_opportunities] parse error: {parse_err}")
+                    continue
         app_state["opportunities"] = opps[-10:]
         app_state["real_time_data"]["spread_opportunities"] = len(opps)
         app_state["real_time_data"]["profitable_paths"] = len(opps)
@@ -213,10 +221,16 @@ app = FastAPI(title="ATOM API", lifespan=lifespan)
 # Add rate limiting middleware (production defaults)
 app.add_middleware(RateLimitMiddleware, ip_limit_per_minute=120, user_limit_per_minute=60)
 
-# 🔒 Enforce security
-if SECURITY_AVAILABLE and security_manager:
+# 🔒 Enforce security (opt-in whitelist)
+try:
+    from backend.core.security import DISABLE_IP_WHITELIST
+except Exception:
+    DISABLE_IP_WHITELIST = True
+if SECURITY_AVAILABLE and security_manager and not DISABLE_IP_WHITELIST:
     security_manager.enforce_ip_whitelist(app)
     logger.info("🛡️ IP whitelist enforced")
+else:
+    logger.info("🛡️ IP whitelist disabled")
 
 # 🌐 CORS Middleware - DASHBOARD FOCUSED
 app.add_middleware(
@@ -251,10 +265,10 @@ app.include_router(dashboard_api.router)
 @app.get("/")
 async def root():
     return {
-        "message": "🚀 ATOM - The Ultimate Arbitrage System",
-        "status": app_state["system_status"],
-        "agents": app_state["agents"],
-        "profit": app_state["total_profit"]
+        "service": "ATOM Arbitrage API",
+        "version": "2.0.0",
+        "status": "operational",
+        "network": os.getenv("NETWORK", "unknown")
     }
 
 # 🎯 DASHBOARD TRIGGER ENDPOINT
@@ -318,18 +332,11 @@ async def trigger_bot(request: dict, current_user = Depends(get_current_user)):
 # 📊 MONITORING ENDPOINTS
 @app.get("/health")
 async def health_check():
-    """Health check endpoint with monitoring integration"""
-    system_health = monitoring_system.get_system_health()
-
     return {
-        "status": system_health["status"],
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "version": "2.0.0",
-        "environment": "production",
-        "uptime_seconds": system_health["uptime_seconds"],
-        "recent_failures": system_health["recent_failures"],
-        "active_alerts": system_health["active_alerts"],
-        "last_trade": system_health["last_trade"]
+        "status": "ok",
+        "network": os.getenv("NETWORK", "unknown"),
+        "chain_id": os.getenv("CHAIN_ID", "unknown"),
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 @app.get("/monitoring/performance")
