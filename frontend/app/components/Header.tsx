@@ -18,7 +18,7 @@ export default function Header() {
         {/* Right: auth controls */}
         <div className="flex items-center gap-3">
           <SignedOut>
-            <SignInButton mode="modal" signUpFallbackRedirectUrl="/dashboard" signInForceRedirectUrl="/dashboard" signUpForceRedirectUrl="/dashboard">
+            <SignInButton mode="modal">
               <button
                 className="rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm hover:bg-white/20 transition-colors"
                 aria-label="Sign in"
