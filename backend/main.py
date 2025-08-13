@@ -139,8 +139,8 @@ async def fetch_real_opportunities():
                     "path": f"{a} → {b} → {c} → {a}",
                     "spread_bps": spread_bps,
                     "profit_usd": round(spread_bps * 10, 2),
-                    "dex_route": quote.aggregator,
-                    "confidence": quote.confidence_score,
+                    "dex_route": getattr(quote.aggregator, "value", str(quote.aggregator)),
+                    "confidence": getattr(quote, "confidence_score", None),
                     "detected_at": datetime.now(timezone.utc).isoformat()
                 })
         app_state["opportunities"] = opps[-10:]

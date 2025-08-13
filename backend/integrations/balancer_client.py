@@ -237,10 +237,14 @@ class BalancerClient:
             
         sor_data = result["sorGetSwapPaths"]
         try:
+            # Guard against None values returned by API
+            pi = sor_data.get("priceImpact") or {}
+            raw_pi = pi.get("priceImpact")
+            price_impact_val = float(raw_pi) if isinstance(raw_pi, (int, float, str)) and raw_pi not in (None, "") else 0.0
             return SwapPath(
                 swap_amount_raw=sor_data.get("swapAmountRaw", "0"),
                 return_amount_raw=sor_data.get("returnAmountRaw", "0"),
-                price_impact=float(sor_data.get("priceImpact", {}).get("priceImpact", 0)),
+                price_impact=price_impact_val,
                 route=sor_data.get("routes", [])
             )
         except Exception as e:
