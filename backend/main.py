@@ -1,6 +1,11 @@
 import sys
 import os
 
+from dotenv import load_dotenv
+
+# Load environment variables from backend/.env.production if present
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env.production"))
+
 # 🔧 Fix Python path so we can import from repo root (lib/, bots/, etc.)
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "lib")))
