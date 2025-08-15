@@ -106,7 +106,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ### **5. Verify Installation**
 ```bash
 # Check system status
-curl http://137.184.184.67:8000/
+curl https://api.aeoninvestmentstechnologies.com/
 
 # View API documentation
 open https://api.aeoninvestmentstechnologies.com/docs

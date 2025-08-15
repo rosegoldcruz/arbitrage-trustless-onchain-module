@@ -63,8 +63,8 @@ export default function SettingsPage() {
       minProfitThreshold: "0.01",
       maxGasPrice: "50",
       slippageTolerance: "0.5",
-      defaultNetwork: "ethereum",
-      backendUrl: "http://localhost:8000",
+      defaultNetwork: "base",
+      backendUrl: "https://api.aeoninvestmentstechnologies.com",
       apiKey: "",
       maxTradeSize: "10000",
       dailyLossLimit: "500",
@@ -273,7 +273,7 @@ export default function SettingsPage() {
                       value={settings.backendUrl}
                       onChange={(e) => handleInputChange("backendUrl", e.target.value)}
                       className="bg-gray-800 border-gray-600 text-white focus:border-blue-400"
-                      placeholder="http://localhost:8000"
+                      placeholder="https://api.aeoninvestmentstechnologies.com"
                     />
                   </div>
                   
