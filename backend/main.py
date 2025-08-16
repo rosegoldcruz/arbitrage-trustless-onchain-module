@@ -28,6 +28,7 @@ import random
 # 🚦 Internal Routers - DASHBOARD FOCUSED
 from backend.routers import arbitrage, flashloan, deploy, agent, health, contact, stats, trades
 from backend.routers import analytics, risk, zeroex, parallel_dashboard, tokens, dashboard_api
+from backend.routes.clerk_webhook import router as clerk_webhook_router
 
 # 🧠 Core bot integrations
 try:
@@ -261,6 +262,7 @@ app.include_router(risk.router)
 app.include_router(zeroex.router)
 app.include_router(parallel_dashboard.router)
 app.include_router(dashboard_api.router)
+app.include_router(clerk_webhook_router)
 
 @app.get("/")
 async def root():
