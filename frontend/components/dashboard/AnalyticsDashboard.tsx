@@ -98,22 +98,28 @@ export function AnalyticsDashboard() {
 
         if (healthResponse.ok && healthResult.status === 'healthy') {
           // Create mock analytics data based on health status
-          const mockAnalyticsData = {
-            total_profit: 1247.85,
-            profit_24h: 156.32,
-            total_trades: 89,
-            success_rate: 0.87,
-            active_strategies: 3,
-            top_performing_pairs: [
-              { pair: "ETH/USDC", profit: 425.50, trades: 23 },
-              { pair: "DAI/USDC", profit: 312.75, trades: 18 },
-              { pair: "WBTC/ETH", profit: 289.60, trades: 15 }
+          const mockAnalyticsData: AnalyticsData = {
+            totalProfit: 1247.85,
+            totalTrades: 89,
+            successRate: 0.87,
+            avgProfitPerTrade: 14.02,
+            totalVolume: 125000.50,
+            activeOpportunities: 12,
+            topPairs: [
+              { pair: "ETH/USDC", profit: 425.50, trades: 23, volume: 45000 },
+              { pair: "DAI/USDC", profit: 312.75, trades: 18, volume: 32000 },
+              { pair: "WBTC/ETH", profit: 289.60, trades: 15, volume: 28000 }
             ],
-            performance_metrics: {
-              avg_execution_time: 18.2,
-              gas_efficiency: 0.92,
-              slippage_avg: 0.15
-            }
+            performanceMetrics: {
+              last24h: { profit: 156.32, trades: 12, volume: 15000 },
+              last7d: { profit: 892.45, trades: 67, volume: 89000 },
+              last30d: { profit: 1247.85, trades: 89, volume: 125000 }
+            },
+            recentTrades: [
+              { id: "1", timestamp: new Date().toISOString(), pair: "ETH/USDC", profit: 25.50, status: 'success' },
+              { id: "2", timestamp: new Date().toISOString(), pair: "DAI/USDC", profit: 18.75, status: 'success' },
+              { id: "3", timestamp: new Date().toISOString(), pair: "WBTC/ETH", profit: 32.10, status: 'success' }
+            ]
           };
 
           setAnalyticsData(mockAnalyticsData);
