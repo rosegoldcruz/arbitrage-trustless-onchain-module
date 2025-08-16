@@ -28,7 +28,7 @@ export function RecentTradesTable() {
       try {
         // Preferred: /health with embedded recent trades
         let res = await fetch(`${API_BASE}/health`);
-        let rows: TradeRow[] | null = null;
+        let rows: TradeRow[] = [];
         if (res.ok) {
           const health = await res.json();
           const list = (health.recent_trades || health.recentTrades) as any[] | undefined;
@@ -36,7 +36,7 @@ export function RecentTradesTable() {
             rows = list as TradeRow[];
           }
         }
-        if (!rows) {
+        if (!rows || rows.length === 0) {
           // Fallback: dedicated trades endpoint
           res = await fetch(`${API_BASE}/trades/recent?limit=10`);
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
