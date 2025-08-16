@@ -26,10 +26,23 @@ export function RecentTradesTable() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch(`${API_BASE}/trades/recent?limit=10`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setRows(data);
+        // Preferred: /health with embedded recent trades
+        let res = await fetch(`${API_BASE}/health`);
+        let rows: TradeRow[] | null = null;
+        if (res.ok) {
+          const health = await res.json();
+          const list = (health.recent_trades || health.recentTrades) as any[] | undefined;
+          if (Array.isArray(list)) {
+            rows = list as TradeRow[];
+          }
+        }
+        if (!rows) {
+          // Fallback: dedicated trades endpoint
+          res = await fetch(`${API_BASE}/trades/recent?limit=10`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          rows = await res.json();
+        }
+        setRows(rows);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load trades");
       }
