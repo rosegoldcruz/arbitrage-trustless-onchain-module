@@ -82,22 +82,25 @@ export function ArbitrageControls() {
     return () => clearInterval(interval);
   }, [selectedNetwork, minProfit]);
 
-  // Execute arbitrage
+  // Execute arbitrage using /trigger endpoint
   const executeArbitrage = async () => {
     try {
       setIsExecuting(true);
-      const response = await api.arbitrage.execute({
-        assetPair: selectedPair,
-        network: selectedNetwork,
-        amount: parseFloat(tradeAmount),
-        minProfitThreshold: parseFloat(minProfit)
+
+      // Extract tokens from selected pair (e.g., "ETH/USDC" -> ["ETH", "USDC", "DAI"])
+      const tokens = selectedPair.split('/');
+      const tokenTriple = tokens.length >= 2 ? [tokens[0], tokens[1], "DAI"] : ["DAI", "USDC", "GHO"];
+
+      const response = await api.arbitrage.trigger({
+        token_triple: tokenTriple,
+        amount: tradeAmount
       });
-      
-      if (response.success) {
-        toast.success(`Arbitrage executed successfully! Profit: $${response.data.profit || '0.00'}`);
+
+      if (response.success && response.data?.triggered) {
+        toast.success(`Arbitrage executed successfully! Profit: $${response.data.expected_profit?.toFixed(2) || '0.00'}`);
         fetchOpportunities(); // Refresh opportunities
       } else {
-        toast.error('Failed to execute arbitrage');
+        toast.error(`Failed to execute arbitrage: ${response.data?.reason || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Arbitrage execution failed:', error);

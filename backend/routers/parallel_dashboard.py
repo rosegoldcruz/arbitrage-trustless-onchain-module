@@ -122,7 +122,7 @@ async def health_check():
         try:
             # Quick Balancer test
             async with balancer_client as client:
-                await client.get_high_tvl_pools(chains=["BASE"], first=1)
+                await client.get_high_tvl_pools(chains=["BASE"], min_tvl=1000, limit=1)
         except Exception as e:
             balancer_status = f"error: {str(e)[:100]}"
         

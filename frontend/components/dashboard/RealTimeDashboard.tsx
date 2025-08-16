@@ -28,11 +28,12 @@ export function RealTimeDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
+  const [executingOpportunities, setExecutingOpportunities] = useState<Set<string>>(new Set());
 
   // Fetch REAL dashboard data using API client
   const fetchDashboardData = async () => {
     try {
-      console.log('🔄 Fetching dashboard data from:', process.env.NEXT_PUBLIC_API_URL);
+      console.log('🔄 Fetching dashboard data from:', process.env.NEXT_PUBLIC_API_BASE);
       const data = await realTimeApi.getDashboardStatus();
       console.log('✅ Dashboard data received:', data);
       setDashboardData(data);
@@ -56,17 +57,37 @@ export function RealTimeDashboard() {
     }
   };
 
-  // Execute opportunity using API client
-  const executeOpportunity = async (opportunityId: string) => {
+  // Execute opportunity using API client with proper loading states
+  const executeOpportunity = async (opportunityId: string, opportunity?: ArbitrageOpportunity) => {
     try {
-      const result = await realTimeApi.executeOpportunity(opportunityId);
+      // Add to executing set
+      setExecutingOpportunities(prev => new Set(prev).add(opportunityId));
+
+      // Extract token triple from opportunity path if available
+      let tokenTriple = ["DAI", "USDC", "GHO"]; // default
+      if (opportunity?.path) {
+        // Parse path like "WETH → USDC → DAI → WETH" to get tokens
+        const tokens = opportunity.path.split(' → ').map(t => t.trim());
+        if (tokens.length >= 3) {
+          tokenTriple = [tokens[0], tokens[1], tokens[2]];
+        }
+      }
+
+      const result = await realTimeApi.executeOpportunity(opportunityId, tokenTriple, "1");
       toast.success(`🚀 REAL execution! Profit: $${result.profit_realized.toFixed(2)} | TX: ${result.tx_hash.slice(0, 10)}...`);
 
       // Refresh data after execution
       await Promise.all([fetchDashboardData(), fetchOpportunities()]);
     } catch (error) {
       console.error('Error executing opportunity:', error);
-      toast.error('Failed to execute REAL opportunity');
+      toast.error(`Failed to execute opportunity: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      // Remove from executing set
+      setExecutingOpportunities(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(opportunityId);
+        return newSet;
+      });
     }
   };
 
@@ -317,26 +338,36 @@ export function RealTimeDashboard() {
                   key={opp.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-green-50 to-blue-50"
+                  className="flex items-center justify-between p-4 border rounded-lg bg-gradient-to-r from-green-900/20 to-blue-900/20 border-green-500/30 hover:border-green-400/50 transition-colors"
                 >
                   <div>
-                    <h4 className="font-medium">{opp.path}</h4>
-                    <p className="text-sm text-muted-foreground">
+                    <h4 className="font-medium text-white">{opp.path}</h4>
+                    <p className="text-sm text-gray-300">
                       via {opp.dex_route} • {opp.confidence.toFixed(1)}% confidence
                     </p>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="font-bold text-green-600">{opp.spread_bps}bps</p>
-                      <p className="text-sm text-muted-foreground">${opp.profit_usd.toFixed(2)}</p>
+                      <p className="font-bold text-green-400">{opp.spread_bps}bps</p>
+                      <p className="text-sm text-gray-300">${opp.profit_usd.toFixed(2)}</p>
                     </div>
                     <Button
                       size="sm"
-                      onClick={() => executeOpportunity(opp.id)}
-                      className="bg-green-600 hover:bg-green-700"
+                      onClick={() => executeOpportunity(opp.id, opp)}
+                      disabled={executingOpportunities.has(opp.id)}
+                      className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105"
                     >
-                      <Play className="h-4 w-4 mr-1" />
-                      Execute
+                      {executingOpportunities.has(opp.id) ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                          Executing...
+                        </>
+                      ) : (
+                        <>
+                          <Play className="h-4 w-4 mr-1" />
+                          Execute
+                        </>
+                      )}
                     </Button>
                   </div>
                 </motion.div>

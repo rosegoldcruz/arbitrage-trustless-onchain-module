@@ -127,20 +127,25 @@ export function OpportunityHunter() {
     }
   }, [huntMode]);
 
-  // Execute opportunity
+  // Execute opportunity using /trigger endpoint
   const executeOpportunity = async (opp: Opportunity) => {
     try {
-      const response = await api.arbitrage.execute({
-        assetPair: opp.pair,
-        network: opp.network,
-        amount: 1.0
+      // Extract tokens from pair (e.g., "ETH/USDC" -> ["ETH", "USDC", "DAI"])
+      const tokens = opp.pair.split('/');
+      const tokenTriple = tokens.length >= 2 ? [tokens[0], tokens[1], "DAI"] : ["DAI", "USDC", "GHO"];
+
+      const response = await api.arbitrage.trigger({
+        token_triple: tokenTriple,
+        amount: "1"
       });
-      
-      if (response.success) {
+
+      if (response.success && response.data?.triggered) {
         toast.success(`🚀 ${opp.rarity.toUpperCase()} opportunity executed! +$${opp.estimated_profit.toFixed(2)}`);
-        
+
         // Remove executed opportunity
         setOpportunities(prev => prev.filter(o => o.id !== opp.id));
+      } else {
+        toast.error(`Failed to execute: ${response.data?.reason || 'Unknown error'}`);
       }
     } catch (error) {
       toast.error('Failed to execute opportunity');

@@ -87,7 +87,7 @@ const ParallelDashboard: React.FC = () => {
   const [wsConnected, setWsConnected] = useState(false);
 
   // API base URL
-  const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://api.aeoninvestmentstechnologies.com';
 
   // Fetch Balancer pools
   const fetchBalancerPools = useCallback(async () => {

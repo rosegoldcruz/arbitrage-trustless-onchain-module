@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://api.aeoninvestmentstechnologies.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE || 'https://api.aeoninvestmentstechnologies.com';
 
 interface ApiResponse<T = any> {
   data?: T;
@@ -72,6 +72,11 @@ export const api = {
   arbitrage: {
     execute: (data: { assetPair: string; network: string; amount?: number; minProfitThreshold?: number }) =>
       apiRequest('/arbitrage', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    trigger: (data: { token_triple: string[]; amount: string; force_execute?: boolean }) =>
+      apiRequest('/arbitrage/trigger', {
         method: 'POST',
         body: JSON.stringify(data),
       }),

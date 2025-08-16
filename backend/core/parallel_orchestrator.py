@@ -268,7 +268,7 @@ class ParallelOrchestrator:
                 pools = await client.get_high_tvl_pools(
                     chains=["BASE"],
                     min_tvl=1000,
-                    first=20
+                    limit=20
                 )
 
                 # Get arbitrage opportunities
