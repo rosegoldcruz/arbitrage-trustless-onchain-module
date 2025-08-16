@@ -84,8 +84,8 @@ export function AnalyticsDashboard() {
       setError(null);
 
       // Try analytics endpoint first
-      let response = await fetch(`${API_BASE}/api/analytics/dashboard`);
-      let result = await response.json();
+      const response = await fetch(`${API_BASE}/api/analytics/dashboard`);
+      const result = await response.json();
 
       if (response.ok && result.success) {
         setAnalyticsData(result.data);
