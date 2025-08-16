@@ -156,7 +156,7 @@ export default function AitechSections() {
           <div className="relative h-full w-full max-w-4xl preserve-3d">
             {/* Rotating core */}
             <div
-              className="absolute inset-0 motion-safe:animate-[spinY_8s_linear_infinite] will-change-transform preserve-3d"
+              className="absolute inset-0 animate-spinY will-change-transform preserve-3d"
             >
               {/* Front face */}
               <img
