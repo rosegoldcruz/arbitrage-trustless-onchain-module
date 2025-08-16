@@ -74,7 +74,8 @@ const ArbitrageMonitor: React.FC = () => {
   // Fetch arbitrage status
   const fetchStatus = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/arbitrage/status`);
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://api.aeoninvestmentstechnologies.com';
+      const response = await fetch(`${API_BASE}/arbitrage/status`);
       if (response.ok) {
         const data = await response.json();
         setOpportunities(data.current_opportunities);
@@ -94,7 +95,8 @@ const ArbitrageMonitor: React.FC = () => {
   // Fetch logs
   const fetchLogs = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/arbitrage/logs?limit=20`);
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://api.aeoninvestmentstechnologies.com';
+      const response = await fetch(`${API_BASE}/arbitrage/logs?limit=20`);
       if (response.ok) {
         const data = await response.json();
         setLogs(data.logs);
