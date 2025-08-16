@@ -18,6 +18,8 @@ import {
   Clock,
   Target
 } from "lucide-react";
+import { RecentTradesTable } from "./RecentTradesTable";
+
 import { toast } from "sonner";
 import { realTimeApi, DashboardStatus, ArbitrageOpportunity } from "@/lib/realTimeApi";
 
@@ -73,13 +75,15 @@ export function RealTimeDashboard() {
       }
 
       const result = await realTimeApi.executeOpportunity(opportunityId, tokenTriple, "1");
-      toast.success(`🚀 REAL execution! Profit: $${result.profit_realized.toFixed(2)} | TX: ${result.tx_hash.slice(0, 10)}...`);
+      toast.success(`🚀 Executed! Profit: $${result.profit_realized.toFixed(2)} | TX: ${result.tx_hash.slice(0, 10)}...`);
 
       // Refresh data after execution
       await Promise.all([fetchDashboardData(), fetchOpportunities()]);
     } catch (error) {
       console.error('Error executing opportunity:', error);
-      toast.error(`Failed to execute opportunity: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const reason = error instanceof Error ? error.message : 'Unknown error';
+      // If the backend returns spread threshold reason, surface it clearly
+      toast.error(`Execution blocked: ${reason}`);
     } finally {
       // Remove from executing set
       setExecutingOpportunities(prev => {
@@ -181,6 +185,12 @@ export function RealTimeDashboard() {
       case 'failed':
         return <AlertCircle className="h-4 w-4" />;
       case 'connecting':
+      {/* Recent Trades Table */}
+      <div className="mt-6">
+        <h3 className="text-lg font-semibold mb-2 text-gray-100">Recent Trades</h3>
+        <RecentTradesTable />
+      </div>
+
       case 'initializing':
         return <RefreshCw className="h-4 w-4 animate-spin" />;
       default:

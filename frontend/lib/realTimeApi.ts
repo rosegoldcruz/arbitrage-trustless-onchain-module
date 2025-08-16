@@ -65,7 +65,7 @@ class RealTimeApi {
     const response = await fetch(`${this.baseUrl}/health`);
     const result = await response.json();
 
-    if (result.status !== 'healthy') {
+    if (!response.ok) {
       throw new Error('Failed to fetch dashboard status');
     }
 
@@ -154,8 +154,13 @@ class RealTimeApi {
 
     const result = await response.json();
 
+    if (!response.ok) {
+      throw new Error(result?.reason || result?.detail || 'Execution failed');
+    }
+
     if (!result.triggered) {
-      throw new Error(result.reason || 'Failed to execute opportunity');
+      // Propagate the reason up to the UI to show a toast like: Spread below Xbps threshold
+      throw new Error(result.reason || 'Spread below threshold');
     }
 
     // Transform trigger response to execution result format

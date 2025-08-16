@@ -51,7 +51,7 @@ class BalancerChain:
 
 # Mock balancer service for now
 class MockBalancerService:
-    async def getPoolsByTVL(self, chains, minTvl, first):
+    async def getPoolsByTVL(self, chains, minTvl, limit):
         # Return mock pool data
         return [
             {
@@ -140,7 +140,7 @@ async def health_check():
         thegraph_status = "healthy"
         try:
             async with thegraph_service as client:
-                await client.get_top_pools(first=1)
+                await client.get_top_pools(limit=1)
         except Exception as e:
             thegraph_status = f"error: {str(e)[:100]}"
         
@@ -174,7 +174,7 @@ async def get_balancer_pools(
         pools = await balancer_service.getPoolsByTVL(
             chains=[BalancerChain.BASE],  # Use BASE for now, will add BASE_SEPOLIA when available
             minTvl=min_tvl,
-            first=limit
+            limit=limit
         )
         
         # Transform for frontend
@@ -388,7 +388,7 @@ async def get_thegraph_pools(
         logger.info(f"Fetching The Graph pools with min_tvl={min_tvl}, limit={limit}")
 
         async with thegraph_service as client:
-            pools = await client.get_top_pools(first=limit)
+            pools = await client.get_top_pools(limit=limit)
 
             # Filter by TVL and format for frontend
             formatted_pools = []
