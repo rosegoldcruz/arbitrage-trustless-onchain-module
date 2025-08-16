@@ -11,20 +11,18 @@ import {
   TrendingUp,
   Activity,
   Settings,
-  Crown,
-  Swords,
   BarChart3,
   Network,
   DollarSign
 } from "lucide-react";
 
 // Import your awesome components
-import { AgentBattleArena } from "@/components/dashboard/AgentBattleArena";
 import { RealTimeDashboard } from "@/components/dashboard/RealTimeDashboard";
 import ParallelDashboard from "@/components/dashboard/ParallelDashboard";
+import { AnalyticsDashboard } from "@/components/dashboard/AnalyticsDashboard";
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState("arena");
+  const [activeTab, setActiveTab] = useState("realtime");
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
@@ -65,11 +63,7 @@ export default function DashboardPage() {
       {/* Main Dashboard */}
       <div className="container mx-auto px-6 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-gray-900/50 border border-gray-800">
-            <TabsTrigger value="arena" className="flex items-center gap-2">
-              <Swords className="h-4 w-4" />
-              Bots Arena
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-gray-900/50 border border-gray-800">
             <TabsTrigger value="realtime" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
               Real-Time
@@ -84,15 +78,7 @@ export default function DashboardPage() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="arena" className="space-y-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <AgentBattleArena />
-            </motion.div>
-          </TabsContent>
+
 
           <TabsContent value="realtime" className="space-y-6">
             <motion.div
@@ -119,25 +105,8 @@ export default function DashboardPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="flex items-center justify-center min-h-[400px]"
             >
-              <Card className="bg-gray-900/50 border-gray-800 max-w-md">
-                <CardHeader className="text-center">
-                  <CardTitle className="flex items-center justify-center gap-2">
-                    <BarChart3 className="h-5 w-5 text-blue-400" />
-                    Analytics
-                  </CardTitle>
-                  <CardDescription>
-                    Real-time analytics will appear here when backend is connected
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <div className="text-gray-400">
-                    <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>Waiting for backend connection...</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <AnalyticsDashboard />
             </motion.div>
           </TabsContent>
         </Tabs>
