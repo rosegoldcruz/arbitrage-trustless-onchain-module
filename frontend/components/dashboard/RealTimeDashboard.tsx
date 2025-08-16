@@ -185,11 +185,7 @@ export function RealTimeDashboard() {
       case 'failed':
         return <AlertCircle className="h-4 w-4" />;
       case 'connecting':
-      {/* Recent Trades Table */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-2 text-gray-100">Recent Trades</h3>
-        <RecentTradesTable />
-      </div>
+        return <RefreshCw className="h-4 w-4 animate-spin" />;
 
       case 'initializing':
         return <RefreshCw className="h-4 w-4 animate-spin" />;
@@ -332,6 +328,12 @@ export function RealTimeDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Recent Trades Table */}
+      <div className="mt-6">
+        <h3 className="text-lg font-semibold mb-2 text-gray-100">Recent Trades</h3>
+        <RecentTradesTable />
+      </div>
 
       {/* Live Opportunities */}
       <Card>
