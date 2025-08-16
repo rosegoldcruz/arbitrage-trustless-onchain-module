@@ -279,6 +279,26 @@ async def root():
     }
 
 # 🎯 DASHBOARD TRIGGER ENDPOINT
+
+# Compatibility shim: expose analytics endpoints directly as well
+@app.get("/api/analytics/real-time-stats")
+async def analytics_real_time_stats_direct():
+    try:
+        from backend.routers.analytics import get_real_time_stats  # lazy import to avoid circulars
+        return await get_real_time_stats()  # type: ignore
+    except Exception as e:
+        logger.error(f"[analytics_real_time_stats_direct] {e}")
+        raise HTTPException(status_code=500, detail="Failed to get real-time stats")
+
+@app.get("/api/analytics/dashboard")
+async def analytics_dashboard_direct():
+    try:
+        from backend.routers.analytics import get_dashboard_analytics  # lazy import
+        return await get_dashboard_analytics()  # type: ignore
+    except Exception as e:
+        logger.error(f"[analytics_dashboard_direct] {e}")
+        raise HTTPException(status_code=500, detail="Failed to get dashboard analytics")
+
 @app.post("/trigger")
 async def trigger_bot(request: dict, current_user = Depends(get_current_user)):
     """
