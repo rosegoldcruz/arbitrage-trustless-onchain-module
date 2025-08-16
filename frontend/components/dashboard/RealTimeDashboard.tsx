@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Activity,
   TrendingUp,
   Zap,
   Network,
@@ -201,6 +200,11 @@ export function RealTimeDashboard() {
           {dashboardData.system_status.toUpperCase()}
         </Badge>
       </div>
+      {/* Temporary notice: 0x disabled on Base Sepolia */}
+      <div className="rounded-md border border-yellow-700 bg-yellow-900/30 text-yellow-300 px-4 py-3">
+        0x Aggregator temporarily disabled on Base Sepolia testnet. Logic remains enabled for mainnet; quotes are skipped gracefully on testnet.
+      </div>
+
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -276,13 +280,15 @@ export function RealTimeDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {Object.entries(dashboardData.dex_connections).map(([dex, status]) => (
-              <div key={dex} className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${getStatusColor(status)}`} />
-                <span className="text-sm font-medium">{dex}</span>
-                {getStatusIcon(status)}
-              </div>
-            ))}
+            {Object.entries(dashboardData.dex_connections)
+              .filter(([dex]) => dex.toLowerCase() !== '0x')
+              .map(([dex, status]) => (
+                <div key={dex} className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${getStatusColor(status)}`} />
+                  <span className="text-sm font-medium">{dex}</span>
+                  {getStatusIcon(status)}
+                </div>
+              ))}
           </div>
         </CardContent>
       </Card>
@@ -355,7 +361,7 @@ export function RealTimeDashboard() {
                       size="sm"
                       onClick={() => executeOpportunity(opp.id, opp)}
                       disabled={executingOpportunities.has(opp.id)}
-                      className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105"
+                      className="bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-700 disabled:text-gray-300 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 border border-green-500/40"
                     >
                       {executingOpportunities.has(opp.id) ? (
                         <>

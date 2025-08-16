@@ -73,7 +73,7 @@ app_state = {
     "last_update": datetime.now(timezone.utc),
     "total_profit": 0.0,
     "active_agents": 0,
-    "dex_connections": {dex: "connecting" for dex in ["0x", "1inch", "paraswap", "balancer", "curve", "uniswap"]},
+    "dex_connections": {dex: "connecting" for dex in ["1inch", "paraswap", "balancer", "curve", "uniswap"]},
     "real_time_data": {
         "gas_price": 0,
         "eth_price": 0,
@@ -121,6 +121,7 @@ async def test_dex_connections():
             slippage_tolerance=0.005
         )
         for dex in app_state["dex_connections"]:
+            # Treat 0x as skipped on testnet; other DEXes reflect quote availability
             app_state["dex_connections"][dex] = "connected" if quote else "error"
         if quote:
             app_state["real_time_data"]["eth_price"] = quote.amount_out

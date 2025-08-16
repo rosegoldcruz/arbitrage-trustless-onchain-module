@@ -12,11 +12,16 @@ class ZeroXAPIError(Exception):
         self.status_code = status_code
 
 
+# Whitelist of networks where 0x is supported in our stack (exclude testnets like base-sepolia)
+SUPPORTED_ZRX_NETWORKS = ["ethereum", "polygon", "optimism", "arbitrum", "base"]
+
 class ZeroXClient:
     def __init__(self, api_key: str, network: str = "base"):
         self.api_key = api_key
         self.network = network.lower()
-        self.base_url = self._get_base_url()
+        # Enable only on supported networks
+        self.enabled = (self.network in SUPPORTED_ZRX_NETWORKS) and ("sepolia" not in self.network)
+        self.base_url = self._get_base_url() if self.enabled else ""
 
     def _get_base_url(self) -> str:
         network_map = {
@@ -25,9 +30,8 @@ class ZeroXClient:
             "polygon": "https://polygon.api.0x.org",
             "bsc": "https://bsc.api.0x.org",
         }
-        if self.network not in network_map:
-            raise ZeroXAPIError(f"Unsupported network: {self.network}")
-        return network_map[self.network]
+        # Gracefully return empty string for unsupported networks
+        return network_map.get(self.network, "")
 
     def _headers(self) -> Dict[str, str]:
         return {"0x-api-key": self.api_key} if self.api_key else {}
@@ -60,8 +64,10 @@ class ZeroXClient:
         buy_amount: Optional[str] = None,
         slippage_percentage: float = 0.01,
         taker_address: Optional[str] = None,
-    ) -> SimpleNamespace:
+    ) -> Optional[SimpleNamespace]:
         """Get executable swap quote from 0x /swap/v1/quote"""
+        if not getattr(self, "enabled", False):
+            return None
         url = f"{self.base_url}/swap/v1/quote"
         params: Dict[str, Any] = {
             "sellToken": sell_token,
@@ -83,8 +89,10 @@ class ZeroXClient:
             data = await resp.json()
             return self._quote_to_obj(data)
 
-    async def get_token_price(self, sell_token: str, buy_token: str, sell_amount: str) -> Dict[str, Any]:
+    async def get_token_price(self, sell_token: str, buy_token: str, sell_amount: str) -> Optional[Dict[str, Any]]:
         """Get indicative price from 0x /swap/v1/price"""
+        if not getattr(self, "enabled", False):
+            return None
         url = f"{self.base_url}/swap/v1/price"
         params = {
             "sellToken": sell_token,

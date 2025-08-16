@@ -374,7 +374,8 @@ const ParallelDashboard: React.FC = () => {
                   </Badge>
                 </div>
               </div>
-              <div className="flex items-center justify-between">
+              {/* 0x temporarily hidden on Base Sepolia */}
+              {/* <div className="flex items-center justify-between">
                 <span>0x Service</span>
                 <div className="flex items-center space-x-2">
                   {getStatusIcon(systemHealth.zrxStatus)}
@@ -382,7 +383,7 @@ const ParallelDashboard: React.FC = () => {
                     {systemHealth.zrxStatus}
                   </Badge>
                 </div>
-              </div>
+              </div> */}
               <div className="flex items-center justify-between">
                 <span>The Graph</span>
                 <div className="flex items-center space-x-2">
@@ -415,7 +416,7 @@ const ParallelDashboard: React.FC = () => {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="balancer">Balancer Pools</TabsTrigger>
-          <TabsTrigger value="zrx">0x Prices</TabsTrigger>
+          {/* <TabsTrigger value="zrx">0x Prices</TabsTrigger> */}
           <TabsTrigger value="thegraph">The Graph</TabsTrigger>
           <TabsTrigger value="arbitrage">Arbitrage</TabsTrigger>
         </TabsList>

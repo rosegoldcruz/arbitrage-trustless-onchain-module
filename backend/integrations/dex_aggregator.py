@@ -249,8 +249,11 @@ class DEXAggregator:
                     logger.warning(f"Failed to get quote from {aggregator.value}: {result}")
                     continue
 
-                if result:
-                    quotes.append(result)
+                # Skip falsy/None results (e.g., when 0x is disabled on testnet)
+                if result is None:
+                    continue
+
+                quotes.append(result)
 
             if not quotes:
                 logger.warning(f"No quotes available for {token_in} -> {token_out}")
