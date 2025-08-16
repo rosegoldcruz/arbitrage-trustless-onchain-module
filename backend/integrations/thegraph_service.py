@@ -258,7 +258,7 @@ class TheGraphService:
             
     async def get_top_pools(
         self,
-        first: int = 20,
+        limit: int = 20,
         order_by: str = 'totalValueLockedUSD',
         order_direction: str = 'desc'
     ) -> List[Pool]:
@@ -268,7 +268,7 @@ class TheGraphService:
                 SUBGRAPH_ENDPOINTS['UNISWAP_V3'],
                 QUERIES['TOP_POOLS'],
                 {
-                    'first': first,
+                    'first': limit,
                     'orderBy': order_by,
                     'orderDirection': order_direction
                 }
