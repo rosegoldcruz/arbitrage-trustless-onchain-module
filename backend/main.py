@@ -1,18 +1,18 @@
 import sys
 import os
-
 from dotenv import load_dotenv
-import os
-# Load environment variables from backend/.env.production if present
+
+# 📦 Force-load environment variables from backend/.env.production
 env_path = os.path.join(os.path.dirname(__file__), ".env.production")
 if os.path.exists(env_path):
-    load_dotenv(env_path)
+    load_dotenv(dotenv_path=env_path, override=True)
 else:
     print("WARN: backend/.env.production not found, using system environment")
 
-# 🔧 Fix Python path so we can import from repo root (lib/, bots/, etc.)
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "lib")))
+# 🧠 Add root and lib/ to Python path
+base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, base_dir)
+sys.path.insert(0, os.path.join(base_dir, "lib"))
 
 # ⚙️ FastAPI + Core imports
 from fastapi import FastAPI, HTTPException, Depends, Request, Header
@@ -73,7 +73,7 @@ app_state = {
     "last_update": datetime.now(timezone.utc),
     "total_profit": 0.0,
     "active_agents": 0,
-    "dex_connections": {dex: "connecting" for dex in ["1inch", "paraswap", "balancer", "curve", "uniswap"]},
+    "dex_connections": {dex: "connecting" for dex in ["0x", "1inch", "paraswap", "balancer", "curve", "uniswap"]},
     "real_time_data": {
         "gas_price": 0,
         "eth_price": 0,
@@ -121,7 +121,6 @@ async def test_dex_connections():
             slippage_tolerance=0.005
         )
         for dex in app_state["dex_connections"]:
-            # Treat 0x as skipped on testnet; other DEXes reflect quote availability
             app_state["dex_connections"][dex] = "connected" if quote else "error"
         if quote:
             app_state["real_time_data"]["eth_price"] = quote.amount_out
@@ -262,11 +261,11 @@ app.include_router(contact.router)
 app.include_router(stats.router)
 app.include_router(trades.router)
 app.include_router(tokens)
-app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
+app.include_router(analytics.router)
 app.include_router(risk.router)
 app.include_router(zeroex.router)
-app.include_router(parallel_dashboard.router, prefix="/api/parallel", tags=["parallel"])
-app.include_router(dashboard_api.router, prefix="/api/dashboard", tags=["dashboard"])
+app.include_router(parallel_dashboard.router)
+app.include_router(dashboard_api.router)
 app.include_router(clerk_webhook_router)
 
 @app.get("/")
@@ -279,26 +278,6 @@ async def root():
     }
 
 # 🎯 DASHBOARD TRIGGER ENDPOINT
-
-# Compatibility shim: expose analytics endpoints directly as well
-@app.get("/api/analytics/real-time-stats")
-async def analytics_real_time_stats_direct():
-    try:
-        from backend.routers.analytics import get_real_time_stats  # lazy import to avoid circulars
-        return await get_real_time_stats()  # type: ignore
-    except Exception as e:
-        logger.error(f"[analytics_real_time_stats_direct] {e}")
-        raise HTTPException(status_code=500, detail="Failed to get real-time stats")
-
-@app.get("/api/analytics/dashboard")
-async def analytics_dashboard_direct():
-    try:
-        from backend.routers.analytics import get_dashboard_analytics  # lazy import
-        return await get_dashboard_analytics()  # type: ignore
-    except Exception as e:
-        logger.error(f"[analytics_dashboard_direct] {e}")
-        raise HTTPException(status_code=500, detail="Failed to get dashboard analytics")
-
 @app.post("/trigger")
 async def trigger_bot(request: dict, current_user = Depends(get_current_user)):
     """
