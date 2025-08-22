@@ -234,3 +234,5 @@ cache/
 .venv/
 node_modules/
 _archive/
+
+.vercel
