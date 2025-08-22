@@ -1,43 +1,7 @@
-# CORE STACK
-web3==7.12.1
-eth-account==0.13.6
-fastapi==0.116.1
-uvicorn==0.35.0
-pydantic==2.11.7
-pydantic-settings==2.10.1
-sqlalchemy==2.0.42
-alembic==1.16.4
-
-# UTILITIES
-python-dotenv==1.1.1
-python-multipart==0.0.20
-httpx==0.28.1
-email-validator==2.2.0
-orjson==3.11.1
-structlog==25.4.0
-psutil==7.0.0
-
-# BLOCKCHAIN
-eth-abi==5.2.0
-eth-keys==0.7.0
-eth-keyfile==0.8.1
-eth-rlp==2.2.0
-eth-typing==5.2.1
-eth-utils==5.3.0
-rlp==4.1.0
-hexbytes==1.3.1
-
-# CELERY + REDIS
-celery==5.5.3
-redis==6.3.0
-
-# PG + ASYNC
-asyncpg==0.30.0
-anyio==4.10.0
-async-timeout==5.0.1
-aiohttp==3.12.15
-
-# DEV + TEST
-pytest==8.4.1
-pytest-asyncio==1.1.0
-watchfiles==1.1.0
+web3
+redis
+fastapi
+uvicorn
+httpx
+pendulum
+python-dotenv

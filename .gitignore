@@ -226,3 +226,11 @@ logs/
 # END OF CLEAN GITIGNORE - NO MORE WILDCARD BULLSHIT
 # ============================================================================
 .env*.local
+
+# Minimal setup specific ignores
+*.secrets
+artifacts/
+cache/
+.venv/
+node_modules/
+_archive/

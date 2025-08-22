@@ -141,11 +141,11 @@ export default function TermsPage() {
               <div className="flex items-center space-x-2 text-gray-300">
                 <Mail className="h-5 w-5 text-blue-400" />
                 <span>For legal or support inquiries, email </span>
-                <a 
-                  href="mailto:support@aeoninvestmentstechnologies.com" 
+                <a
+                  href="mailto:support@smart4technology.com"
                   className="text-blue-400 hover:text-blue-300 transition-colors"
                 >
-                  support@aeoninvestmentstechnologies.com
+                  support@smart4technology.com
                 </a>
               </div>
             </section>
