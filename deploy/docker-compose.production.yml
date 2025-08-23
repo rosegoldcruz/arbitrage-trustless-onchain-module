@@ -1,0 +1,188 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: atom-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - atom-network
+
+  opportunity-detector:
+    build: 
+      context: ..
+      dockerfile: deploy/Dockerfile.bots
+    container_name: atom-opportunity-detector
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../logs:/app/logs
+      - ../.env:/app/.env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - BOT_TYPE=opportunity_detector
+    command: python bots/opportunity_detector.py
+    healthcheck:
+      test: ["CMD", "python", "-c", "import redis; r=redis.Redis(host='redis'); r.ping()"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+    networks:
+      - atom-network
+
+  trade-executor:
+    build: 
+      context: ..
+      dockerfile: deploy/Dockerfile.bots
+    container_name: atom-trade-executor
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      opportunity-detector:
+        condition: service_healthy
+    volumes:
+      - ../logs:/app/logs
+      - ../.env:/app/.env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - BOT_TYPE=trade_executor
+    command: python bots/trade_executor.py
+    healthcheck:
+      test: ["CMD", "python", "-c", "import redis; r=redis.Redis(host='redis'); r.ping()"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+    networks:
+      - atom-network
+
+  orchestrator:
+    build: 
+      context: ..
+      dockerfile: deploy/Dockerfile.bots
+    container_name: atom-orchestrator
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+      opportunity-detector:
+        condition: service_healthy
+      trade-executor:
+        condition: service_healthy
+    volumes:
+      - ../logs:/app/logs
+      - ../.env:/app/.env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - BOT_TYPE=orchestrator
+    command: python bots/arbitrage_orchestrator.py
+    healthcheck:
+      test: ["CMD", "python", "-c", "import redis; r=redis.Redis(host='redis'); r.ping()"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+    networks:
+      - atom-network
+
+  monitoring:
+    build: 
+      context: ..
+      dockerfile: deploy/Dockerfile.bots
+    container_name: atom-monitoring
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../logs:/app/logs
+      - ../.env:/app/.env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - BOT_TYPE=monitoring
+    command: python bots/monitoring_system.py
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+    networks:
+      - atom-network
+
+  security:
+    build: 
+      context: ..
+      dockerfile: deploy/Dockerfile.bots
+    container_name: atom-security
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../logs:/app/logs
+      - ../.env:/app/.env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - BOT_TYPE=security
+    command: python bots/security_system.py
+    healthcheck:
+      test: ["CMD", "python", "-c", "import redis; r=redis.Redis(host='redis'); r.ping()"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+    networks:
+      - atom-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: atom-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - monitoring
+    networks:
+      - atom-network
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: atom-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=3600
+      - WATCHTOWER_INCLUDE_STOPPED=true
+    command: --interval 3600 --cleanup
+    networks:
+      - atom-network
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  atom-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

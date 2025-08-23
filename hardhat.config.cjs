@@ -3,15 +3,12 @@ require("@nomicfoundation/hardhat-verify");
 require("hardhat-deploy");
 require("hardhat-gas-reporter");
 require("solidity-coverage");
-require("dotenv").config({ path: 'backend/.env' });
+require("dotenv").config({ path: '.env' });
 
 // Environment variables
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
-const SEPOLIA_RPC_URL = process.env.SEPOLIA_RPC_URL || "https://ethereum-sepolia.publicnode.com";
-const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY || "";
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || "";
-const BASESCAN_API_KEY = process.env.BASESCAN_API_KEY || "";
-const INFURA_API_KEY = process.env.INFURA_API_KEY || "";
+const POLYGON_RPC_URL = process.env.POLYGON_RPC_URL || "https://polygon-rpc.com";
+const POLYGONSCAN_API_KEY = process.env.POLYGONSCAN_API_KEY || "";
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -48,79 +45,39 @@ module.exports = {
       allowUnlimitedContractSize: true,
       timeout: 1800000,
       forking: {
-        url: SEPOLIA_RPC_URL,
+        url: POLYGON_RPC_URL,
         enabled: false,
       },
     },
-    
+
     localhost: {
       url: "http://127.0.0.1:8545",
       chainId: 31337,
     },
-    
-    sepolia: {
-      url: SEPOLIA_RPC_URL,
+
+    polygon: {
+      url: POLYGON_RPC_URL,
       accounts: [PRIVATE_KEY],
-      chainId: 11155111,
+      chainId: 137,
       gas: 2100000,
-      gasPrice: 20000000000, // 20 gwei
-      timeout: 60000,
-      confirmations: 2,
-    },
-    
-    base: {
-      url: `https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
-      accounts: [PRIVATE_KEY],
-      chainId: 8453,
-      gas: 2100000,
-      gasPrice: 8000000000,
+      gasPrice: 30000000000, // 30 gwei
       timeout: 60000,
       confirmations: 3,
     },
-    
-    ethereum: {
-      url: `https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
-      accounts: [PRIVATE_KEY],
-      chainId: 1,
-      gas: 2100000,
-      gasPrice: 20000000000,
-      timeout: 60000,
-      confirmations: 3,
-    },
-    
-    sepolia: {
-      url: `https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
-      accounts: [PRIVATE_KEY],
-      chainId: 11155111,
-      gas: 2100000,
-      gasPrice: 8000000000,
-      timeout: 60000,
-      confirmations: 2,
-    },
+
   },
   
   etherscan: {
     apiKey: {
-      mainnet: ETHERSCAN_API_KEY,
-      sepolia: ETHERSCAN_API_KEY,
-      base: BASESCAN_API_KEY,
-      baseSepolia: BASESCAN_API_KEY,
+      polygon: POLYGONSCAN_API_KEY,
     },
     customChains: [
       {
-        network: "base",
-        chainId: 8453,
+        network: "polygon",
+        chainId: 137,
         urls: {
-          apiURL: "https://api.basescan.org/api",
-          browserURL: "https://basescan.org"
-        }
-      },
-      {
-        network: "baseSepolia",
-        chainId: 84532,
-        urls: {
-          apiURL: "https://api-sepolia.basescan.org/api",
-          browserURL: "https://sepolia.basescan.org"
+          apiURL: "https://api.polygonscan.com/api",
+          browserURL: "https://polygonscan.com"
         }
       }
     ]
@@ -147,7 +104,7 @@ module.exports = {
   },
   
   paths: {
-    sources: "./backend/contracts",
+    sources: "./contracts",
     tests: "./test",
     cache: "./cache",
     artifacts: "./artifacts",

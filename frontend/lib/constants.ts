@@ -50,7 +50,7 @@ export const API_ENDPOINTS = {
   ARBITRAGE: '/arbitrage',
   FLASH_LOAN: '/flash-loan',
   DEPLOY_BOT: '/deploy-bot',
-  ADD_TOKEN: '/add-token',
+  PORTFOLIO: '/portfolio',
   AGENT_CHAT: '/agent-chat',
   CONTACT: '/contact',
 } as const;

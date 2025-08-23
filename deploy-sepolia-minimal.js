@@ -12,13 +12,13 @@ async function main() {
   
   try {
     // 1. Deploy MinimalPriceMonitor
-    console.log("\n📊 Deploying MinimalPriceMonitor...");
-    const MinimalPriceMonitor = await ethers.getContractFactory("MinimalPriceMonitor");
-    const priceMonitor = await MinimalPriceMonitor.deploy();
+    console.log("\n📊 Deploying PriceMonitor...");
+    const PriceMonitor = await ethers.getContractFactory("PriceMonitor");
+    const priceMonitor = await PriceMonitor.deploy();
     await priceMonitor.waitForDeployment();
     
     deployedContracts.priceMonitor = await priceMonitor.getAddress();
-    console.log("✅ MinimalPriceMonitor deployed to:", deployedContracts.priceMonitor);
+    console.log("✅ PriceMonitor deployed to:", deployedContracts.priceMonitor);
     
     // 2. Deploy MinimalFlashLoan
     console.log("\n⚡ Deploying MinimalFlashLoan...");

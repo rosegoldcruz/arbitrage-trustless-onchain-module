@@ -22,25 +22,127 @@ interface IERC20 {
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
     function balanceOf(address account) external view returns (uint256);
     function approve(address spender, uint256 amount) external returns (bool);
+    function decimals() external view returns (uint8);
+}
+
+// Uniswap V3 Interfaces
+interface ISwapRouter {
+    struct ExactInputSingleParams {
+        address tokenIn;
+        address tokenOut;
+        uint24 fee;
+        address recipient;
+        uint256 deadline;
+        uint256 amountIn;
+        uint256 amountOutMinimum;
+        uint160 sqrtPriceLimitX96;
+    }
+
+    function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
+}
+
+interface IQuoter {
+    function quoteExactInputSingle(
+        address tokenIn,
+        address tokenOut,
+        uint24 fee,
+        uint256 amountIn,
+        uint160 sqrtPriceLimitX96
+    ) external returns (uint256 amountOut);
+}
+
+// QuickSwap/SushiSwap Router Interface
+interface IUniswapV2Router {
+    function getAmountsOut(uint amountIn, address[] calldata path)
+        external view returns (uint[] memory amounts);
+
+    function swapExactTokensForTokens(
+        uint amountIn,
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external returns (uint[] memory amounts);
+}
+
+// Balancer V2 Interfaces
+interface IVault {
+    struct SingleSwap {
+        bytes32 poolId;
+        uint8 kind;
+        address assetIn;
+        address assetOut;
+        uint256 amount;
+        bytes userData;
+    }
+
+    struct FundManagement {
+        address sender;
+        bool fromInternalBalance;
+        address payable recipient;
+        bool toInternalBalance;
+    }
+
+    function swap(
+        SingleSwap memory singleSwap,
+        FundManagement memory funds,
+        uint256 limit,
+        uint256 deadline
+    ) external returns (uint256);
+
+    function queryBatchSwap(
+        uint8 kind,
+        BatchSwapStep[] memory swaps,
+        address[] memory assets,
+        FundManagement memory funds
+    ) external returns (int256[] memory assetDeltas);
+
+    struct BatchSwapStep {
+        bytes32 poolId;
+        uint256 assetInIndex;
+        uint256 assetOutIndex;
+        uint256 amount;
+        bytes userData;
+    }
 }
 
 /**
  * @title ProductionFlashLoan
- * @dev Production-ready flash loan contract with real Aave V3 integration
+ * @dev Production-ready flash loan contract with real Aave V3 integration for Polygon
  */
 contract ProductionFlashLoan {
-    
-    // Aave V3 Sepolia addresses
-    IPoolAddressesProvider public constant ADDRESSES_PROVIDER = 
-        IPoolAddressesProvider(0x012bAC54348C0E635dCAc9D5FB99f06F24136C9A);
-    
+
+    // Aave V3 Polygon addresses
+    IPoolAddressesProvider public constant ADDRESSES_PROVIDER =
+        IPoolAddressesProvider(0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb);
+
+    // Polygon DEX addresses
+    ISwapRouter public constant UNISWAP_V3_ROUTER = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
+    IQuoter public constant UNISWAP_V3_QUOTER = IQuoter(0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6);
+    IUniswapV2Router public constant QUICKSWAP_ROUTER = IUniswapV2Router(0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff);
+    IUniswapV2Router public constant SUSHISWAP_ROUTER = IUniswapV2Router(0x1b02dA8Cb0d097eB8D57A175b88c7D8b47997506);
+    IVault public constant BALANCER_VAULT = IVault(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
+
+    // Common token addresses on Polygon
+    address public constant WETH = 0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619;
+    address public constant USDC = 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174;
+    address public constant USDT = 0xc2132D05D31c914a87C6611C10748AEb04B58e8F;
+    address public constant DAI = 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063;
+    address public constant WMATIC = 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270;
+
+    // Trading parameters
+    uint256 public constant MAX_SLIPPAGE_BPS = 300; // 3%
+    uint256 public constant MIN_PROFIT_BPS = 23; // 0.23%
+    uint256 public constant MAX_GAS_PRICE = 100 gwei;
+
     address public owner;
     uint256 public totalTrades;
     uint256 public successfulTrades;
     uint256 public totalProfit;
     bool public paused;
-    
+
     mapping(address => bool) public authorizedTraders;
+    mapping(address => uint256) public tokenProfits;
     
     event FlashLoanExecuted(address indexed asset, uint256 amount, bool success, uint256 profit);
     event TradeExecuted(address indexed trader, address indexed asset, uint256 amount, bool success);

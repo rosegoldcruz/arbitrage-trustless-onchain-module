@@ -11,12 +11,17 @@ import { ethers } from 'ethers';
 // import { useWeb3Auth } from '@/contexts/Web3AuthContext';
 import { toast } from 'sonner';
 
-// Contract addresses (Base Sepolia - update after deployment)
+// Contract addresses (loaded from environment variables)
 const CONTRACT_ADDRESSES = {
-  triangularArbitrage: '0x0000000000000000000000000000000000000000', // Update after deployment
-  priceMonitor: '0x0000000000000000000000000000000000000000', // Update after deployment
-  executionEngine: '0x0000000000000000000000000000000000000000', // Update after deployment
+  triangularArbitrage: process.env.NEXT_PUBLIC_TRIANGULAR_ARBITRAGE_ADDRESS || '0x0000000000000000000000000000000000000000',
+  priceMonitor: process.env.NEXT_PUBLIC_PRICE_MONITOR_ADDRESS || '0x0000000000000000000000000000000000000000',
+  executionEngine: process.env.NEXT_PUBLIC_ATOM_CONTRACT_ADDRESS || '0x0000000000000000000000000000000000000000',
 };
+
+// Environment validation
+if (!process.env.NEXT_PUBLIC_ATOM_CONTRACT_ADDRESS) {
+  console.warn('⚠️ Missing NEXT_PUBLIC_ATOM_CONTRACT_ADDRESS environment variable');
+}
 
 // Simplified ABIs for frontend interaction
 const TRIANGULAR_ARBITRAGE_ABI = [
@@ -47,12 +52,12 @@ const EXECUTION_ENGINE_ABI = [
   'event ArbitrageExecuted(bytes32 indexed tripleId, uint256 amountIn, uint256 profit, bool successful)'
 ];
 
-// Token addresses (Base Sepolia)
+// Token addresses (loaded from environment variables)
 export const TOKENS = {
-  DAI: '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
-  USDC: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-  WETH: '0x4200000000000000000000000000000000000006',
-  GHO: '0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f'
+  DAI: process.env.NEXT_PUBLIC_DAI_ADDRESS || '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb',
+  USDC: process.env.NEXT_PUBLIC_USDC_ADDRESS || '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+  WETH: process.env.NEXT_PUBLIC_WETH_ADDRESS || '0x4200000000000000000000000000000000000006',
+  GHO: process.env.NEXT_PUBLIC_GHO_ADDRESS || '0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f'
 };
 
 interface ArbitrageStats {
@@ -235,8 +240,8 @@ export function useArbitrageContracts() {
         tokenA,
         tokenB,
         tokenC,
-        poolAB: '0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E', // Mock pool addresses
-        poolBC: '0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0',
+        poolAB: process.env.NEXT_PUBLIC_POOL_AB_ADDRESS || '0x4DEcE678ceceb27446b35C672dC7d61F30bAD69E', // Pool addresses from env
+        poolBC: process.env.NEXT_PUBLIC_POOL_BC_ADDRESS || '0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0',
         poolCA: '0xBA12222222228d8Ba445958a75a0704d566BF2C8',
         amountIn: BigInt(parseFloat(amount) * 10**18),
         minProfitBps: 23, // 0.23%

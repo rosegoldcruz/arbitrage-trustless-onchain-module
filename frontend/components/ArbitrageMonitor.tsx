@@ -74,7 +74,7 @@ const ArbitrageMonitor: React.FC = () => {
   // Fetch arbitrage status
   const fetchStatus = async () => {
     try {
-      const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://api.smart4technology.com';
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'https://api.aeoninvestmentstechnologies.com';
       const response = await fetch(`${API_BASE}/arbitrage/status`);
       if (response.ok) {
         const data = await response.json();
