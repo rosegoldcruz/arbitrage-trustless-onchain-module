@@ -67,6 +67,8 @@ from api import mev as mev_router
 app.include_router(mev_router.router)
 from api import liquidity as liquidity_router
 app.include_router(liquidity_router.router)
+from api import stat_arb as stat_arb_router
+app.include_router(stat_arb_router.router)
 
 @app.get("/")
 async def root():
