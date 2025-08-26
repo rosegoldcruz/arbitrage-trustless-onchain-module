@@ -56,7 +56,6 @@ class ProductionTradeExecutor:
         if chain_id != 137:
             raise ValueError(f"Connected to wrong network. Expected Polygon (137), got {chain_id}")
 
-        logger.info(f"✅ Connected to Polygon mainnet, block: {self.w3.eth.block_number}")
 
         # Load configuration from secure config
         self.min_profit_bps = self.config.get('min_profit_threshold_bps')
@@ -78,11 +77,6 @@ class ProductionTradeExecutor:
         self.max_daily_loss = self.config.get('max_daily_loss_usd')
 
     def setup_redis(self):
-        """Initialize Redis connection - SECURE: Environment Variables Only"""
-        redis_url = self.config.get('redis_url')
-        if not redis_url:
-            raise ValueError("REDIS_URL environment variable required")
-
         self.redis_client = redis.from_url(redis_url, decode_responses=True)
 
         # Test Redis connection
