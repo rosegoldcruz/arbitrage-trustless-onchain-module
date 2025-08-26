@@ -65,6 +65,8 @@ from api import triangular as triangular_router
 app.include_router(triangular_router.router)
 from api import mev as mev_router
 app.include_router(mev_router.router)
+from api import liquidity as liquidity_router
+app.include_router(liquidity_router.router)
 
 @app.get("/")
 async def root():

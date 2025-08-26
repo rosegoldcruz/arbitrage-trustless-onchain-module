@@ -23,6 +23,7 @@ import { AnalyticsDashboard } from "@/components/dashboard/AnalyticsDashboard";
 import { VolatilityWidget } from "@/components/dashboard/VolatilityWidget";
 import { TriangularWidget } from "@/components/dashboard/TriangularWidget";
 import { MEVWidget } from "@/components/dashboard/MEVWidget";
+import { LiquidityWidget } from "@/components/dashboard/LiquidityWidget";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("realtime");
@@ -111,6 +112,13 @@ export default function DashboardPage() {
               transition={{ duration: 0.5 }}
             >
               <MEVWidget />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <LiquidityWidget />
             </motion.div>
           </TabsContent>
 
