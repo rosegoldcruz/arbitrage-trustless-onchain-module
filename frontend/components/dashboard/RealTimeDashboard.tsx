@@ -206,9 +206,9 @@ export function RealTimeDashboard() {
           {dashboardData.system_status.toUpperCase()}
         </Badge>
       </div>
-      {/* Temporary notice: 0x disabled on Base Sepolia */}
-      <div className="rounded-md border border-yellow-700 bg-yellow-900/30 text-yellow-300 px-4 py-3">
-        0x Aggregator temporarily disabled on Base Sepolia testnet. Logic remains enabled for mainnet; quotes are skipped gracefully on testnet.
+      {/* System Status Notice */}
+      <div className="rounded-md border border-green-700 bg-green-900/30 text-green-300 px-4 py-3">
+        🚀 ATOM Arbitrage System running on Polygon Mainnet. All DEX integrations active and operational.
       </div>
 
 

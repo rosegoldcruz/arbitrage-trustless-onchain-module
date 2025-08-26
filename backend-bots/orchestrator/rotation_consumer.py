@@ -1,13 +1,30 @@
-import os
-from decimal import Decimal
-from infra.redis_bus import Bus
-from engine.exec import try_dual_leg
-BUS = Bus()
-MIN_BPS = Decimal(os.getenv("ATOM_MIN_PROFIT_THRESHOLD_BPS","23"))
-def on_signal(msg):
-    for usd in [5000, 10000, 20000]:
-        ok, net_bps = try_dual_leg(usd)
-        print(f"[orchestrator] attempt {usd} -> ok={ok} net_bps={net_bps}")
-        if ok and net_bps >= MIN_BPS: break
-def run(): BUS.subscribe("signals.rotation", on_signal)
-if __name__ == "__main__": run()
+#!/usr/bin/env python3
+"""
+Rotation Consumer
+⚠️ This is a diagnostic subscriber only — not part of core execution.
+
+Listens to Redis channels and logs structured messages.
+Useful for debugging bus events without interfering with production bots.
+"""
+
+import json
+import logging
+from backend_bots.infra.redis_bus import Bus
+
+logger = logging.getLogger("orchestrator.rotation_consumer")
+logging.basicConfig(level=logging.INFO)
+
+CHANNEL = "flows.univ3"  # example, adjust to your production bus channel
+
+def handle_message(msg: dict):
+    try:
+        logger.info(f"[rotation_consumer] {json.dumps(msg)}")
+    except Exception as e:
+        logger.error(f"Failed to log message: {e}")
+
+def run():
+    bus = Bus()
+    bus.subscribe(CHANNEL, handle_message)
+
+if __name__ == "__main__":
+    run()

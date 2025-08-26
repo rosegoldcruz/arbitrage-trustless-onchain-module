@@ -1,0 +1,279 @@
+{
+  "manifestVersion": "3.2",
+  "proxies": [
+    {
+      "address": "0xDb88F49fbaF8d4e1134460906d46cf86fE87B7E6",
+      "txHash": "0xab8f5d50964995675b47c2076d6bd6961201db1bc827e586b44b42ae03e5f284",
+      "kind": "uups"
+    }
+  ],
+  "impls": {
+    "5ba20a55601d6e42ee7e9945f2ccad7a58c116694ac314b9f1378f650cef58cd": {
+      "address": "0x078cd040E4Fe16784B4eCc644b8c6b2d55F5E480",
+      "txHash": "0xe75aeebba9a5380b8762a77147be894cfbaf419c354ccc04eb25dbad1e7cd105",
+      "layout": {
+        "solcVersion": "0.8.22",
+        "storage": [
+          {
+            "label": "pool",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IPool)638",
+            "contract": "MEVGuardFlashLoanArbitrage",
+            "src": "contracts/MEVGuardFlashLoanArbitrage.sol:34"
+          },
+          {
+            "label": "treasury",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address",
+            "contract": "MEVGuardFlashLoanArbitrage",
+            "src": "contracts/MEVGuardFlashLoanArbitrage.sol:35"
+          },
+          {
+            "label": "maxGasPrice",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256",
+            "contract": "MEVGuardFlashLoanArbitrage",
+            "src": "contracts/MEVGuardFlashLoanArbitrage.sol:36"
+          },
+          {
+            "label": "allowedRouter",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "MEVGuardFlashLoanArbitrage",
+            "src": "contracts/MEVGuardFlashLoanArbitrage.sol:38"
+          },
+          {
+            "label": "minProfitByAsset",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "MEVGuardFlashLoanArbitrage",
+            "src": "contracts/MEVGuardFlashLoanArbitrage.sol:39"
+          },
+          {
+            "label": "maxFlashLoanAmount",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_mapping(t_address,t_uint256)",
+            "contract": "MEVGuardFlashLoanArbitrage",
+            "src": "contracts/MEVGuardFlashLoanArbitrage.sol:40"
+          },
+          {
+            "label": "onlyTrustedRelayers",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_bool",
+            "contract": "MEVGuardFlashLoanArbitrage",
+            "src": "contracts/MEVGuardFlashLoanArbitrage.sol:42"
+          },
+          {
+            "label": "trustedRelayer",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_address,t_bool)",
+            "contract": "MEVGuardFlashLoanArbitrage",
+            "src": "contracts/MEVGuardFlashLoanArbitrage.sol:43"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "8",
+            "type": "t_array(t_uint256)45_storage",
+            "contract": "MEVGuardFlashLoanArbitrage",
+            "src": "contracts/MEVGuardFlashLoanArbitrage.sol:247"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)948_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(AccessControlStorage)958_storage": {
+            "label": "struct AccessControlUpgradeable.AccessControlStorage",
+            "members": [
+              {
+                "label": "_roles",
+                "type": "t_mapping(t_bytes32,t_struct(RoleData)948_storage)",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(InitializableStorage)1135_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)1075_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(PausableStorage)1286_storage": {
+            "label": "struct PausableUpgradeable.PausableStorage",
+            "members": [
+              {
+                "label": "_paused",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(ReentrancyGuardStorage)1350_storage": {
+            "label": "struct ReentrancyGuardUpgradeable.ReentrancyGuardStorage",
+            "members": [
+              {
+                "label": "_status",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(RoleData)948_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "hasRole",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_array(t_uint256)45_storage": {
+            "label": "uint256[45]",
+            "numberOfBytes": "1440"
+          },
+          "t_contract(IPool)638": {
+            "label": "contract IPool",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)",
+            "numberOfBytes": "32"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Pausable": [
+            {
+              "contract": "PausableUpgradeable",
+              "label": "_paused",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol:21",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.ReentrancyGuard": [
+            {
+              "contract": "ReentrancyGuardUpgradeable",
+              "label": "_status",
+              "type": "t_uint256",
+              "src": "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol:43",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.AccessControl": [
+            {
+              "contract": "AccessControlUpgradeable",
+              "label": "_roles",
+              "type": "t_mapping(t_bytes32,t_struct(RoleData)948_storage)",
+              "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:62",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

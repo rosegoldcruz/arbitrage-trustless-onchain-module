@@ -1,0 +1,19 @@
+[Unit]
+Description=ATOM Stablecoin Peg Monitor (Polygon)
+After=network-online.target redis-server.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/mnt/c/Users/Administrator/atom
+EnvironmentFile=/mnt/c/Users/Administrator/atom/config/.env.production
+ExecStart=/usr/bin/python3 -u bots/stablecoin_monitor.py
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target 

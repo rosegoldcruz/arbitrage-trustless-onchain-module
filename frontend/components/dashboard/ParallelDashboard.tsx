@@ -2,7 +2,7 @@
 
 /**
  * 🚀 PARALLEL DASHBOARD COMPONENT
- * Live Balancer & 0x data visualization for Base Sepolia
+ * Live Balancer & 0x data visualization for Polygon Mainnet
  * NO MOCK DATA - PRODUCTION GRADE REAL-TIME FEEDS
  */
 

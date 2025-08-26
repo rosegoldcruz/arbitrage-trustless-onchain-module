@@ -32,6 +32,7 @@ production.env
 development.env
 staging.env
 test.env
+env.production
 
 # ============================================================================
 # 🔐 SPECIFIC SECRET FILES - NO WILDCARDS 🔐
@@ -236,3 +237,5 @@ node_modules/
 _archive/
 
 .vercel
+.env
+.env.*

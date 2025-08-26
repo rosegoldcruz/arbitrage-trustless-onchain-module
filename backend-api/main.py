@@ -1,58 +1,71 @@
-from fastapi import FastAPI, Request, HTTPException
+#!/usr/bin/env python3
+"""
+Main FastAPI entrypoint for ATOM backend API.
+"""
+
+import logging
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from api.metrics import router as metrics
-import os
-import redis
-import time
+from starlette.middleware.trustedhost import TrustedHostMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
-app = FastAPI(title="ATOM Arbitrage API", version="2.0.0")
+from config.secure_config import SecureConfig
+from api import metrics
 
-# Redis for rate limiting
-redis_client = redis.Redis.from_url(os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0"))
+logger = logging.getLogger("backend.main")
+logging.basicConfig(level=logging.INFO)
 
-# CORS Configuration
+_cfg = SecureConfig()
+
+# ------------------------------------------------------------------------------
+# Rate limiting config
+# ------------------------------------------------------------------------------
+limiter = Limiter(key_func=lambda request: request.client.host)
+
+RATE_LIMIT = _cfg.env.get("API_RATE_LIMIT", "100/minute")
+
+# ------------------------------------------------------------------------------
+# FastAPI App
+# ------------------------------------------------------------------------------
+app = FastAPI(
+    title="ATOM Arbitrage API",
+    version="1.0.0",
+    description="Production arbitrage backend for ATOM",
+)
+
+# CORS from env
+allowed_origins = _cfg.env.get("CORS_ALLOW_ORIGINS", "https://smart4technology.com,https://www.smart4technology.com").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://aeoninvestmentstechnologies.com",
-        "https://dashboard.aeoninvestmentstechnologies.com",
-        "https://api.aeoninvestmentstechnologies.com",
-        "http://localhost:3000"
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Trusted Host Middleware
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=[
-        "aeoninvestmentstechnologies.com",
-        "*.aeoninvestmentstechnologies.com",
-        "localhost",
-        "127.0.0.1"
-    ]
-)
+# Trusted Hosts
+trusted_hosts = _cfg.env.get("TRUSTED_HOSTS", "localhost,127.0.0.1").split(",")
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=trusted_hosts)
 
-@app.middleware("http")
-async def rate_limit_middleware(request: Request, call_next):
-    client_ip = request.client.host
-    key = f"rate_limit:{client_ip}"
+# Rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-    try:
-        current_requests = redis_client.incr(key)
-        if current_requests == 1:
-            redis_client.expire(key, 60)  # 60 seconds window
+# Routers
+app.include_router(metrics.router)
+from api import addresses as addresses_router
+app.include_router(addresses_router.router)
+from api import stablecoin as stablecoin_router
+app.include_router(stablecoin_router.router)
+from api import volatility as volatility_router
+app.include_router(volatility_router.router)
+from api import triangular as triangular_router
+app.include_router(triangular_router.router)
+from api import mev as mev_router
+app.include_router(mev_router.router)
 
-        if current_requests > 100:  # 100 requests per minute
-            raise HTTPException(status_code=429, detail="Rate limit exceeded")
-    except redis.RedisError:
-        # If Redis is down, allow the request but log the error
-        pass
-
-    response = await call_next(request)
-    return response
-
-app.include_router(metrics)
+@app.get("/")
+async def root():
+    return {"status": "ok", "service": "atom-backend-api"}

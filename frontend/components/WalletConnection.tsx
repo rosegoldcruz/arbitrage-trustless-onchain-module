@@ -82,16 +82,16 @@ export default function WalletConnection() {
             {chainId && (
               <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
                   <div>
                     <p className="text-white font-medium">Network</p>
                     <p className="text-sm text-gray-400">
-                      {chainId === 84532 ? 'Base Sepolia' : `Chain ID: ${chainId}`}
+                      {chainId === 137 ? 'Polygon Mainnet' : `Chain ID: ${chainId}`}
                     </p>
                   </div>
                 </div>
-                <Badge variant="outline" className="border-blue-500 text-blue-400">
-                  {chainId === 84532 ? 'Testnet' : 'Unknown'}
+                <Badge variant="outline" className="border-purple-500 text-purple-400">
+                  {chainId === 137 ? 'Mainnet' : 'Unknown'}
                 </Badge>
               </div>
             )}

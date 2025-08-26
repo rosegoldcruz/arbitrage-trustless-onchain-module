@@ -1,0 +1,11 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "proxy": "0xDb88F49fbaF8d4e1134460906d46cf86fE87B7E6",
+  "implementation": "0x078cd040E4Fe16784B4eCc644b8c6b2d55F5E480",
+  "deployer": "0x1f62B60669E492b783E1dD1d805fBC7588A8557e",
+  "aaveProvider": "0x0496275d34753A48320CA58103d5220d394FF77F",
+  "treasury": "0x1f62B60669E492b783E1dD1d805fBC7588A8557e",
+  "txHash": "",
+  "timestamp": "2025-01-01T00:00:00.000Z"
+} 

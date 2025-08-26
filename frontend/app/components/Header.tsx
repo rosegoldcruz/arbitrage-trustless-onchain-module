@@ -15,6 +15,12 @@ export default function Header() {
           <img src="/1.png" alt="ATOM" className="h-9 w-9 object-contain hover:opacity-90 transition-opacity" />
         </Link>
 
+        {/* Center: primary nav */}
+        <div className="hidden md:flex items-center gap-6">
+          <Link href="/" className={`text-sm hover:text-white/90 ${pathname === "/" ? "text-white" : "text-white/70"}`}>Home</Link>
+          <Link href="/dashboard" className={`text-sm hover:text-white/90 ${pathname?.startsWith("/dashboard") ? "text-white" : "text-white/70"}`}>Dashboard</Link>
+        </div>
+
         {/* Right: auth controls */}
         <div className="flex items-center gap-3">
           <SignedOut>
@@ -29,6 +35,12 @@ export default function Header() {
           </SignedOut>
 
           <SignedIn>
+            <Link
+              href="/dashboard"
+              className="hidden sm:inline-block rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm hover:bg-white/20 transition-colors"
+            >
+              Dashboard
+            </Link>
             <UserButton
               afterSignOutUrl="/"
               appearance={{

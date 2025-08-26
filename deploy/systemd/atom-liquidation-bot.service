@@ -1,0 +1,32 @@
+[Unit]
+Description=ATOM Liquidation Scanner (Polygon)
+After=network-online.target redis-server.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=atom
+Group=atom
+WorkingDirectory=/mnt/c/Users/Administrator/atom
+EnvironmentFile=/mnt/c/Users/Administrator/atom/config/.env.production
+ExecStart=/opt/atom-venv/bin/python -u bots/liquidation_bot.py
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+# Sandboxing
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/mnt/c/Users/Administrator/atom
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+MemoryDenyWriteExecute=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+UMask=027
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target 

@@ -1,22 +1,20 @@
-# ATOM Minimal Sepolia Setup - Two Backend Architecture
+# ATOM Polygon Mainnet - Advanced Arbitrage System
 
 ## Repository Structure
 ATOM/
 ├── contracts/
-│   └── BasicFlashLoan.sol
+│   └── PolygonArbitrageEngine.sol
 ├── scripts/
-│   └── deploy-sepolia-minimal.js
+│   └── deploy-polygon.js
 ├── hardhat.config.cjs
 ├── package.json
 ├── .gitignore
 ├── .env.example
 ├── backend-api/                         # API-only service
 │   ├── main.py
-│   ├── .env.sepolia                    # NON-SECRET (uses Sepolia URLs, no keys)
 │   └── api/
 │       └── metrics.py
 ├── backend-bots/                        # signals + orchestrator runtime
-│   ├── .env.sepolia                    # NON-SECRET (simulate + DRY_RUN)
 │   ├── infra/redis_bus.py
 │   ├── watchers/sim_rotation_feed.py
 │   ├── signals/rotation.py

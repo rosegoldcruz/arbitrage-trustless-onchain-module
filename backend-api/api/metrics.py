@@ -1,72 +1,48 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-import time
-import os
-import json
+#!/usr/bin/env python3
+"""
+Metrics API Router
+- Serves JSON API metrics and Prometheus scrape endpoint.
+"""
 
-router = APIRouter()
+import logging
+from fastapi import APIRouter, Depends
+from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+from starlette.responses import Response, JSONResponse
 
-class SystemStatus(BaseModel):
-    status: str
-    timestamp: int
-    chain_id: int
-    network: str
-    version: str
+from config.secure_config import SecureConfig
+from backend_bots.prometheus_metrics import exporter_uptime_seconds
 
-class ArbitrageMetrics(BaseModel):
-    total_opportunities: int
-    successful_trades: int
-    total_profit_usd: float
-    success_rate: float
-    last_trade_timestamp: int
+logger = logging.getLogger("api.metrics")
+router = APIRouter(prefix="/metrics", tags=["metrics"])
 
-@router.get("/health")
-def health():
+_cfg = SecureConfig()
+
+@router.get("/health", response_class=JSONResponse)
+async def health():
+    """
+    Basic health check.
+    """
+    return {"status": "ok"}
+
+@router.get("/prometheus")
+async def prometheus_metrics():
+    """
+    Prometheus metrics scrape endpoint.
+    """
+    data = generate_latest()
+    return Response(content=data, media_type=CONTENT_TYPE_LATEST)
+
+@router.get("/status")
+async def status():
+    """
+    Structured system status (expand with Redis/DB signals later).
+    """
     return {
-        "ok": True,
-        "timestamp": int(time.time()),
-        "service": "ATOM Arbitrage API",
-        "version": "2.0.0"
-    }
-
-@router.get("/status", response_model=SystemStatus)
-def get_system_status():
-    return SystemStatus(
-        status="operational",
-        timestamp=int(time.time()),
-        chain_id=137,
-        network="polygon_mainnet",
-        version="2.0.0"
-    )
-
-@router.get("/metrics", response_model=ArbitrageMetrics)
-def get_arbitrage_metrics():
-    # In production, this would fetch from Redis/database
-    return ArbitrageMetrics(
-        total_opportunities=0,
-        successful_trades=0,
-        total_profit_usd=0.0,
-        success_rate=0.0,
-        last_trade_timestamp=0
-    )
-
-@router.get("/analytics/dashboard")
-def get_dashboard_analytics():
-    return {
-        "profit_24h": 0.0,
-        "trades_24h": 0,
-        "success_rate": 0.0,
-        "active_opportunities": 0,
-        "system_health": "operational",
-        "last_update": int(time.time())
-    }
-
-@router.get("/analytics/real-time-stats")
-def get_real_time_stats():
-    return {
-        "current_gas_price": 0,
-        "pending_opportunities": 0,
-        "active_trades": 0,
-        "profit_today": 0.0,
-        "timestamp": int(time.time())
+        "rpc_endpoints": {
+            "polygon": _cfg.get_rpc_url("polygon"),
+            "ethereum": _cfg.get_rpc_url("ethereum"),
+            "base": _cfg.get_rpc_url("base"),
+            "arbitrum": _cfg.get_rpc_url("arbitrum"),
+        },
+        "wallet_address": "hidden",  # do not expose private addresses here
     }

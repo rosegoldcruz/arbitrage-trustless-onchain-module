@@ -31,7 +31,7 @@ export default function SettingsPage() {
     minProfitThreshold: "0.01",
     maxGasPrice: "50",
     slippageTolerance: "0.5",
-    defaultNetwork: "base",
+    defaultNetwork: "polygon",
 
     // API Settings
     backendUrl: "https://api.aeoninvestmentstechnologies.com",
