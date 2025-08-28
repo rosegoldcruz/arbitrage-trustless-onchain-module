@@ -1,0 +1,15 @@
+[Unit]
+Description=ATOM FastAPI
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=atom
+WorkingDirectory=/srv/atom/backend-api
+EnvironmentFile=/etc/atom/backend-api.env
+ExecStart=/usr/bin/uvicorn main:app --app-dir /srv/atom/backend-api --host 0.0.0.0 --port 8000 --proxy-headers
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

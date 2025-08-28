@@ -1,20 +1,16 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-
-const isPublicRoute = createRouteMatcher([
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  "/login(.*)",
-  "/register(.*)",
-]);
+import { clerkMiddleware } from "@clerk/nextjs/server";
 
 export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) await auth.protect();
+  await auth.protect();
 });
 
+// Only invoke Clerk on private zones. Do NOT include "/" here.
 export const config = {
   matcher: [
-    "/((?!.*\\..*|_next).*)",
-    "/",
-    "/(api|trpc)(.*)",
+    "/dashboard/:path*",      // authenticated app
+    "/account/:path*",        // user settings area (if used)
+    "/admin/:path*",          // admin area (if used)
+    // Next API routes that require auth (most APIs are FastAPI on separate domain)
+    "/api/private/:path*",
   ],
 };

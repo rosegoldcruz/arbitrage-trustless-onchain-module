@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'atom-backend-api'
+    static_configs:
+      - targets: ['backend-api:8000']
+
+  - job_name: 'atom-exporters'
+    static_configs:
+      - targets: ['localhost:9101', 'localhost:9102', 'localhost:9103', 'localhost:9104']

@@ -7,7 +7,7 @@ Statistical Arbitrage API Router
 import json
 import logging
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
 from starlette.responses import JSONResponse
@@ -20,8 +20,13 @@ router = APIRouter(prefix="/stat-arb", tags=["stat_arb"])
 REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
 STREAM = os.getenv("STAT_ARB_REDIS_STREAM", "atom:opps:stat_arb")
 
+_redis_client: Optional[redis.Redis] = None
+
 async def _redis() -> redis.Redis:
-  return await redis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True)
+  global _redis_client
+  if _redis_client is None:
+    _redis_client = redis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True)
+  return _redis_client
 
 @router.get("/signals", response_class=JSONResponse)
 async def signals(limit: int = Query(25, ge=1, le=200)):

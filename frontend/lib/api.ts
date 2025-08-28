@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE || 'https://api.aeoninvestmentstechnologies.com';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE || 'https://api.smart4technology.com';
 
 interface ApiResponse<T = any> {
   data?: T;

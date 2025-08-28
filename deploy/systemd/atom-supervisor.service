@@ -1,0 +1,16 @@
+[Unit]
+Description=ATOM Orchestrator Supervisor
+After=network-online.target redis-server.service
+Wants=network-online.target
+
+[Service]
+User=atom
+WorkingDirectory=/srv/atom/backend-bots
+EnvironmentFile=/etc/atom/backend-api.env
+ExecStart=/usr/bin/python -m backend_bots.orchestrator.supervisor
+Restart=always
+RestartSec=3
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target 

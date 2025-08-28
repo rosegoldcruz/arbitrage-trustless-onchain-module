@@ -12,9 +12,13 @@ from typing import Dict
 from dotenv import load_dotenv
 
 # ------------------------------------------------------------------------------
-# Load .env.production
+# Load fixed env file: /etc/atom/backend-api.env (single source of truth)
 # ------------------------------------------------------------------------------
-load_dotenv(dotenv_path=".env.production")
+ENV_PATH = "/etc/atom/backend-api.env"
+if not os.path.exists(ENV_PATH):
+    print(f"❌ Missing required env file: {ENV_PATH}")
+    sys.exit(1)
+load_dotenv(dotenv_path=ENV_PATH)
 
 logger = logging.getLogger("secure_config")
 logging.basicConfig(level=logging.INFO)

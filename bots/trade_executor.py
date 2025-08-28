@@ -49,8 +49,11 @@ class TradeExecutor:
         self.wallet = {"acct": acct, "address": acct.address, "nonce": self.w3.eth.get_transaction_count(acct.address)}
 
         # Contract
+        flashloan_addr = _cfg.env.get("FLASHLOAN_ARB_ADDR") or _cfg.env.get("ATOM_CONTRACT_ADDRESS")
+        if not flashloan_addr:
+            raise ValueError("Flash loan contract address not configured (FLASHLOAN_ARB_ADDR or ATOM_CONTRACT_ADDRESS)")
         self.contract = self.w3.eth.contract(
-            address=_cfg.require("FLASHLOAN_ARB_ADDR"),
+            address=flashloan_addr,
             abi=[{
                 "inputs": [
                     {"internalType": "address", "name": "asset", "type": "address"},
@@ -61,11 +64,13 @@ class TradeExecutor:
                 "outputs": [],
                 "stateMutability": "nonpayable",
                 "type": "function",
-            }],
+            }]
         )
 
-        self.history = []
-        self.running = False
+        # Router addresses (example)
+        self.router_allowlist: Dict[str, str] = {
+            "UniswapV3": _cfg.env.get("UNISWAP_V3_ROUTER", "0xE592427A0AEce92De3Edee1F18E0157C05861564"),
+        }
 
     def encode_params(self, opp: Dict) -> bytes:
         dex_map = {"uniswap_v3": 0, "quickswap": 1, "sushiswap": 2, "balancer": 3}

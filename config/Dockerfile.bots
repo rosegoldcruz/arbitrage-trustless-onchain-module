@@ -7,20 +7,22 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
-    curl \
     git \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
-COPY requirements.txt .
+COPY requirements.txt ./
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Copy application code (backend-bots, bots, configs, contracts, abi, addresses)
+COPY backend-bots/ ./backend-bots/
 COPY bots/ ./bots/
 COPY contracts/ ./contracts/
-COPY .env.example .env.example
+COPY abi/ ./abi/
+COPY addresses/ ./addresses/
+COPY config/ ./config/
 
 # Create necessary directories
 RUN mkdir -p logs models backups

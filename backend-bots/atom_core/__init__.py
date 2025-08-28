@@ -1,0 +1,1 @@
+from .redis_pool import get_redis  # noqa: F401 

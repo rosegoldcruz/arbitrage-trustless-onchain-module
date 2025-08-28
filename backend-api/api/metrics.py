@@ -10,7 +10,7 @@ from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 from starlette.responses import Response, JSONResponse
 
 from config.secure_config import SecureConfig
-from backend_bots.prometheus_metrics import exporter_uptime_seconds
+# Removed side-effectful import from backend_bots.prometheus_metrics
 
 logger = logging.getLogger("api.metrics")
 router = APIRouter(prefix="/metrics", tags=["metrics"])

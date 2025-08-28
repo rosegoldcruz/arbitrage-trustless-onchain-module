@@ -79,10 +79,10 @@ class ProductionBotManager:
         
         try:
             # Test RPC manager
-            from rpc_manager import get_rpc_manager, get_web3
+            from backend_bots.rpc_manager import RPCManager
             
-            rpc_manager = get_rpc_manager()
-            w3 = get_web3()
+            rpc_manager = RPCManager()
+            w3 = getattr(rpc_manager, "web3", None) or rpc_manager.get_web3()
             
             # Test connectivity
             chain_id = w3.eth.chain_id
